@@ -56,7 +56,7 @@
   .profile-card {
     display: flex;
     gap: 12px;
-    padding: 12px;
+    padding: 15px;
     border-radius: 16px;
     background: #ffe7c8;
     margin-bottom: 12px;
@@ -95,7 +95,7 @@
   .assets-row {
     display: flex;
     gap: 10px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   
   .asset-card {
@@ -628,3 +628,55 @@
   .slider.round:before {
     border-radius: 50%;
   }
+
+  /* Home: раскрывающиеся блоки */
+.home-expandable {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Маленькая полоска внизу блока */
+/* Контейнер под полоску — занимает всю ширину, центрирует её */
+.home-block-handle {
+  display: flex;
+  justify-content: center;
+  margin: 8px auto 0;
+}
+
+/* Сама маленькая полоска */
+.home-block-handle-bar {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+/* У блока профиля полоска должна быть отдельной строкой снизу по центру */
+.profile-card.home-expandable {
+  flex-direction: column;
+}
+
+/* Контейнер для аватара и текста — они остаются в строку */
+.profile-card-content {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.profile-card.home-expandable .home-block-handle {
+  flex-basis: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Раскрытый блок — с тенью и чуть «поднят» */
+.home-block-expanded {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  transform: translateY(-4px);
+}
+
+/* Спрятанные блоки, когда один раскрыт */
+.home-block-hidden {
+  display: none;
+}
