@@ -262,6 +262,57 @@ const state = {
       });
     });
   }
+
+  // Home: раскрывающийся главный блок
+function setupHomeMainToggle() {
+  const homeMain = document.getElementById("home-main");
+  if (!homeMain) return;
+
+  // Начальное состояние: свернуто
+  homeMain.classList.add("home-main-collapsed");
+
+  homeMain.addEventListener("click", () => {
+    const isExpanded = homeMain.classList.contains("home-main-expanded");
+
+    // Если был раскрыт — свернуть, если был свернут — раскрыть
+    homeMain.classList.toggle("home-main-expanded", !isExpanded);
+    homeMain.classList.toggle("home-main-collapsed", isExpanded);
+  });
+}
+
+// Home: три раскрывающихся блока
+function setupHomeBlocksToggle() {
+  const profileBlock = document.querySelector(".profile-card");
+  const assetsBlock = document.querySelector(".home-assets");
+  const trackingBlock = document.querySelector(".home-tracking");
+
+  const blocks = [profileBlock, assetsBlock, trackingBlock].filter(Boolean);
+
+  if (!blocks.length) return;
+
+  blocks.forEach(block => {
+    // класс home-expandable мы уже добавили в HTML, но можно продублировать
+    block.classList.add("home-expandable");
+
+    block.addEventListener("click", () => {
+      const alreadyExpanded = block.classList.contains("home-block-expanded");
+
+      if (alreadyExpanded) {
+        // Был раскрыт — вернуть всё как было: показать все три
+        blocks.forEach(b => {
+          b.classList.remove("home-block-expanded", "home-block-hidden");
+        });
+      } else {
+        // Раскрыть только текущий, остальные спрятать
+        blocks.forEach(b => {
+          const isCurrent = b === block;
+          b.classList.toggle("home-block-expanded", isCurrent);
+          b.classList.toggle("home-block-hidden", !isCurrent);
+        });
+      }
+    });
+  });
+}
   
   // Инициализация
   document.addEventListener("DOMContentLoaded", () => {
@@ -279,6 +330,8 @@ const state = {
   
     // Переключение режимов конструктора
     setupConstructorToggle();
+    // Home: три раскрывающихся блока
+  setupHomeBlocksToggle();
   });
 
   
