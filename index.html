@@ -16,43 +16,63 @@
 
       <!-- MAIN CONTENT -->
       <main id="screen-container">
-        <!-- HOME SCREEN -->
-        <section class="screen screen-active" data-screen="home" id="home-screen">
-            <!-- 1. Блок о пользователе -->
-            <div class="profile-card">
-              <div class="avatar-circle">A</div>
-              <div class="profile-info">
-                <div class="profile-name">@Alex_Travels</div>
-                <div class="profile-country">🇫🇷 France</div>
-                <div class="profile-membership">In app for: 124 days</div>
-              </div>
-            </div>
-
-  <!-- 2. Блок состояния активов -->
-  <div class="section-block home-assets">
-    <div class="section-header">
-      <span>My Assets</span>
-    </div>
-    <div class="assets-row">
-      <div class="asset-card">
-        <div class="asset-label">Available postcards</div>
-        <div class="asset-value" id="asset-postcards">5</div>
-      </div>
-      <div class="asset-card">
-        <div class="asset-label">Available energy</div>
-        <div class="asset-value" id="asset-energy">500</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-block home-tracking">
-    <div class="section-header">
-      <span>Tracking Board</span>
-    </div>
-    <div class="tracking-list" id="tracking-list">
-      <!-- Заполняется через JS -->
-    </div>
-  </div>
+               <!-- HOME SCREEN -->
+               <section class="screen screen-active" data-screen="home" id="home-screen">
+                <!-- 1. Блок о пользователе -->
+                                <!-- 1. Блок о пользователе -->
+                <div class="profile-card home-expandable">
+                  <div class="profile-card-content">
+                    <div class="avatar-circle">A</div>
+                    <div class="profile-info">
+                      <div class="profile-name">@Alex_Travels</div>
+                      <div class="profile-country">🇫🇷 France</div>
+                      <div class="profile-membership">In app for: 124 days</div>
+                    </div>
+                  </div>
+      
+                  <!-- Полоска-подсказка внизу блока профиля -->
+                  <div class="home-block-handle">
+                    <span class="home-block-handle-bar"></span>
+                  </div>
+                </div>
+    
+                <!-- 2. Блок состояния активов -->
+                <div class="section-block home-assets home-expandable">
+                  <div class="section-header">
+                    <span>My Assets</span>
+                  </div>
+                  <div class="assets-row">
+                    <div class="asset-card">
+                      <div class="asset-label">Available postcards</div>
+                      <div class="asset-value" id="asset-postcards">5</div>
+                    </div>
+                    <div class="asset-card">
+                      <div class="asset-label">Available energy</div>
+                      <div class="asset-value" id="asset-energy">500</div>
+                    </div>
+                  </div>
+      
+                  <!-- Полоска-подсказка внизу блока активов -->
+                  <div class="home-block-handle">
+                    <span class="home-block-handle-bar"></span>
+                  </div>
+                </div>
+      
+                <!-- 3. Tracking Board -->
+                <div class="section-block home-tracking home-expandable">
+                  <div class="section-header">
+                    <span>Tracking Board</span>
+                  </div>
+                  <div class="tracking-list" id="tracking-list">
+                    <!-- Заполняется через JS -->
+                  </div>
+      
+                  <!-- Полоска-подсказка внизу Tracking Board -->
+                  <div class="home-block-handle">
+                    <span class="home-block-handle-bar"></span>
+                  </div>
+                </div>
+              </section>
 </section>
 
         <!-- PROFILE SCREEN -->
