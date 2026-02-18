@@ -19,17 +19,33 @@
         <!-- HOME SCREEN -->
         <section class="screen screen-active" data-screen="home" id="home-screen">
             <!-- 1. Блок о пользователе -->
-            <div class="profile-card">
-              <div class="avatar-circle">A</div>
-              <div class="profile-info">
-                <div class="profile-name">@Alex_Travels</div>
-                <div class="profile-country">🇫🇷 France</div>
-                <div class="profile-membership">In app for: 124 days</div>
+            <div class="profile-card clickable-block">
+              <div class="profile-header-top">
+                <div class="avatar-circle" id="display-avatar">A</div>
+                <div class="profile-info">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="profile-name" id="display-name">@Alex</div>
+                    <input type="text" id="edit-name-input" class="about-input" style="display:none; height: 24px;">
+                    <div class="profile-country" id="display-flag">🇫🇷</div>
+                  </div>
+                  <div class="profile-membership">In app for: 124 days</div>
+                </div>
+              </div>
+            
+              <div class="extra-content">
+                <div class="section-title">About Me</div>
+                <p class="small-text" id="display-about">Love traveling and collecting rare stamps from all over the world!</p>
+                <textarea id="edit-about-input" class="about-input" style="display:none; margin-bottom: 10px;"></textarea>
+                <button class="primary-button" id="edit-profile-btn">Edit Profile</button>
+              </div>
+              
+              <div class="gesture-handle">
+                <div class="handle-bar"></div>
               </div>
             </div>
 
   <!-- 2. Блок состояния активов -->
-  <div class="section-block home-assets">
+  <div class="section-block home-assets clickable-block">
     <div class="section-header">
       <span>My Assets</span>
     </div>
@@ -43,14 +59,28 @@
         <div class="asset-value" id="asset-energy">500</div>
       </div>
     </div>
+    <div class="extra-content">
+      <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges.</p>
+      <button class="primary-button">Refill Energy</button>
+    </div>
+    
+    <div class="gesture-handle">
+      <div class="handle-bar"></div>
+    </div>
   </div>
 
-  <div class="section-block home-tracking">
+  <div class="section-block home-tracking clickable-block">
     <div class="section-header">
       <span>Tracking Board</span>
     </div>
     <div class="tracking-list" id="tracking-list">
-      <!-- Заполняется через JS -->
+      </div>
+    <div class="extra-content">
+      <p class="small-text">Full history of your sent and received postcards. Click items for details.</p>
+    </div>
+
+    <div class="gesture-handle">
+      <div class="handle-bar"></div>
     </div>
   </div>
 </section>

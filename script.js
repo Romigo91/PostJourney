@@ -112,7 +112,6 @@ const state = {
     });
   }
   
-  // Карта: отрисовка блоков по континентам (и для отправленных, и для полученных)
   function renderMapSection(mode, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -262,7 +261,119 @@ const state = {
       });
     });
   }
+
+  function setupExpandableBlocks() {
+    const homeScreen = document.getElementById('home-screen');
+    const blocks = document.querySelectorAll('.clickable-block');
   
+    blocks.forEach(block => {
+      let startY = 0;
+      const handle = block.querySelector('.gesture-handle');
+      if (!handle) return;
+  
+      // ОБРАБОТКА ДЛЯ ТЕЛЕФОНОВ (Touch)
+      handle.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+  
+      handle.addEventListener('touchend', (e) => {
+        const endY = e.changedTouches[0].clientY;
+        handleGesture(startY, endY, block, blocks, homeScreen);
+      }, { passive: true });
+  
+      // ОБРАБОТКА ДЛЯ МЫШКИ (Mouse) - чтобы работало прямо в браузере
+      handle.addEventListener('mousedown', (e) => {
+        startY = e.clientY;
+        
+        const onMouseMove = (moveEvent) => {
+          // Можно добавить визуальный сдвиг при движении, если нужно
+        };
+  
+        const onMouseUp = (upEvent) => {
+          const endY = upEvent.clientY;
+          handleGesture(startY, endY, block, blocks, homeScreen);
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+  
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    });
+  }
+  
+  // Вынесем логику в отдельную функцию, чтобы не дублировать
+  function handleGesture(startY, endY, block, blocks, homeScreen) {
+    const diffY = endY - startY;
+    const threshold = 30; // Чувствительность
+    const isExpanded = block.classList.contains('expanded');
+  
+    // Свайп ВНИЗ (открываем)
+    if (diffY > threshold && !isExpanded) {
+      blocks.forEach(b => b.classList.remove('expanded'));
+      block.classList.add('expanded');
+      homeScreen.classList.add('has-expanded');
+    } 
+    // Свайп ВВЕРХ (закрываем)
+    else if (diffY < -threshold && isExpanded) {
+      block.classList.remove('expanded');
+      homeScreen.classList.remove('has-expanded');
+    }
+  }
+  
+function setupProfileEditing() {
+  const btn = document.getElementById('edit-profile-btn');
+  
+  // Элементы отображения
+  const nameDisp = document.getElementById('display-name');
+  const aboutDisp = document.getElementById('display-about');
+  
+  // Элементы ввода
+  const nameInput = document.getElementById('edit-name-input');
+  const aboutInput = document.getElementById('edit-about-input');
+
+  let isEditing = false;
+
+  btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Чтобы блок не закрывался при клике на кнопку
+
+      if (!isEditing) {
+          // Переходим в режим редактирования
+          isEditing = true;
+          btn.textContent = "Save Changes";
+          btn.style.background = "#4CAF50"; // Зеленый цвет для сохранения
+
+          // Подставляем текущие значения в инпуты
+          nameInput.value = nameDisp.textContent;
+          aboutInput.value = aboutDisp.textContent;
+
+          // Переключаем видимость
+          nameDisp.style.display = "none";
+          aboutDisp.style.display = "none";
+          nameInput.style.display = "block";
+          aboutInput.style.display = "block";
+      } else {
+          // Сохраняем и выходим из режима
+          isEditing = false;
+          btn.textContent = "Edit Profile";
+          btn.style.background = "#f28b68"; // Возвращаем исходный цвет
+
+          // Обновляем текст из инпутов
+          nameDisp.textContent = nameInput.value;
+          aboutDisp.textContent = aboutInput.value;
+          
+          // Также меняем букву в аватаре (первая буква имени)
+          document.getElementById('display-avatar').textContent = nameInput.value.charAt(0).toUpperCase();
+
+          // Переключаем видимость обратно
+          nameDisp.style.display = "block";
+          aboutDisp.style.display = "block";
+          nameInput.style.display = "none";
+          aboutInput.style.display = "none";
+      }
+  });
+}
+
   // Инициализация
   document.addEventListener("DOMContentLoaded", () => {
     renderTracking();
@@ -279,6 +390,12 @@ const state = {
   
     // Переключение режимов конструктора
     setupConstructorToggle();
+
+    // Функция раскрытия блоков (аккордеон)
+    setupExpandableBlocks();
+
+    // ВОТ ЭТУ СТРОЧКУ НУЖНО ДОБАВИТЬ:
+    setupProfileEditing(); 
   });
 
   
