@@ -194,20 +194,30 @@
   }
 
   #flag-grid-picker {
-    touch-action: pan-y; /* Разрешает только вертикальный скролл, блокирует случайные жесты */
+    display: grid;
+    /* Магия здесь: 100% ширины делим на 6 колонок за вычетом отступов */
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 8px; /* Расстояние между флажками */
+    padding: 10px;
+    width: 100%; 
+    box-sizing: border-box; /* Чтобы паддинги не расширяли блок */
+    
+    touch-action: pan-y;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Делает скролл на iPhone "инерционным" и приятным */
+    max-height: 200px; /* Высота самого окошка выбора */
+    -webkit-overflow-scrolling: touch;
 }
 
 #flag-grid-picker span {
     cursor: pointer;
-    font-size: 19px;
-    padding: 5px;
+    font-size: 28px; /* Немного увеличил, чтобы красиво смотрелось по 6 в ряд */
     display: flex;
     align-items: center;
     justify-content: center;
+    aspect-ratio: 1 / 1; /* Делаем ячейки квадратными */
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    border-radius: 8px;
 }
 
 #flag-grid-picker span:active {
