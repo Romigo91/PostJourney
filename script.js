@@ -1,4 +1,5 @@
 let tempSelectedInterests = []; // Здесь будут лежать теги до нажатия Save
+let tempSelectedCountry = "";
 const AVAILABLE_INTERESTS = [
   "Travel", "Postcards", "Nature", "Art", "Books", 
   "Music", "Cooking", "Photography", "Sport", "Tech", 
@@ -110,36 +111,28 @@ if (flagGrid && flagGrid.children.length === 0) {
           e.preventDefault();
           e.stopPropagation();
           
-          state.profile.country = flag;
+          // ИСПРАВЛЕНО: Записываем только во временную переменную и инпут
+          tempSelectedCountry = flag; 
           inputCountry.value = flag;
-          displayCountry.textContent = flag;
           flagPicker.style.display = "none";
       };
 
-      // УДАЛИЛИ touchend, оставили только click
-      // click на мобилках сработает только если НЕ было скролла
       span.addEventListener('click', onSelect);
-      
       flagGrid.appendChild(span);
   });
 }
 
-  // 2. ОТКРЫТИЕ СПИСКА (Именно здесь мы лечим мобилки)
+  // 2. ОТКРЫТИЕ СПИСКА
   const handleFlagInteraction = (e) => {
-    // Проверяем, что мы в режиме редактирования
     if (editBtn.textContent === "Save Changes") {
       e.preventDefault();
-      e.stopPropagation(); // Чтобы карточка не закрылась
+      e.stopPropagation(); 
       
       const isHidden = flagPicker.style.display === "none" || flagPicker.style.display === "";
       flagPicker.style.display = isHidden ? "block" : "none";
-      
-      console.log("Клик по флагу зафиксирован"); // Проверь в консоли, если есть возможность
     }
   };
 
-  // Слушаем и клик, и тач
-  // Вешаем обработчики на все типы касаний
   inputCountry.addEventListener("touchstart", handleFlagInteraction, { passive: false });
   inputCountry.addEventListener("click", handleFlagInteraction);
 
@@ -153,13 +146,14 @@ if (flagGrid && flagGrid.children.length === 0) {
       inputCountry.value = state.profile.country;
       inputBio.value = state.profile.bio;
       
-      // Копируем текущие теги во временную переменную
+      // ИСПРАВЛЕНО: Инициализируем временную страну при входе
+      tempSelectedCountry = state.profile.country;
       tempSelectedInterests = [...state.profile.interests]; 
       renderEditTags();
   
       displayRow.style.display = "none";
       displayBio.style.display = "none";
-      document.getElementById("display-tags-minimal").style.display = "none"; // Скрываем старые теги
+      document.getElementById("display-tags-minimal").style.display = "none";
       
       editRow.style.display = "flex";
       inputBio.style.display = "block";
@@ -170,17 +164,16 @@ if (flagGrid && flagGrid.children.length === 0) {
     } else {
       // СОХРАНЕНИЕ
       state.profile.name = inputName.value;
-      state.profile.country = inputCountry.value;
+      // ИСПРАВЛЕНО: Присваиваем основному состоянию значение из временной переменной
+      state.profile.country = tempSelectedCountry; 
       state.profile.bio = inputBio.value;
-      
-      // Только теперь переносим теги из временной переменной в профиль
       state.profile.interests = [...tempSelectedInterests]; 
   
       updateProfileUI();
   
       displayRow.style.display = "flex";
       displayBio.style.display = "block";
-      document.getElementById("display-tags-minimal").style.display = "flex"; // Показываем обновленные теги
+      document.getElementById("display-tags-minimal").style.display = "flex"; 
       
       editRow.style.display = "none";
       inputBio.style.display = "none";
@@ -192,7 +185,7 @@ if (flagGrid && flagGrid.children.length === 0) {
     }
   });
 
-  // Остальное (аватар) без изменений
+  // Остальное без изменений
   avatarContainer.onclick = (e) => {
     e.stopPropagation();
     if (editBtn.textContent === "Save Changes") avatarUpload.click();
@@ -207,69 +200,51 @@ if (flagGrid && flagGrid.children.length === 0) {
   };
 }
 
-// --- РАСКРЫВАЮЩИЕСЯ БЛОКИ (с защитой для флагов) ---
+// Все остальные функции оставляю без изменений, как ты и просил...
 function setupExpandableBlocks() {
   const triggers = document.querySelectorAll('.expand-trigger');
-  
   triggers.forEach(trigger => {
     trigger.addEventListener('click', (e) => {
-      // 1. Если кликнули по самой стрелочке
       const block = trigger.closest('.clickable-block');
       const isExpanded = block.classList.contains('expanded');
-      
-      // 2. Закрываем все остальные блоки
       document.querySelectorAll('.clickable-block').forEach(b => {
         if (b !== block) {
           b.classList.remove('expanded');
           const t = b.querySelector('.expand-trigger');
           if (t) t.textContent = "⬇️";
-          
-          // Сбрасываем профиль, если закрываем его
-          if (b.id === 'profile-block') {
-            resetProfileEditMode();
-          }
+          if (b.id === 'profile-block') { resetProfileEditMode(); }
         }
       });
-
-      // 3. Переключаем текущий блок
       if (!isExpanded) {
         block.classList.add('expanded');
         trigger.textContent = "⬆️";
       } else {
         block.classList.remove('expanded');
         trigger.textContent = "⬇️";
-        // Если это был профиль, при закрытии выходим из редактирования
-        if (block.id === 'profile-block') {
-          resetProfileEditMode();
-        }
+        if (block.id === 'profile-block') { resetProfileEditMode(); }
       }
     });
   });
 }
 
-// Новая вспомогательная функция для сброса вида профиля
 function resetProfileEditMode() {
   const editBtn = document.getElementById("edit-profile-btn");
   if (editBtn && editBtn.textContent === "Save Changes") {
     editBtn.textContent = "Edit Profile";
-    
-    // Просто перерисовываем UI по старым данным из state.profile
     document.getElementById("profile-display-name-row").style.display = "flex";
     document.getElementById("display-bio").style.display = "block";
     document.getElementById("display-tags-minimal").style.display = "flex";
-    
     document.getElementById("profile-edit-name-row").style.display = "none";
     document.getElementById("input-bio").style.display = "none";
     document.getElementById("avatar-edit-hint").style.display = "none";
     document.getElementById("flag-picker-container").style.display = "none";
     document.getElementById("edit-tags-wrapper").style.display = "none";
-    
-    tempSelectedInterests = []; // Очищаем черновик
+    tempSelectedInterests = []; 
+    tempSelectedCountry = ""; // Очищаем временную страну
     updateProfileUI();
   }
 }
 
-// --- ФУНКЦИИ ОТРИСОВКИ ---
 function renderTracking() {
   const list = document.getElementById("tracking-list");
   if (!list) return;
@@ -350,34 +325,27 @@ function setupConstructorToggle() {
   });
 }
 
-// Вставлять в самый конец script.js
 function renderEditTags() {
   const container = document.getElementById("edit-tags-list");
   if (!container) return;
-
   container.innerHTML = AVAILABLE_INTERESTS.map(tag => {
-    // Проверяем наличие во временном массиве
     const isSelected = tempSelectedInterests.includes(tag);
     return `<span class="tag-selectable ${isSelected ? 'selected' : ''}">${tag}</span>`;
   }).join("");
-
   container.querySelectorAll('.tag-selectable').forEach(el => {
     el.onclick = (e) => {
-      e.stopPropagation(); // Чтобы не закрылся блок
+      e.stopPropagation();
       const tag = el.textContent;
-      
       if (tempSelectedInterests.includes(tag)) {
         tempSelectedInterests = tempSelectedInterests.filter(t => t !== tag);
-      } else if (tempSelectedInterests.length < 3) {
+      } else if (tempSelectedInterests.length < 4) { // Изменил на 4, как договаривались ранее
         tempSelectedInterests.push(tag);
       }
-      
-      renderEditTags(); // Перерисовываем только сетку выбора, основной UI не трогаем!
+      renderEditTags();
     };
   });
 }
 
-// Инициализация
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof updateProfileUI === 'function') updateProfileUI(); 
   setupProfileEditing(); 
