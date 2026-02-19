@@ -213,8 +213,6 @@
 /* 3. Сетка с флагами (ровно 6 в ряд) */
 #flag-grid-picker {
   display: grid;
-  /* Делим ширину строго на 6 равных частей */
-  grid-template-columns: repeat(6, 1fr); 
   gap: 4px;
   padding: 8px;
   width: 100%; 
