@@ -180,50 +180,72 @@
     color: #a57a4d;
   }
 
-  /* Стили для инпута страны, чтобы он работал как кнопка */
-  #input-country {
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent; /* Убирает блик при нажатии на iOS/Android */
-    user-select: none; /* Запрещает выделение текста */
-    touch-action: manipulation; /* Убирает задержку клика на мобилках */
-    outline: none; /* Убирает рамку фокуса */
-    border: 1px solid #d8c2a5;
-    background: #fff;
-    border-radius: 4px;
-    caret-color: transparent; /* Скрывает мигающий курсор, если он появится */
-  }
-
-  #flag-grid-picker {
-    display: grid;
-    /* Магия здесь: 100% ширины делим на 6 колонок за вычетом отступов */
-    grid-template-columns: repeat(6, 1fr); 
-    gap: 8px; /* Расстояние между флажками */
-    padding: 10px;
-    width: 100%; 
-    box-sizing: border-box; /* Чтобы паддинги не расширяли блок */
-    
-    touch-action: pan-y;
-    overflow-y: auto;
-    max-height: 200px; /* Высота самого окошка выбора */
-    -webkit-overflow-scrolling: touch;
+/* 1. Кнопка-инпут выбора страны */
+#input-country {
+  width: 35px; /* фиксируем ширину кнопки */
+  height: 22px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+  outline: none;
+  border: 1px solid #d8c2a5;
+  background: #fff;
+  border-radius: 4px;
+  caret-color: transparent; /* защита от курсора */
+  text-align: center;
+  font-size: 12px;
 }
 
+/* 2. Контейнер-обертка всего выпадающего списка */
+#flag-picker-container {
+  display: none; /* управляется через JS */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #d8c2a5;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+/* 3. Сетка с флагами (ровно 6 в ряд) */
+#flag-grid-picker {
+  display: grid;
+  /* Делим ширину строго на 6 равных частей */
+  grid-template-columns: repeat(6, 1fr); 
+  gap: 4px;
+  padding: 8px;
+  width: 100%; 
+  box-sizing: border-box;
+  
+  /* Настройки скролла */
+  touch-action: pan-y;
+  overflow-y: auto;
+  max-height: 220px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 4. Стили каждого отдельного флажка */
 #flag-grid-picker span {
-    cursor: pointer;
-    font-size: 28px; /* Немного увеличил, чтобы красиво смотрелось по 6 в ряд */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 1 / 1; /* Делаем ячейки квадратными */
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    border-radius: 8px;
+  cursor: pointer;
+  font-size: 26px; /* оптимальный размер для 6 в ряд */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1; /* делает ячейку квадратной */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  border-radius: 6px;
+  transition: transform 0.1s ease;
 }
 
+/* Эффект при нажатии */
 #flag-grid-picker span:active {
-    transform: scale(1.2);
-    background: rgba(0,0,0,0.05); /* Легкий отклик */
-    border-radius: 4px;
+  transform: scale(1.2);
+  background: rgba(216, 194, 165, 0.3); /* легкий бежевый отклик */
+  border-radius: 4px;
 }
   
   /* Активы */
