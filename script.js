@@ -184,11 +184,13 @@ function setupExpandableBlocks() {
   
   triggers.forEach(trigger => {
     trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      
-      // Если клик по зоне выбора флагов — ничего не сворачиваем
-      if (e.target.closest('#flag-picker-container')) return;
+      // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
+      // Если палец коснулся списка флагов или его содержимого — игнорируем это событие
+      if (e.target.closest('#flag-picker-container')) {
+        return; 
+      }
 
+      e.stopPropagation();
       const block = trigger.closest('.clickable-block');
       const isExpanded = block.classList.contains('expanded');
       
