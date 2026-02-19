@@ -1,5 +1,12 @@
 let tempSelectedInterests = []; // Здесь будут лежать теги до нажатия Save
-const AVAILABLE_INTERESTS = ["Art", "Books", "Cooking", "Travel", "Nature", "Music", "Sport", "Tech", "History", "Movies"];
+const AVAILABLE_INTERESTS = [
+  "Travel", "Postcards", "Nature", "Art", "Books", 
+  "Music", "Cooking", "Photography", "Sport", "Tech", 
+  "History", "Movies", "Architecture", "Animals", "Coffee", 
+  "Gardening", "Languages", "Space", "Fashion", "Gaming", 
+  "Hiking", "Writing", "Painting", "Drawing", "Vintage", 
+  "Cultures", "Sea", "Mountains", "Handmade", "Dances"
+];
 
 const state = {
   profile: {
@@ -361,7 +368,7 @@ function renderEditTags() {
       
       if (tempSelectedInterests.includes(tag)) {
         tempSelectedInterests = tempSelectedInterests.filter(t => t !== tag);
-      } else if (tempSelectedInterests.length < 5) {
+      } else if (tempSelectedInterests.length < 3) {
         tempSelectedInterests.push(tag);
       }
       

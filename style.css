@@ -211,6 +211,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 10px 0;
+  max-height: 200px; /* Ограничиваем высоту */
+  overflow-y: auto;  /* Добавляем прокрутку */
+  scrollbar-width: none; /* Прячем скроллбар для красоты */
+}
+
+.tags-container-edit::-webkit-scrollbar {
+  display: none; /* Прячем скроллбар для Chrome/Safari */
 }
 
 .tag-selectable {
