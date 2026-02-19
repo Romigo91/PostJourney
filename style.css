@@ -98,6 +98,31 @@
     padding-top: 15px;
     border-top: 1px solid #eee;
   }
+
+  /* Стили для иконки-триггера */
+.expand-trigger {
+  cursor: pointer;
+  font-size: 20px;
+  transition: transform 0.3s ease;
+  user-select: none; /* чтобы не выделялся текст при клике */
+  display: inline-block;
+  padding: 5px;
+}
+
+/* Позиционирование конверта в профиле (т.к. там нет section-header) */
+.profile-card {
+  position: relative;
+}
+.profile-card .expand-trigger {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+/* Эффект при наведении */
+.expand-trigger:hover {
+  transform: scale(1.2);
+}
   
   /* ==========================================================================
      4. КОМПОНЕНТЫ ГЛАВНОГО ЭКРАНА (HOME)
@@ -121,13 +146,21 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: #ffd49b;
+    background-color: #ffd49b;
+    flex-shrink: 0;
+    
+    /* Центрирование буквы внутри */
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     color: #7b4d28;
-    flex-shrink: 0;
+  
+    /* Настройки для загруженного фото */
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
   }
   
   .profile-info {
@@ -215,6 +248,8 @@
     background: #fff;
     color: #7b4d28;
   }
+
+  
   
   /* ==========================================================================
      5. ОБЩИЕ ЭЛЕМЕНТЫ (UI COMPONENTS)
@@ -259,9 +294,10 @@
     padding: 8px 10px;
     border-radius: 999px;
     border: none;
-    background: #ffe7c8;
-    color: #7b4d28;
+    background: #f28b68;
+    color: #fff;
     font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
   }
   
@@ -395,36 +431,3 @@
   
   .nav-item span:first-child { font-size: 16px; }
   .nav-active { color: #f28b68; }
-
-  /* Область для захвата жеста */
-.gesture-handle {
-  width: 100%;
-  /* height: 28px; */ /* Достаточная высота, чтобы легко попасть пальцем */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  margin-top: 4px;
-}
-
-/* Сама визуальная полоска (как в iOS/Android) */
-.handle-bar {
-  width: 36px;
-  height: 4px;
-  background: #d8c2a5;
-  border-radius: 2px;
-  opacity: 0.4;
-  transition: all 0.3s ease;
-}
-
-/* Подсветка при касании */
-.gesture-handle:active .handle-bar {
-  opacity: 1;
-  background: #f28b68;
-  width: 46px;
-}
-
-/* Убираем старый курсор-указатель со всего блока, так как теперь клик не открывает его */
-.clickable-block {
-  cursor: default;
-}
