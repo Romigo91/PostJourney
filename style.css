@@ -238,10 +238,20 @@
 
 .flag-grid-picker-style {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  max-height: 150px;
+  grid-template-columns: repeat(7, 1fr); /* 7 флагов в ряд */
+  gap: 8px;
+  padding: 8px;
+  background: #fdfaf5;
+  border: 1px solid #d8c2a5;
+  border-radius: 12px;
+  max-height: 140px; /* Ограничиваем высоту, чтобы не перекрывать всё */
   overflow-y: auto;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Убираем скроллбар для эстетики */
+.flag-grid-picker-style::-webkit-scrollbar {
+  display: none;
 }
 
 /* 1. Кнопка-инпут выбора страны */
