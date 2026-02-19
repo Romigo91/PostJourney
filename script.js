@@ -99,21 +99,23 @@ function setupProfileEditing() {
   }
 
   // 2. ОТКРЫТИЕ СПИСКА (Именно здесь мы лечим мобилки)
-  const handleFlagClick = (e) => {
+  const handleFlagInteraction = (e) => {
+    // Проверяем, что мы в режиме редактирования
     if (editBtn.textContent === "Save Changes") {
       e.preventDefault();
-      e.stopPropagation();
-      inputCountry.blur(); // Мгновенно убираем фокус, чтобы не было курсора
+      e.stopPropagation(); // Чтобы карточка не закрылась
       
       const isHidden = flagPicker.style.display === "none" || flagPicker.style.display === "";
       flagPicker.style.display = isHidden ? "block" : "none";
+      
+      console.log("Клик по флагу зафиксирован"); // Проверь в консоли, если есть возможность
     }
   };
 
   // Слушаем и клик, и тач
-  inputCountry.addEventListener("pointerdown", handleFlagClick);
-  // На всякий случай блокируем фокус
-  inputCountry.addEventListener("focus", (e) => e.target.blur());
+  // Вешаем обработчики на все типы касаний
+  inputCountry.addEventListener("touchstart", handleFlagInteraction, { passive: false });
+  inputCountry.addEventListener("click", handleFlagInteraction);
 
   // 3. КНОПКА EDIT / SAVE
   editBtn.addEventListener("click", (e) => {

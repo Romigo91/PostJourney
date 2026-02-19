@@ -179,6 +179,31 @@
     font-size: 12px;
     color: #a57a4d;
   }
+
+  /* Стили для инпута страны, чтобы он работал как кнопка */
+  #input-country {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* Убирает блик при нажатии на iOS/Android */
+    user-select: none; /* Запрещает выделение текста */
+    touch-action: manipulation; /* Убирает задержку клика на мобилках */
+    outline: none; /* Убирает рамку фокуса */
+    border: 1px solid #d8c2a5;
+    background: #fff;
+    border-radius: 4px;
+    caret-color: transparent; /* Скрывает мигающий курсор, если он появится */
+  }
+
+  /* Сетка флагов (выборщик) */
+  #flag-grid-picker span {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    transition: transform 0.1s ease;
+  }
+
+  #flag-grid-picker span:active {
+    transform: scale(1.2); /* Визуальный отклик при нажатии пальцем */
+  }
+  
   
   /* Активы */
   .assets-row {
