@@ -79,14 +79,20 @@ function setupProfileEditing() {
 
   // 1. ГЕНЕРАЦИЯ ФЛАГОВ
   if (flagGrid && flagGrid.children.length === 0) {
-    const allFlags = Object.values(COUNTRIES_BY_CONTINENT).flat();
+    // Собираем все флаги из всех континентов, объединяем в один массив и сортируем
+    const allFlags = Object.values(COUNTRIES_BY_CONTINENT)
+      .flat()
+      .sort((a, b) => a.localeCompare(b)); 
+    
     allFlags.forEach(flag => {
-      const span = document.createElement("span");
+      // ОБЯЗАТЕЛЬНО: Создаем элемент внутри цикла
+      const span = document.createElement("span"); 
+      
       span.textContent = flag;
       span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none;";
       
-      // Выбор флага
-      span.onclick = (e) => {
+      // Логика выбора флага (которую мы отладили для мобилок)
+      const onSelect = (e) => {
         e.preventDefault();
         e.stopPropagation();
         state.profile.country = flag;
@@ -94,6 +100,10 @@ function setupProfileEditing() {
         displayCountry.textContent = flag;
         flagPicker.style.display = "none";
       };
+
+      span.addEventListener('click', onSelect);
+      span.addEventListener('touchend', onSelect);
+      
       flagGrid.appendChild(span);
     });
   }

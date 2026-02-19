@@ -194,11 +194,12 @@
   }
 
   /* Сетка флагов (выборщик) */
-  #flag-grid-picker span {
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    transition: transform 0.1s ease;
-  }
+ #flag-grid-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); /* Авто-подбор колонок */
+    gap: 8px;
+    justify-items: center;
+}
 
   #flag-grid-picker span:active {
     transform: scale(1.2); /* Визуальный отклик при нажатии пальцем */
