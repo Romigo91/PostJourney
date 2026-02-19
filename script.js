@@ -77,36 +77,39 @@ function setupProfileEditing() {
   const flagGrid = document.getElementById("flag-grid-picker");
   const displayCountry = document.getElementById("display-country");
 
-  // 1. ГЕНЕРАЦИЯ ФЛАГОВ
-  if (flagGrid && flagGrid.children.length === 0) {
-    // Собираем все флаги из всех континентов, объединяем в один массив и сортируем
-    const allFlags = Object.values(COUNTRIES_BY_CONTINENT)
-      .flat()
-      .sort((a, b) => a.localeCompare(b)); 
-    
-    allFlags.forEach(flag => {
-      // ОБЯЗАТЕЛЬНО: Создаем элемент внутри цикла
-      const span = document.createElement("span"); 
-      
+ // 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
+if (flagGrid && flagGrid.children.length === 0) {
+  // ШАГ А: Извлекаем ВСЕ флаги из ВСЕХ континентов в один плоский массив
+  let allFlagsFlat = [];
+  for (let continent in COUNTRIES_BY_CONTINENT) {
+      allFlagsFlat = allFlagsFlat.concat(COUNTRIES_BY_CONTINENT[continent]);
+  }
+
+  // ШАГ Б: Сортируем полученный массив целиком
+  // localeCompare гарантирует правильную сортировку строк
+  allFlagsFlat.sort((a, b) => a.localeCompare(b));
+
+  // ШАГ В: Создаем элементы на основе отсортированного массива
+  allFlagsFlat.forEach(flag => {
+      const span = document.createElement("span");
       span.textContent = flag;
       span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none;";
       
-      // Логика выбора флага (которую мы отладили для мобилок)
       const onSelect = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        state.profile.country = flag;
-        inputCountry.value = flag;
-        displayCountry.textContent = flag;
-        flagPicker.style.display = "none";
+          e.preventDefault();
+          e.stopPropagation();
+          state.profile.country = flag;
+          inputCountry.value = flag;
+          displayCountry.textContent = flag;
+          flagPicker.style.display = "none";
       };
 
       span.addEventListener('click', onSelect);
       span.addEventListener('touchend', onSelect);
       
       flagGrid.appendChild(span);
-    });
-  }
+  });
+}
 
   // 2. ОТКРЫТИЕ СПИСКА (Именно здесь мы лечим мобилки)
   const handleFlagInteraction = (e) => {
