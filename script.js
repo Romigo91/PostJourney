@@ -60,7 +60,7 @@ function updateProfileUI() {
   }
 }
 
-// Логика кнопки Edit Profile
+// --- ЛОГИКА РЕДАКТИРОВАНИЯ ПРОФИЛЯ ---
 function setupProfileEditing() {
   const editBtn = document.getElementById("edit-profile-btn");
   const displayRow = document.getElementById("profile-display-name-row");
@@ -72,12 +72,54 @@ function setupProfileEditing() {
   const avatarHint = document.getElementById("avatar-edit-hint");
   const avatarUpload = document.getElementById("avatar-upload");
   const avatarContainer = document.querySelector(".avatar-container");
+  
+  const flagPicker = document.getElementById("flag-picker-container");
+  const flagGrid = document.getElementById("flag-grid-picker");
+  const displayCountry = document.getElementById("display-country");
 
+  // 1. ГЕНЕРАЦИЯ ФЛАГОВ
+  if (flagGrid && flagGrid.children.length === 0) {
+    const allFlags = Object.values(COUNTRIES_BY_CONTINENT).flat();
+    allFlags.forEach(flag => {
+      const span = document.createElement("span");
+      span.textContent = flag;
+      span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none;";
+      
+      // Выбор флага
+      span.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        state.profile.country = flag;
+        inputCountry.value = flag;
+        displayCountry.textContent = flag;
+        flagPicker.style.display = "none";
+      };
+      flagGrid.appendChild(span);
+    });
+  }
+
+  // 2. ОТКРЫТИЕ СПИСКА (Именно здесь мы лечим мобилки)
+  const handleFlagClick = (e) => {
+    if (editBtn.textContent === "Save Changes") {
+      e.preventDefault();
+      e.stopPropagation();
+      inputCountry.blur(); // Мгновенно убираем фокус, чтобы не было курсора
+      
+      const isHidden = flagPicker.style.display === "none" || flagPicker.style.display === "";
+      flagPicker.style.display = isHidden ? "block" : "none";
+    }
+  };
+
+  // Слушаем и клик, и тач
+  inputCountry.addEventListener("pointerdown", handleFlagClick);
+  // На всякий случай блокируем фокус
+  inputCountry.addEventListener("focus", (e) => e.target.blur());
+
+  // 3. КНОПКА EDIT / SAVE
   editBtn.addEventListener("click", (e) => {
     e.stopPropagation();
 
     if (editBtn.textContent === "Edit Profile") {
-      // Режим редактирования ВКЛ
       inputName.value = state.profile.name;
       inputCountry.value = state.profile.country;
       inputBio.value = state.profile.bio;
@@ -90,7 +132,6 @@ function setupProfileEditing() {
 
       editBtn.textContent = "Save Changes";
     } else {
-      // Режим редактирования ВЫКЛ (Сохранение)
       state.profile.name = inputName.value;
       state.profile.country = inputCountry.value;
       state.profile.bio = inputBio.value;
@@ -102,33 +143,60 @@ function setupProfileEditing() {
       editRow.style.display = "none";
       inputBio.style.display = "none";
       avatarHint.style.display = "none";
+      flagPicker.style.display = "none";
 
       editBtn.textContent = "Edit Profile";
     }
   });
 
-  // Загрузка фото
-  avatarContainer.addEventListener("click", (e) => {
+  // Остальное (аватар) без изменений
+  avatarContainer.onclick = (e) => {
     e.stopPropagation();
-    if (editBtn.textContent === "Save Changes") {
-      avatarUpload.click();
-    }
-  });
-
-  avatarUpload.addEventListener("change", (e) => {
+    if (editBtn.textContent === "Save Changes") avatarUpload.click();
+  };
+  avatarUpload.onchange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = function(event) {
-        state.profile.avatar = event.target.result;
-        updateProfileUI();
-      };
+      reader.onload = (ev) => { state.profile.avatar = ev.target.result; updateProfileUI(); };
       reader.readAsDataURL(file);
     }
+  };
+}
+
+// --- РАСКРЫВАЮЩИЕСЯ БЛОКИ (с защитой для флагов) ---
+function setupExpandableBlocks() {
+  const homeScreen = document.getElementById('home-screen');
+  const triggers = document.querySelectorAll('.expand-trigger');
+  
+  triggers.forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      // Если клик по зоне выбора флагов — ничего не сворачиваем
+      if (e.target.closest('#flag-picker-container')) return;
+
+      const block = trigger.closest('.clickable-block');
+      const isExpanded = block.classList.contains('expanded');
+      
+      document.querySelectorAll('.clickable-block').forEach(b => {
+        b.classList.remove('expanded');
+        const t = b.querySelector('.expand-trigger');
+        if (t) t.textContent = "⬇️";
+      });
+
+      if (!isExpanded) {
+        block.classList.add('expanded');
+        trigger.textContent = "⬆️";
+        homeScreen.classList.add('has-expanded');
+      } else {
+        homeScreen.classList.remove('has-expanded');
+      }
+    });
   });
 }
 
-// --- Остальные твои функции отрисовки (без изменений) ---
+// --- ФУНКЦИИ ОТРИСОВКИ ---
 function renderTracking() {
   const list = document.getElementById("tracking-list");
   if (!list) return;
@@ -209,35 +277,10 @@ function setupConstructorToggle() {
   });
 }
 
-function setupExpandableBlocks() {
-  const homeScreen = document.getElementById('home-screen');
-  const triggers = document.querySelectorAll('.expand-trigger');
-  triggers.forEach(trigger => {
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const block = trigger.closest('.clickable-block');
-      const isExpanded = block.classList.contains('expanded');
-      document.querySelectorAll('.clickable-block').forEach(b => {
-        b.classList.remove('expanded');
-        const t = b.querySelector('.expand-trigger');
-        if (t) t.textContent = "⬇️";
-      });
-      if (!isExpanded) {
-        block.classList.add('expanded');
-        trigger.textContent = "⬆️";
-        homeScreen.classList.add('has-expanded');
-      } else {
-        homeScreen.classList.remove('has-expanded');
-      }
-    });
-  });
-}
-
 // Инициализация
 document.addEventListener("DOMContentLoaded", () => {
-  updateProfileUI(); // Рисуем начальный профиль
-  setupProfileEditing(); // Включаем кнопку редактирования
-  
+  if (typeof updateProfileUI === 'function') updateProfileUI(); 
+  setupProfileEditing(); 
   renderTracking();
   syncAssets();
   setupNavigation();

@@ -22,21 +22,30 @@
             <div class="profile-card clickable-block" id="profile-block">
               <div class="profile-header-top">
                 <div class="avatar-container" style="position: relative; cursor: pointer;">
-                  <div class="avatar-circle" id="profile-avatar" style="background-size: cover; background-position: center;">A</div>               
+                  <div class="avatar-circle" id="profile-avatar">A</div>              
                   <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
                   <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
                 </div>
+            
                 <div class="profile-info">
                   <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
                     <div class="profile-name" id="display-name">@Alex</div>
                     <div class="profile-country" id="display-country">🇫🇷</div>
                   </div>
+            
                   <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
                     <input type="text" id="input-name" style="width: 80px; font-size: 12px;">
-                    <input type="text" id="input-country" style="width: 30px; font-size: 12px;">
+                    <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
                   </div>
+                  
                   <div class="profile-membership">In app for: 124 days</div>
                 </div>
+              </div>
+            
+              <div id="flag-picker-container" style="display: none; margin: 10px 0; border-top: 1px solid #eee; padding-top: 10px;">
+                <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
+                <div id="flag-grid-picker" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-height: 120px; overflow-y: auto; padding: 5px; background: #fdfaf5; border-radius: 8px;">
+                  </div>
               </div>
               
               <span class="expand-trigger">⬇️</span> 
