@@ -194,36 +194,26 @@
   }
 
   #flag-grid-picker {
-    display: grid; /* Включаем сетку */
-    /* Создаем колонки: минимум 45px, максимум — занять всё свободное место. 
-       Флаги будут сами перепрыгивать на новую строку, если не влезают. */
-    grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
-    gap: 4px; /* Расстояние между флагами */
-    padding: 10px;
-    width: 100%; /* Занимаем всю ширину родителя */
-    box-sizing: border-box; /* Чтобы паддинги не расширяли контейнер */
-    
-    touch-action: pan-y;
+    touch-action: pan-y; /* Разрешает только вертикальный скролл, блокирует случайные жесты */
     overflow-y: auto;
-    max-height: 200px; /* Ограничь высоту, чтобы список не растягивал всю страницу */
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: touch; /* Делает скролл на iPhone "инерционным" и приятным */
 }
 
 #flag-grid-picker span {
     cursor: pointer;
-    font-size: 24px;
-    aspect-ratio: 1 / 1; /* Делаем ячейки квадратными для красоты */
+    font-size: 19px;
+    padding: 5px;
     display: flex;
     align-items: center;
     justify-content: center;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    border-radius: 8px;
 }
 
 #flag-grid-picker span:active {
-    transform: scale(1.1);
-    background: rgba(0,0,0,0.1);
+    transform: scale(1.2);
+    background: rgba(0,0,0,0.05); /* Легкий отклик */
+    border-radius: 4px;
 }
   
   /* Активы */
