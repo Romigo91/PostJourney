@@ -77,35 +77,33 @@ function setupProfileEditing() {
   const flagGrid = document.getElementById("flag-grid-picker");
   const displayCountry = document.getElementById("display-country");
 
- // 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
+// 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
 if (flagGrid && flagGrid.children.length === 0) {
-  // ШАГ А: Извлекаем ВСЕ флаги из ВСЕХ континентов в один плоский массив
   let allFlagsFlat = [];
   for (let continent in COUNTRIES_BY_CONTINENT) {
       allFlagsFlat = allFlagsFlat.concat(COUNTRIES_BY_CONTINENT[continent]);
   }
 
-  // ШАГ Б: Сортируем полученный массив целиком
-  // localeCompare гарантирует правильную сортировку строк
   allFlagsFlat.sort((a, b) => a.localeCompare(b));
 
-  // ШАГ В: Создаем элементы на основе отсортированного массива
   allFlagsFlat.forEach(flag => {
       const span = document.createElement("span");
       span.textContent = flag;
-      span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none;";
+      span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none; -webkit-tap-highlight-color: transparent;";
       
       const onSelect = (e) => {
           e.preventDefault();
           e.stopPropagation();
+          
           state.profile.country = flag;
           inputCountry.value = flag;
           displayCountry.textContent = flag;
           flagPicker.style.display = "none";
       };
 
+      // УДАЛИЛИ touchend, оставили только click
+      // click на мобилках сработает только если НЕ было скролла
       span.addEventListener('click', onSelect);
-      span.addEventListener('touchend', onSelect);
       
       flagGrid.appendChild(span);
   });

@@ -193,18 +193,28 @@
     caret-color: transparent; /* Скрывает мигающий курсор, если он появится */
   }
 
-  /* Сетка флагов (выборщик) */
- #flag-grid-picker {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); /* Авто-подбор колонок */
-    gap: 8px;
-    justify-items: center;
+  #flag-grid-picker {
+    touch-action: pan-y; /* Разрешает только вертикальный скролл, блокирует случайные жесты */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Делает скролл на iPhone "инерционным" и приятным */
 }
 
-  #flag-grid-picker span:active {
-    transform: scale(1.2); /* Визуальный отклик при нажатии пальцем */
-  }
-  
+#flag-grid-picker span {
+    cursor: pointer;
+    font-size: 24px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+#flag-grid-picker span:active {
+    transform: scale(1.2);
+    background: rgba(0,0,0,0.05); /* Легкий отклик */
+    border-radius: 4px;
+}
   
   /* Активы */
   .assets-row {
