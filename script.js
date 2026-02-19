@@ -1,337 +1,309 @@
-// Простейшее состояние приложения
 const state = {
-    postcards: 5,
-    energy: 500,
-    tracking: [
-      { to: "Japan", status: "In transit" },
-      { to: "Brazil", status: "Delivered" },
-      { to: "Germany", status: "Preparing" }
-    ],
-    leaderboard: [
-      { name: "@Alex_Travels", sent: 110, countries: 45 },
-      { name: "@PostcardLover", sent: 80, countries: 30 },
-      { name: "@WorldWalker", sent: 60, countries: 25 }
-    ],
-    sentPostcards: [
-      { countryFlag: "🇯🇵", to: "Japan, Tokyo", status: "In transit" },
-      { countryFlag: "🇧🇷", to: "Brazil, Rio", status: "Delivered" },
-      { countryFlag: "🇩🇪", to: "Germany, Berlin", status: "In transit" }
-    ],
-    receivedPostcards: [
-      { countryFlag: "🇫🇮", to: "Finland, Helsinki", status: "Received" },
-      { countryFlag: "🇵🇹", to: "Portugal, Porto", status: "Registered" }
-    ]
-  };
+  // Добавили данные профиля в состояние
+  profile: {
+      name: "@Alex",
+      country: "🇫🇷",
+      bio: "Detailed statistics and recent achievements will be shown here. You can also edit your status.", // ЗАПЯТАЯ ДОБАВЛЕНА
+      avatar: null
+  },
   
-  // Список стран по континентам (флаги).
-  // Здесь чуть больше 195 флагов, т.к. включены спорные территории вроде Kosovo, Taiwan, Palestine.
-  const COUNTRIES_BY_CONTINENT = {
-    "Africa": [
-      "🇩🇿","🇦🇴","🇧🇯","🇧🇼","🇧🇫","🇧🇮","🇨🇻","🇨🇲","🇨🇫","🇹🇩","🇰🇲","🇨🇩",
-      "🇨🇬","🇩🇯","🇪🇬","🇬🇶","🇪🇷","🇸🇿","🇪🇹","🇬🇦","🇬🇲","🇬🇭","🇬🇳","🇬🇼",
-      "🇨🇮","🇰🇪","🇱🇸","🇱🇷","🇱🇾","🇲🇬","🇲🇼","🇲🇱","🇲🇷","🇲🇺","🇲🇦","🇲🇿",
-      "🇳🇦","🇳🇪","🇳🇬","🇷🇼","🇸🇹","🇸🇳","🇸🇨","🇸🇱","🇸🇴","🇿🇦","🇸🇸","🇸🇩",
-      "🇹🇿","🇹🇬","🇹🇳","🇺🇬","🇿🇲","🇿🇼"
-    ],
-    "Asia": [
-      "🇦🇫","🇦🇲","🇦🇿","🇧🇭","🇧🇩","🇧🇹","🇧🇳","🇰🇭","🇨🇳","🇨🇾","🇬🇪","🇮🇳",
-      "🇮🇩","🇮🇷","🇮🇶","🇮🇱","🇯🇵","🇯🇴","🇰🇿","🇰🇼","🇰🇬","🇱🇦","🇱🇧","🇲🇾",
-      "🇲🇻","🇲🇳","🇲🇲","🇳🇵","🇰🇵","🇴🇲","🇵🇰","🇵🇸","🇵🇭","🇶🇦","🇸🇦","🇸🇬",
-      "🇰🇷","🇱🇰","🇸🇾","🇹🇼","🇹🇯","🇹🇭","🇹🇱","🇹🇷","🇹🇲","🇦🇪","🇺🇿","🇻🇳",
-      "🇾🇪"
-    ],
-    "Europe": [
-      "🇦🇱","🇦🇩","🇦🇹","🇧🇾","🇧🇪","🇧🇦","🇧🇬","🇭🇷","🇨🇿","🇩🇰","🇪🇪","🇫🇮",
-      "🇫🇷","🇩🇪","🇬🇷","🇭🇺","🇮🇸","🇮🇪","🇮🇹","🇽🇰","🇱🇻","🇱🇮","🇱🇹","🇱🇺",
-      "🇲🇹","🇲🇩","🇲🇨","🇲🇪","🇳🇱","🇲🇰","🇳🇴","🇵🇱","🇵🇹","🇷🇴","🇷🇺","🇸🇲",
-      "🇷🇸","🇸🇰","🇸🇮","🇪🇸","🇸🇪","🇨🇭","🇺🇦","🇬🇧","🇻🇦"
-    ],
-    "North America": [
-      "🇦🇬","🇧🇸","🇧🇧","🇧🇿","🇨🇦","🇨🇷","🇨🇺","🇩🇲","🇩🇴","🇸🇻","🇬🇩","🇬🇹",
-      "🇭🇹","🇭🇳","🇯🇲","🇲🇽","🇳🇮","🇵🇦","🇰🇳","🇱🇨","🇻🇨","🇹🇹","🇺🇸"
-    ],
-    "South America": [
-      "🇦🇷","🇧🇴","🇧🇷","🇨🇱","🇨🇴","🇪🇨","🇬🇾","🇵🇾","🇵🇪","🇸🇷","🇺🇾","🇻🇪"
-    ],
-    "Oceania": [
-      "🇦🇺","🇫🇯","🇰🇮","🇲🇭","🇫🇲","🇳🇷","🇳🇿","🇵🇼","🇵🇬","🇼🇸","🇸🇧","🇹🇴",
-      "🇹🇻","🇻🇺"
-    ]
-  };
+  postcards: 5,
+  energy: 500,
+  tracking: [
+    { to: "Japan", status: "In transit" },
+    { to: "Brazil", status: "Delivered" },
+    { to: "Germany", status: "Preparing" }
+  ],
+  leaderboard: [
+    { name: "@Alex_Travels", sent: 110, countries: 45 },
+    { name: "@PostcardLover", sent: 80, countries: 30 },
+    { name: "@WorldWalker", sent: 60, countries: 25 }
+  ],
+  sentPostcards: [
+    { countryFlag: "🇯🇵", to: "Japan, Tokyo", status: "In transit" },
+    { countryFlag: "🇧🇷", to: "Brazil, Rio", status: "Delivered" },
+    { countryFlag: "🇩🇪", to: "Germany, Berlin", status: "In transit" }
+  ],
+  receivedPostcards: [
+    { countryFlag: "🇫🇮", to: "Finland, Helsinki", status: "Received" },
+    { countryFlag: "🇵🇹", to: "Portugal, Porto", status: "Registered" }
+  ]
+};
+
+const COUNTRIES_BY_CONTINENT = {
+  "Africa": ["🇩🇿","🇦🇴","🇧🇯","🇧🇼","🇧🇫","🇧🇮","🇨🇻","🇨🇲","🇨🇫","🇹🇩","🇰🇲","🇨🇩","🇨🇬","🇩🇯","🇪🇬","🇬🇶","🇪🇷","🇸🇿","🇪🇹","🇬🇦","🇬🇲","🇬🇭","🇬🇳","🇬🇼","🇨🇮","🇰🇪","🇱🇸","🇱🇷","🇱🇾","🇲🇬","🇲🇼","🇲🇱","🇲🇷","🇲🇺","🇲🇦","🇲🇿","🇳🇦","🇳🇪","🇳🇬","🇷🇼","🇸🇹","🇸🇳","🇸🇨","🇸🇱","🇸🇴","🇿🇦","🇸🇸","🇸🇩","🇹🇿","🇹🇬","🇹🇳","🇺🇬","🇿🇲","🇿🇼"],
+  "Asia": ["🇦🇫","🇦🇲","🇦🇿","🇧🇭","🇧🇩","🇧🇹","🇧🇳","🇰🇭","🇨🇳","🇨🇾","🇬🇪","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇱","🇯🇵","🇯🇴","🇰🇿","🇰🇼","🇰🇬","🇱🇦","🇱🇧","🇲🇾","🇲🇻","🇲🇳","🇲🇲","🇳🇵","🇰🇵","🇴🇲","🇵🇰","🇵🇸","🇵🇭","🇶🇦","🇸🇦","🇸🇬","🇰🇷","🇱🇰","🇸🇾","🇹🇼","🇹🇯","🇹🇭","🇹🇱","🇹🇷","🇹🇲","🇦🇪","🇺🇿","🇻🇳","🇾🇪"],
+  "Europe": ["🇦🇱","🇦🇩","🇦🇹","🇧🇾","🇧🇪","🇧🇦","🇧🇬","🇭🇷","🇨🇿","🇩🇰","🇪🇪","🇫🇮","🇫🇷","🇩🇪","🇬🇷","🇭🇺","🇮🇸","🇮🇪","🇮🇹","🇽🇰","🇱🇻","🇱🇮","🇱🇹","🇱🇺","🇲🇹","🇲🇩","🇲🇨","🇲🇪","🇳🇱","🇲🇰","🇳🇴","🇵🇱","🇵🇹","🇷🇴","🇷🇺","🇸🇲","🇷🇸","🇸🇰","🇸🇮","🇪🇸","🇸🇪","🇨🇭","🇺🇦","🇬🇧","🇻🇦"],
+  "North America": ["🇦🇬","🇧🇸","🇧🇧","🇧🇿","🇨🇦","🇨🇷","🇨🇺","🇩🇲","🇩🇴","🇸🇻","🇬🇩","🇬🇹","🇭🇹","🇭🇳","🇯🇲","🇲🇽","🇳🇮","🇵🇦","🇰🇳","🇱🇨","🇻🇨","🇹🇹","🇺🇸"],
+  "South America": ["🇦🇷","🇧🇴","🇧🇷","🇨🇱","🇨🇴","🇪🇨","🇬🇾","🇵🇾","🇵🇪","🇸🇷","🇺🇾","🇻🇪"],
+  "Oceania": ["🇦🇺","🇫🇯","🇰🇮","🇲🇭","🇫🇲","🇳🇷","🇳🇿","🇵🇼","🇵🇬","🇼🇸","🇸🇧","🇹🇴","🇹🇻","🇻🇺"]
+};
+
+// Обновление текста профиля на экране
+function updateProfileUI() {
+  document.getElementById("display-name").textContent = state.profile.name;
+  document.getElementById("display-country").textContent = state.profile.country;
+  document.getElementById("display-bio").textContent = state.profile.bio;
   
-  // Отрисовка трекинга на главном экране
-  function renderTracking() {
-    const list = document.getElementById("tracking-list");
-    if (!list) return;
+  // Меняем букву в кружочке на первую букву имени
+  const avatarEl = document.getElementById("profile-avatar");
   
-    list.innerHTML = "";
-    state.tracking.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "tracking-card";
-  
-      const info = document.createElement("div");
-      info.className = "tracking-info";
-  
-      const title = document.createElement("div");
-      title.className = "tracking-title";
-      title.textContent = `To ${item.to}`;
-  
-      const subtitle = document.createElement("div");
-      subtitle.className = "tracking-subtitle";
-      subtitle.textContent =
-        item.status === "Delivered" ? "Delivered" : "In Transit";
-  
-      info.appendChild(title);
-      info.appendChild(subtitle);
-  
-      const status = document.createElement("div");
-      status.className = "tracking-status";
-      status.textContent = item.status;
-  
-      card.appendChild(info);
-      card.appendChild(status);
-      list.appendChild(card);
-    });
+  // Если загружено фото — показываем его
+  if (state.profile.avatar) {
+      avatarEl.style.backgroundImage = `url(${state.profile.avatar})`;
+      avatarEl.textContent = ""; // Убираем букву
+  } else {
+      // Иначе показываем букву
+      avatarEl.style.backgroundImage = "none";
+      const firstLetter = state.profile.name.replace('@', '')[0] || 'A';
+      avatarEl.textContent = firstLetter.toUpperCase();
   }
+}
+
+// --- ЛОГИКА РЕДАКТИРОВАНИЯ ПРОФИЛЯ ---
+function setupProfileEditing() {
+  const editBtn = document.getElementById("edit-profile-btn");
+  const displayRow = document.getElementById("profile-display-name-row");
+  const displayBio = document.getElementById("display-bio");
+  const editRow = document.getElementById("profile-edit-name-row");
+  const inputName = document.getElementById("input-name");
+  const inputCountry = document.getElementById("input-country");
+  const inputBio = document.getElementById("input-bio");
+  const avatarHint = document.getElementById("avatar-edit-hint");
+  const avatarUpload = document.getElementById("avatar-upload");
+  const avatarContainer = document.querySelector(".avatar-container");
   
-  // Синхронизация цифр по открыткам и энергии
-  function syncAssets() {
-    const p = state.postcards;
-    const e = state.energy;
-  
-    const postcardIds = ["asset-postcards", "create-postcards"];
-    postcardIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = p;
-    });
-  
-    const energyIds = ["asset-energy", "create-energy"];
-    energyIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = e;
-    });
-  }
-  
-  // Карта: отрисовка блоков по континентам (и для отправленных, и для полученных)
-  function renderMapSection(mode, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-  
-    container.innerHTML = "";
-  
-    Object.keys(COUNTRIES_BY_CONTINENT).forEach(continent => {
-      const flags = COUNTRIES_BY_CONTINENT[continent];
-  
-      const row = document.createElement("div");
-      row.className = "continent-row";
-  
-      const header = document.createElement("div");
-      header.className = "continent-header";
-  
-      const name = document.createElement("span");
-      name.className = "continent-name";
-      name.textContent = continent;
-  
-      const progress = document.createElement("span");
-      progress.className = "continent-progress";
-      // Сейчас просто показываем кол-во стран в континенте.
-      progress.textContent = `${flags.length} countries`;
-  
-      header.appendChild(name);
-      header.appendChild(progress);
-  
-      const flagGrid = document.createElement("div");
-      flagGrid.className = "flag-grid";
-  
-      flags.forEach(flag => {
-        const circle = document.createElement("div");
-        circle.className = "flag-circle";
-        circle.textContent = flag;
-        flagGrid.appendChild(circle);
-      });
-  
-      row.appendChild(header);
-      row.appendChild(flagGrid);
-      container.appendChild(row);
-    });
-  }
-  
-  // Таблица лидеров
-  function renderLeaderboard() {
-    const list = document.getElementById("leaderboard-list");
-    if (!list) return;
-  
-    list.innerHTML = "";
-    state.leaderboard.forEach(player => {
-      const li = document.createElement("li");
-      li.className = "leaderboard-item";
-  
-      const name = document.createElement("span");
-      name.className = "leaderboard-name";
-      name.textContent = player.name;
-  
-      const stats = document.createElement("span");
-      stats.className = "leaderboard-stats";
-      stats.textContent = `${player.sent} sent • ${player.countries} countries`;
-  
-      li.appendChild(name);
-      li.appendChild(stats);
-      list.appendChild(li);
-    });
-  }
-  
-  // Переключение экранов через нижнее меню
-  function setupNavigation() {
-    const buttons = document.querySelectorAll(".nav-item");
-    const screens = document.querySelectorAll(".screen");
-  
-    buttons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.target;
-  
-        screens.forEach(scr => {
-          scr.classList.toggle(
-            "screen-active",
-            scr.dataset.screen === target
-          );
-        });
-  
-        buttons.forEach(b =>
-          b.classList.toggle("nav-active", b === btn)
-        );
-      });
-    });
+  const flagPicker = document.getElementById("flag-picker-container");
+  const flagGrid = document.getElementById("flag-grid-picker");
+  const displayCountry = document.getElementById("display-country");
+
+// 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
+if (flagGrid && flagGrid.children.length === 0) {
+  let allFlagsFlat = [];
+  for (let continent in COUNTRIES_BY_CONTINENT) {
+      allFlagsFlat = allFlagsFlat.concat(COUNTRIES_BY_CONTINENT[continent]);
   }
 
-  function renderPostcardCollection(type, containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-  
-    const list = state[type]; // "sentPostcards" или "receivedPostcards"
-    container.innerHTML = "";
-  
-    list.forEach(cardData => {
-      const card = document.createElement("div");
-      card.className = "postcard-card";
-  
-      const header = document.createElement("div");
-      header.className = "postcard-card-header";
-  
-      const flag = document.createElement("span");
-      flag.className = "postcard-flag";
-      flag.textContent = cardData.countryFlag;
-  
-      const dest = document.createElement("span");
-      dest.className = "postcard-destination";
-      dest.textContent = cardData.to;
-  
-      header.appendChild(flag);
-      header.appendChild(dest);
-  
-      const meta = document.createElement("div");
-      meta.className = "postcard-meta";
-      meta.textContent = cardData.status;
-  
-      card.appendChild(header);
-      card.appendChild(meta);
-      container.appendChild(card);
-    });
-  }
-  
-  function setupConstructorToggle() {
-    const modes = document.querySelectorAll(".constructor-mode");
-    const panels = document.querySelectorAll(".constructor-panel");
-  
-    if (!modes.length || !panels.length) return;
-  
-    modes.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode;
-  
-        modes.forEach(b =>
-          b.classList.toggle("constructor-mode-active", b === btn)
-        );
-  
-        panels.forEach(panel => {
-          const panelMode = panel.dataset.panel;
-          panel.classList.toggle(
-            "constructor-panel-hidden",
-            panelMode !== mode
-          );
-        });
-      });
-    });
-  }
+  allFlagsFlat.sort((a, b) => a.localeCompare(b));
 
-  // Home: раскрывающийся главный блок
-function setupHomeMainToggle() {
-  const homeMain = document.getElementById("home-main");
-  if (!homeMain) return;
+  allFlagsFlat.forEach(flag => {
+      const span = document.createElement("span");
+      span.textContent = flag;
+      span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none; -webkit-tap-highlight-color: transparent;";
+      
+      const onSelect = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          state.profile.country = flag;
+          inputCountry.value = flag;
+          displayCountry.textContent = flag;
+          flagPicker.style.display = "none";
+      };
 
-  // Начальное состояние: свернуто
-  homeMain.classList.add("home-main-collapsed");
-
-  homeMain.addEventListener("click", () => {
-    const isExpanded = homeMain.classList.contains("home-main-expanded");
-
-    // Если был раскрыт — свернуть, если был свернут — раскрыть
-    homeMain.classList.toggle("home-main-expanded", !isExpanded);
-    homeMain.classList.toggle("home-main-collapsed", isExpanded);
+      // УДАЛИЛИ touchend, оставили только click
+      // click на мобилках сработает только если НЕ было скролла
+      span.addEventListener('click', onSelect);
+      
+      flagGrid.appendChild(span);
   });
 }
 
-// Home: три раскрывающихся блока
-function setupHomeBlocksToggle() {
-  const profileBlock = document.querySelector(".profile-card");
-  const assetsBlock = document.querySelector(".home-assets");
-  const trackingBlock = document.querySelector(".home-tracking");
+  // 2. ОТКРЫТИЕ СПИСКА (Именно здесь мы лечим мобилки)
+  const handleFlagInteraction = (e) => {
+    // Проверяем, что мы в режиме редактирования
+    if (editBtn.textContent === "Save Changes") {
+      e.preventDefault();
+      e.stopPropagation(); // Чтобы карточка не закрылась
+      
+      const isHidden = flagPicker.style.display === "none" || flagPicker.style.display === "";
+      flagPicker.style.display = isHidden ? "block" : "none";
+      
+      console.log("Клик по флагу зафиксирован"); // Проверь в консоли, если есть возможность
+    }
+  };
 
-  const blocks = [profileBlock, assetsBlock, trackingBlock].filter(Boolean);
+  // Слушаем и клик, и тач
+  // Вешаем обработчики на все типы касаний
+  inputCountry.addEventListener("touchstart", handleFlagInteraction, { passive: false });
+  inputCountry.addEventListener("click", handleFlagInteraction);
 
-  if (!blocks.length) return;
+  // 3. КНОПКА EDIT / SAVE
+  editBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
 
-  blocks.forEach(block => {
-    // класс home-expandable мы уже добавили в HTML, но можно продублировать
-    block.classList.add("home-expandable");
+    if (editBtn.textContent === "Edit Profile") {
+      inputName.value = state.profile.name;
+      inputCountry.value = state.profile.country;
+      inputBio.value = state.profile.bio;
 
-    block.addEventListener("click", () => {
-      const alreadyExpanded = block.classList.contains("home-block-expanded");
+      displayRow.style.display = "none";
+      displayBio.style.display = "none";
+      editRow.style.display = "flex";
+      inputBio.style.display = "block";
+      avatarHint.style.display = "block";
 
-      if (alreadyExpanded) {
-        // Был раскрыт — вернуть всё как было: показать все три
-        blocks.forEach(b => {
-          b.classList.remove("home-block-expanded", "home-block-hidden");
-        });
+      editBtn.textContent = "Save Changes";
+    } else {
+      state.profile.name = inputName.value;
+      state.profile.country = inputCountry.value;
+      state.profile.bio = inputBio.value;
+
+      updateProfileUI();
+
+      displayRow.style.display = "flex";
+      displayBio.style.display = "block";
+      editRow.style.display = "none";
+      inputBio.style.display = "none";
+      avatarHint.style.display = "none";
+      flagPicker.style.display = "none";
+
+      editBtn.textContent = "Edit Profile";
+    }
+  });
+
+  // Остальное (аватар) без изменений
+  avatarContainer.onclick = (e) => {
+    e.stopPropagation();
+    if (editBtn.textContent === "Save Changes") avatarUpload.click();
+  };
+  avatarUpload.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => { state.profile.avatar = ev.target.result; updateProfileUI(); };
+      reader.readAsDataURL(file);
+    }
+  };
+}
+
+// --- РАСКРЫВАЮЩИЕСЯ БЛОКИ (с защитой для флагов) ---
+function setupExpandableBlocks() {
+  const homeScreen = document.getElementById('home-screen');
+  const triggers = document.querySelectorAll('.expand-trigger');
+  
+  triggers.forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
+      // Если палец коснулся списка флагов или его содержимого — игнорируем это событие
+      if (e.target.closest('#flag-picker-container')) {
+        return; 
+      }
+
+      e.stopPropagation();
+      const block = trigger.closest('.clickable-block');
+      const isExpanded = block.classList.contains('expanded');
+      
+      document.querySelectorAll('.clickable-block').forEach(b => {
+        b.classList.remove('expanded');
+        const t = b.querySelector('.expand-trigger');
+        if (t) t.textContent = "⬇️";
+      });
+
+      if (!isExpanded) {
+        block.classList.add('expanded');
+        trigger.textContent = "⬆️";
+        homeScreen.classList.add('has-expanded');
       } else {
-        // Раскрыть только текущий, остальные спрятать
-        blocks.forEach(b => {
-          const isCurrent = b === block;
-          b.classList.toggle("home-block-expanded", isCurrent);
-          b.classList.toggle("home-block-hidden", !isCurrent);
-        });
+        homeScreen.classList.remove('has-expanded');
       }
     });
   });
 }
-  
-  // Инициализация
-  document.addEventListener("DOMContentLoaded", () => {
-    renderTracking();
-    syncAssets();
-    setupNavigation();
-  
-    renderMapSection("sent", "sent-by-continent");
-    renderMapSection("received", "received-by-continent");
-    renderLeaderboard();
-  
-    // Коллекции открыток
-    renderPostcardCollection("sentPostcards", "sent-postcards-grid");
-    renderPostcardCollection("receivedPostcards", "received-postcards-grid");
-  
-    // Переключение режимов конструктора
-    setupConstructorToggle();
-    // Home: три раскрывающихся блока
-  setupHomeBlocksToggle();
-  });
 
-  
+// --- ФУНКЦИИ ОТРИСОВКИ ---
+function renderTracking() {
+  const list = document.getElementById("tracking-list");
+  if (!list) return;
+  list.innerHTML = "";
+  state.tracking.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "tracking-card";
+    card.innerHTML = `<div class="tracking-info"><div class="tracking-title">To ${item.to}</div><div class="tracking-subtitle">${item.status === "Delivered" ? "Delivered" : "In Transit"}</div></div><div class="tracking-status">${item.status}</div>`;
+    list.appendChild(card);
+  });
+}
+
+function syncAssets() {
+  const postcardIds = ["asset-postcards", "create-postcards"];
+  postcardIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = state.postcards; });
+  const energyIds = ["asset-energy", "create-energy"];
+  energyIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = state.energy; });
+}
+
+function renderMapSection(mode, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  Object.keys(COUNTRIES_BY_CONTINENT).forEach(continent => {
+    const flags = COUNTRIES_BY_CONTINENT[continent];
+    const row = document.createElement("div");
+    row.className = "continent-row";
+    row.innerHTML = `<div class="continent-header"><span class="continent-name">${continent}</span><span class="continent-progress">${flags.length} countries</span></div><div class="flag-grid">${flags.map(f => `<div class="flag-circle">${f}</div>`).join('')}</div>`;
+    container.appendChild(row);
+  });
+}
+
+function renderLeaderboard() {
+  const list = document.getElementById("leaderboard-list");
+  if (!list) return;
+  list.innerHTML = "";
+  state.leaderboard.forEach(player => {
+    const li = document.createElement("li");
+    li.className = "leaderboard-item";
+    li.innerHTML = `<span class="leaderboard-name">${player.name}</span><span class="leaderboard-stats">${player.sent} sent • ${player.countries} countries</span>`;
+    list.appendChild(li);
+  });
+}
+
+function setupNavigation() {
+  const buttons = document.querySelectorAll(".nav-item");
+  const screens = document.querySelectorAll(".screen");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.target;
+      screens.forEach(scr => scr.classList.toggle("screen-active", scr.dataset.screen === target));
+      buttons.forEach(b => b.classList.toggle("nav-active", b === btn));
+    });
+  });
+}
+
+function renderPostcardCollection(type, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  state[type].forEach(cardData => {
+    const card = document.createElement("div");
+    card.className = "postcard-card";
+    card.innerHTML = `<div class="postcard-card-header"><span class="postcard-flag">${cardData.countryFlag}</span><span class="postcard-destination">${cardData.to}</span></div><div class="postcard-meta">${cardData.status}</div>`;
+    container.appendChild(card);
+  });
+}
+
+function setupConstructorToggle() {
+  const modes = document.querySelectorAll(".constructor-mode");
+  const panels = document.querySelectorAll(".constructor-panel");
+  modes.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      modes.forEach(b => b.classList.toggle("constructor-mode-active", b === btn));
+      panels.forEach(p => p.classList.toggle("constructor-panel-hidden", p.dataset.panel !== mode));
+    });
+  });
+}
+
+// Инициализация
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof updateProfileUI === 'function') updateProfileUI(); 
+  setupProfileEditing(); 
+  renderTracking();
+  syncAssets();
+  setupNavigation();
+  renderMapSection("sent", "sent-by-continent");
+  renderMapSection("received", "received-by-continent");
+  renderLeaderboard();
+  renderPostcardCollection("sentPostcards", "sent-postcards-grid");
+  renderPostcardCollection("receivedPostcards", "received-postcards-grid");
+  setupConstructorToggle();
+  setupExpandableBlocks();
+});

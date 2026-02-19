@@ -16,139 +16,80 @@
 
       <!-- MAIN CONTENT -->
       <main id="screen-container">
-               <!-- HOME SCREEN -->
-               <section class="screen screen-active" data-screen="home" id="home-screen">
-                <!-- 1. Блок о пользователе -->
-                                <!-- 1. Блок о пользователе -->
-                <div class="profile-card home-expandable">
-                  <div class="profile-card-content">
-                    <div class="avatar-circle">A</div>
-                    <div class="profile-info">
-                      <div class="profile-name">@Alex_Travels</div>
-                      <div class="profile-country">🇫🇷 France</div>
-                      <div class="profile-membership">In app for: 124 days</div>
-                    </div>
-                  </div>
-      
-                  <!-- Полоска-подсказка внизу блока профиля -->
-                  <div class="home-block-handle">
-                    <span class="home-block-handle-bar"></span>
-                  </div>
+        <!-- HOME SCREEN -->
+        <section class="screen screen-active" data-screen="home" id="home-screen">
+            <!-- 1. Блок о пользователе -->
+            <div class="profile-card clickable-block" id="profile-block">
+              <div class="profile-header-top">
+                <div class="avatar-container" style="position: relative; cursor: pointer;">
+                  <div class="avatar-circle" id="profile-avatar">A</div>              
+                  <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
+                  <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
                 </div>
-    
-                <!-- 2. Блок состояния активов -->
-                <div class="section-block home-assets home-expandable">
-                  <div class="section-header">
-                    <span>My Assets</span>
+            
+                <div class="profile-info">
+                  <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
+                    <div class="profile-name" id="display-name">@Alex</div>
+                    <div class="profile-country" id="display-country">🇫🇷</div>
                   </div>
-                  <div class="assets-row">
-                    <div class="asset-card">
-                      <div class="asset-label">Available postcards</div>
-                      <div class="asset-value" id="asset-postcards">5</div>
-                    </div>
-                    <div class="asset-card">
-                      <div class="asset-label">Available energy</div>
-                      <div class="asset-value" id="asset-energy">500</div>
-                    </div>
+            
+                  <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
+                    <input type="text" id="input-name" style="width: 80px; font-size: 12px;">
+                    <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
                   </div>
-      
-                  <!-- Полоска-подсказка внизу блока активов -->
-                  <div class="home-block-handle">
-                    <span class="home-block-handle-bar"></span>
-                  </div>
+                  
+                  <div class="profile-membership">In app for: 124 days</div>
                 </div>
-      
-                <!-- 3. Tracking Board -->
-                <div class="section-block home-tracking home-expandable">
-                  <div class="section-header">
-                    <span>Tracking Board</span>
+              </div>
+            
+              <div id="flag-picker-container" style="display: none; margin: 10px 0; border-top: 1px solid #eee; padding-top: 10px;">
+                <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
+                <div id="flag-grid-picker" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-height: 120px; overflow-y: auto; padding: 5px; background: #fdfaf5; border-radius: 8px;">
                   </div>
-                  <div class="tracking-list" id="tracking-list">
-                    <!-- Заполняется через JS -->
-                  </div>
-      
-                  <!-- Полоска-подсказка внизу Tracking Board -->
-                  <div class="home-block-handle">
-                    <span class="home-block-handle-bar"></span>
-                  </div>
-                </div>
-              </section>
+              </div>
+              
+              <span class="expand-trigger">⬇️</span> 
+            
+              <div class="extra-content">
+                <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here. You can also edit your status.</p>
+                <textarea id="input-bio" style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;"></textarea>
+                
+                <button class="secondary-button" id="edit-profile-btn">Edit Profile</button>
+              </div>
+            </div>
+
+  <!-- 2. Блок состояния активов -->
+  <div class="section-block home-assets clickable-block">
+    <div class="section-header">
+      <span>My Assets</span>
+      <span class="expand-trigger">⬇️</span> </div>
+    <div class="assets-row">
+      <div class="asset-card">
+        <div class="asset-label">Available postcards</div>
+        <div class="asset-value">5</div>
+      </div>
+      <div class="asset-card">
+        <div class="asset-label">Available energy</div>
+        <div class="asset-value">500</div>
+      </div>
+    </div>
+    <div class="extra-content">
+      <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
+      <button class="primary-button">Refill Energy</button>
+    </div>
+  </div>
+
+  <div class="section-block home-tracking clickable-block">
+    <div class="section-header">
+      <span>Tracking Board</span>
+      <span class="expand-trigger">⬇️</span> </div>
+    <div class="tracking-list" id="tracking-list">
+      </div>
+    <div class="extra-content">
+      <p class="small-text">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
+    </div>
+  </div>
 </section>
-
-        <!-- PROFILE SCREEN -->
-        <section class="screen" data-screen="profile">
-          <div class="profile-card">
-            <div class="avatar-circle">A</div>
-            <div class="profile-info">
-              <div class="profile-name">@Alex_Travels</div>
-              <div class="profile-country">🇫🇷 France</div>
-              <div class="profile-membership">Member for: 124 days</div>
-            </div>
-          </div>
-
-          <div class="section-block">
-            <div class="section-header">
-              <span>About Me</span>
-              <button class="icon-button">✏️</button>
-            </div>
-            <textarea class="about-input" rows="3">
-Hi, I love sending postcards around the world!</textarea>
-          </div>
-
-          <div class="section-block">
-            <div class="section-header">
-              <span>Statistics</span>
-            </div>
-            <div class="stats-row">
-              <div class="stat-item">
-                <div class="stat-label">Sent</div>
-                <div class="stat-value">110</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Received</div>
-                <div class="stat-value">105</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">Countries</div>
-                <div class="stat-value">45</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="section-block">
-            <div class="section-header">
-              <span>Hobbies</span>
-              <button class="icon-button">✏️</button>
-            </div>
-            <div class="chips">
-              <span class="chip">Travel</span>
-              <span class="chip">Photography</span>
-              <span class="chip">Cooking</span>
-            </div>
-          </div>
-
-          <div class="section-block">
-            <div class="section-header">
-              <span>Achievements</span>
-            </div>
-            <div class="achievements-row">
-              <div class="badge">
-                <span class="badge-icon">🏅</span>
-                <span class="badge-label">Top Sender</span>
-              </div>
-              <div class="badge">
-                <span class="badge-icon">🌍</span>
-                <span class="badge-label">Globe Trotter</span>
-              </div>
-              <div class="badge">
-                <span class="badge-icon">📬</span>
-                <span class="badge-label">First Steps</span>
-              </div>
-            </div>
-          </div>
-
-          <button class="primary-button">Save</button>
-        </section>
 
         <!-- MAP SCREEN -->
 <section class="screen" data-screen="map">
