@@ -182,7 +182,7 @@
 
 /* 1. Кнопка-инпут выбора страны */
 #input-country {
-  width: 35px; /* фиксируем ширину кнопки */
+  width: 35px;
   height: 22px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -192,14 +192,14 @@
   border: 1px solid #d8c2a5;
   background: #fff;
   border-radius: 4px;
-  caret-color: transparent; /* защита от курсора */
+  caret-color: transparent;
   text-align: center;
   font-size: 12px;
 }
 
 /* 2. Контейнер-обертка всего выпадающего списка */
 #flag-picker-container {
-  display: none; /* управляется через JS */
+  display: none;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -210,15 +210,16 @@
   margin-top: 8px;
 }
 
-/* 3. Сетка с флагами (ровно 6 в ряд) */
+/* 3. Сетка с флагами (ровно 7 в ряд) */
 #flag-grid-picker {
   display: grid;
-  gap: 4px;
+  /* КРИТИЧЕСКИ ВАЖНО: жестко 7 колонок, которые не шире контейнера */
+  grid-template-columns: repeat(7, 1fr); 
+  gap: 2px; /* Уменьшил отступ, чтобы 7 штук влезли свободнее */
   padding: 8px;
   width: 100%; 
-  box-sizing: border-box;
+  box-sizing: border-box; /* Чтобы паддинги не расширяли блок */
   
-  /* Настройки скролла */
   touch-action: pan-y;
   overflow-y: auto;
   max-height: 220px;
@@ -228,21 +229,23 @@
 /* 4. Стили каждого отдельного флажка */
 #flag-grid-picker span {
   cursor: pointer;
-  font-size: 26px; /* оптимальный размер для 6 в ряд */
+  /* Уменьшил шрифт до 22px, чтобы 7 флагов гарантированно влезли без обрезки */
+  font-size: 22px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1 / 1; /* делает ячейку квадратной */
+  aspect-ratio: 1 / 1;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   border-radius: 6px;
   transition: transform 0.1s ease;
+  min-width: 0; /* Важно: позволяет элементу сжиматься внутри грида */
 }
 
 /* Эффект при нажатии */
 #flag-grid-picker span:active {
   transform: scale(1.2);
-  background: rgba(216, 194, 165, 0.3); /* легкий бежевый отклик */
+  background: rgba(216, 194, 165, 0.3);
   border-radius: 4px;
 }
   
