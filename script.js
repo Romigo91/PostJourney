@@ -1,10 +1,13 @@
+let tempSelectedInterests = []; // Здесь будут лежать теги до нажатия Save
+const AVAILABLE_INTERESTS = ["Art", "Books", "Cooking", "Travel", "Nature", "Music", "Sport", "Tech", "History", "Movies"];
+
 const state = {
-  // Добавили данные профиля в состояние
   profile: {
-      name: "@Alex",
-      country: "🇫🇷",
-      bio: "Detailed statistics and recent achievements will be shown here. You can also edit your status.", // ЗАПЯТАЯ ДОБАВЛЕНА
-      avatar: null
+    name: "@Alex",
+    country: "🇫🇷",
+    bio: "Detailed statistics and recent achievements...",
+    avatar: null,
+    interests: ["Art", "Travel"] // начальные теги
   },
   
   postcards: 5,
@@ -45,15 +48,20 @@ function updateProfileUI() {
   document.getElementById("display-country").textContent = state.profile.country;
   document.getElementById("display-bio").textContent = state.profile.bio;
   
-  // Меняем букву в кружочке на первую букву имени
+  // Отрисовка тегов под аватаром
+  const tagsContainer = document.getElementById("display-tags-minimal");
+  if (tagsContainer) {
+    tagsContainer.innerHTML = state.profile.interests
+      .map(tag => `<span class="tag-mini">${tag}</span>`)
+      .join("");
+  }
+
+  // Обновляем аватарку
   const avatarEl = document.getElementById("profile-avatar");
-  
-  // Если загружено фото — показываем его
   if (state.profile.avatar) {
       avatarEl.style.backgroundImage = `url(${state.profile.avatar})`;
-      avatarEl.textContent = ""; // Убираем букву
+      avatarEl.textContent = "";
   } else {
-      // Иначе показываем букву
       avatarEl.style.backgroundImage = "none";
       const firstLetter = state.profile.name.replace('@', '')[0] || 'A';
       avatarEl.textContent = firstLetter.toUpperCase();
@@ -131,33 +139,48 @@ if (flagGrid && flagGrid.children.length === 0) {
   // 3. КНОПКА EDIT / SAVE
   editBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-
+  
     if (editBtn.textContent === "Edit Profile") {
+      // ВХОД В РЕЖИМ РЕДАКТИРОВАНИЯ
       inputName.value = state.profile.name;
       inputCountry.value = state.profile.country;
       inputBio.value = state.profile.bio;
-
+      
+      // Копируем текущие теги во временную переменную
+      tempSelectedInterests = [...state.profile.interests]; 
+      renderEditTags();
+  
       displayRow.style.display = "none";
       displayBio.style.display = "none";
+      document.getElementById("display-tags-minimal").style.display = "none"; // Скрываем старые теги
+      
       editRow.style.display = "flex";
       inputBio.style.display = "block";
       avatarHint.style.display = "block";
-
+      document.getElementById("edit-tags-wrapper").style.display = "block";
+  
       editBtn.textContent = "Save Changes";
     } else {
+      // СОХРАНЕНИЕ
       state.profile.name = inputName.value;
       state.profile.country = inputCountry.value;
       state.profile.bio = inputBio.value;
-
+      
+      // Только теперь переносим теги из временной переменной в профиль
+      state.profile.interests = [...tempSelectedInterests]; 
+  
       updateProfileUI();
-
+  
       displayRow.style.display = "flex";
       displayBio.style.display = "block";
+      document.getElementById("display-tags-minimal").style.display = "flex"; // Показываем обновленные теги
+      
       editRow.style.display = "none";
       inputBio.style.display = "none";
       avatarHint.style.display = "none";
       flagPicker.style.display = "none";
-
+      document.getElementById("edit-tags-wrapper").style.display = "none";
+  
       editBtn.textContent = "Edit Profile";
     }
   });
@@ -179,36 +202,64 @@ if (flagGrid && flagGrid.children.length === 0) {
 
 // --- РАСКРЫВАЮЩИЕСЯ БЛОКИ (с защитой для флагов) ---
 function setupExpandableBlocks() {
-  const homeScreen = document.getElementById('home-screen');
   const triggers = document.querySelectorAll('.expand-trigger');
   
   triggers.forEach(trigger => {
     trigger.addEventListener('click', (e) => {
-      // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ:
-      // Если палец коснулся списка флагов или его содержимого — игнорируем это событие
-      if (e.target.closest('#flag-picker-container')) {
-        return; 
-      }
-
-      e.stopPropagation();
+      // 1. Если кликнули по самой стрелочке
       const block = trigger.closest('.clickable-block');
       const isExpanded = block.classList.contains('expanded');
       
+      // 2. Закрываем все остальные блоки
       document.querySelectorAll('.clickable-block').forEach(b => {
-        b.classList.remove('expanded');
-        const t = b.querySelector('.expand-trigger');
-        if (t) t.textContent = "⬇️";
+        if (b !== block) {
+          b.classList.remove('expanded');
+          const t = b.querySelector('.expand-trigger');
+          if (t) t.textContent = "⬇️";
+          
+          // Сбрасываем профиль, если закрываем его
+          if (b.id === 'profile-block') {
+            resetProfileEditMode();
+          }
+        }
       });
 
+      // 3. Переключаем текущий блок
       if (!isExpanded) {
         block.classList.add('expanded');
         trigger.textContent = "⬆️";
-        homeScreen.classList.add('has-expanded');
       } else {
-        homeScreen.classList.remove('has-expanded');
+        block.classList.remove('expanded');
+        trigger.textContent = "⬇️";
+        // Если это был профиль, при закрытии выходим из редактирования
+        if (block.id === 'profile-block') {
+          resetProfileEditMode();
+        }
       }
     });
   });
+}
+
+// Новая вспомогательная функция для сброса вида профиля
+function resetProfileEditMode() {
+  const editBtn = document.getElementById("edit-profile-btn");
+  if (editBtn && editBtn.textContent === "Save Changes") {
+    editBtn.textContent = "Edit Profile";
+    
+    // Просто перерисовываем UI по старым данным из state.profile
+    document.getElementById("profile-display-name-row").style.display = "flex";
+    document.getElementById("display-bio").style.display = "block";
+    document.getElementById("display-tags-minimal").style.display = "flex";
+    
+    document.getElementById("profile-edit-name-row").style.display = "none";
+    document.getElementById("input-bio").style.display = "none";
+    document.getElementById("avatar-edit-hint").style.display = "none";
+    document.getElementById("flag-picker-container").style.display = "none";
+    document.getElementById("edit-tags-wrapper").style.display = "none";
+    
+    tempSelectedInterests = []; // Очищаем черновик
+    updateProfileUI();
+  }
 }
 
 // --- ФУНКЦИИ ОТРИСОВКИ ---
@@ -289,6 +340,33 @@ function setupConstructorToggle() {
       modes.forEach(b => b.classList.toggle("constructor-mode-active", b === btn));
       panels.forEach(p => p.classList.toggle("constructor-panel-hidden", p.dataset.panel !== mode));
     });
+  });
+}
+
+// Вставлять в самый конец script.js
+function renderEditTags() {
+  const container = document.getElementById("edit-tags-list");
+  if (!container) return;
+
+  container.innerHTML = AVAILABLE_INTERESTS.map(tag => {
+    // Проверяем наличие во временном массиве
+    const isSelected = tempSelectedInterests.includes(tag);
+    return `<span class="tag-selectable ${isSelected ? 'selected' : ''}">${tag}</span>`;
+  }).join("");
+
+  container.querySelectorAll('.tag-selectable').forEach(el => {
+    el.onclick = (e) => {
+      e.stopPropagation(); // Чтобы не закрылся блок
+      const tag = el.textContent;
+      
+      if (tempSelectedInterests.includes(tag)) {
+        tempSelectedInterests = tempSelectedInterests.filter(t => t !== tag);
+      } else if (tempSelectedInterests.length < 5) {
+        tempSelectedInterests.push(tag);
+      }
+      
+      renderEditTags(); // Перерисовываем только сетку выбора, основной UI не трогаем!
+    };
   });
 }
 

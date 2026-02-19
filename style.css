@@ -180,6 +180,62 @@
     color: #a57a4d;
   }
 
+  /* Контейнер тегов в закрытом состоянии */
+/* Контейнер тегов: теперь он просто идет следующим блоком после аватара */
+.tags-full-width-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px; /* Отступ от аватара */
+  padding: 0 4px;   /* Чтобы не липли к краям */
+}
+
+.tag-mini {
+  font-size: 10px;
+  padding: 3px 10px;
+  background: #fff;
+  border: 1px solid #d8c2a5;
+  border-radius: 999px;
+  color: #7b4d28;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Фикс для стрелочки, чтобы она не ломала верстку */
+.profile-card .expand-trigger {
+  position: static !important; /* Отменяем абсолютное позиционирование из старых стилей */
+}
+
+.tags-container-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-selectable {
+  font-size: 12px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #d8c2a5;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.tag-selectable.selected {
+  background: #f28b68;
+  color: #fff;
+  border-color: #f28b68;
+}
+
+.flag-grid-picker-style {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
 /* 1. Кнопка-инпут выбора страны */
 #input-country {
   width: 35px;
