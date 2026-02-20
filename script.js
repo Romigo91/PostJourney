@@ -42,7 +42,7 @@ const state = {
 
 const COUNTRIES_BY_CONTINENT = {
   "Africa": ["🇩🇿","🇦🇴","🇧🇯","🇧🇼","🇧🇫","🇧🇮","🇨🇻","🇨🇲","🇨🇫","🇹🇩","🇰🇲","🇨🇩","🇨🇬","🇩🇯","🇪🇬","🇬🇶","🇪🇷","🇸🇿","🇪🇹","🇬🇦","🇬🇲","🇬🇭","🇬🇳","🇬🇼","🇨🇮","🇰🇪","🇱🇸","🇱🇷","🇱🇾","🇲🇬","🇲🇼","🇲🇱","🇲🇷","🇲🇺","🇲🇦","🇲🇿","🇳🇦","🇳🇪","🇳🇬","🇷🇼","🇸🇹","🇸🇳","🇸🇨","🇸🇱","🇸🇴","🇿🇦","🇸🇸","🇸🇩","🇹🇿","🇹🇬","🇹🇳","🇺🇬","🇿🇲","🇿🇼"],
-  "Asia": ["🇦🇫","🇦🇲","🇦🇿","🇧🇭","🇧🇩","🇧🇹","🇧🇳","🇰🇭","🇨🇳","🇨🇾","🇬🇪","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇱","🇯🇵","🇯🇴","🇰🇿","🇰🇼","🇰🇬","🇱🇦","🇱🇧","🇲🇾","🇲🇻","🇲🇳","🇲🇲","🇳🇵","🇰🇵","🇴🇲","🇵🇰","🇵🇸","🇵🇭","🇶🇦","🇸🇦","🇸🇬","🇰🇷","🇱🇰","🇸🇾","🇹🇼","🇹🇯","🇹🇭","🇹🇱","🇹🇷","🇹🇲","🇦🇪","🇺🇿","🇻🇳","🇾🇪"],
+  "Asia": ["🇦🇫","🇦🇲","🇦🇿","🇧🇭","🇧🇩","🇧🇹","🇧🇳","🇰🇭","🇨🇳","🇨🇾","🇬🇪","🇮🇳","🇮🇩","🇮🇷","🇮 عراق","🇮🇱","🇯🇵","🇯🇴","🇰🇿","🇰🇼","🇰🇬","🇱🇦","🇱🇧","🇲🇾","🇲🇻","🇲🇳","🇲🇲","🇳🇵","🇰🇵","🇴🇲","🇵🇰","🇵🇸","🇵🇭","🇶🇦","🇸🇦","🇸🇬","🇰🇷","🇱🇰","🇸🇾","🇹🇼","🇹🇯","🇹🇭","🇹🇱","🇹🇷","🇹🇲","🇦🇪","🇺🇿","🇻🇳","🇾🇪"],
   "Europe": ["🇦🇱","🇦🇩","🇦🇹","🇧🇾","🇧🇪","🇧🇦","🇧🇬","🇭🇷","🇨🇿","🇩🇰","🇪🇪","🇫🇮","🇫🇷","🇩🇪","🇬🇷","🇭🇺","🇮🇸","🇮🇪","🇮🇹","🇽🇰","🇱🇻","🇱🇮","🇱🇹","🇱🇺","🇲🇹","🇲🇩","🇲🇨","🇲🇪","🇳🇱","🇲🇰","🇳🇴","🇵🇱","🇵🇹","🇷🇴","🇷🇺","🇸🇲","🇷🇸","🇸🇰","🇸🇮","🇪🇸","🇸🇪","🇨🇭","🇺🇦","🇬🇧","🇻🇦"],
   "North America": ["🇦🇬","🇧🇸","🇧🇧","🇧🇿","🇨🇦","🇨🇷","🇨🇺","🇩🇲","🇩🇴","🇸🇻","🇬🇩","🇬🇹","🇭🇹","🇭🇳","🇯🇲","🇲🇽","🇳🇮","🇵🇦","🇰🇳","🇱🇨","🇻🇨","🇹🇹","🇺🇸"],
   "South America": ["🇦🇷","🇧🇴","🇧🇷","🇨🇱","🇨🇴","🇪🇨","🇬🇾","🇵🇾","🇵🇪","🇸🇷","🇺🇾","🇻🇪"],
@@ -64,15 +64,13 @@ const getTranslation = (key) => {
 const formatStatusKey = (status) => `status_${status.toLowerCase().replace(/\s/g, '_')}`;
 
 // ==========================================================================
-// 3. СЕРДЦЕ ИНТЕРФЕЙСА (UI UPDATERS)
+// 3. UI UPDATERS
 // ==========================================================================
 
 function updateProfileUI() {
   const { name, country, bio, avatar, interests } = state.profile;
-  
-  // ОПРЕДЕЛЯЕМ РЕЖИМ: Если блок инпута виден, значит мы в режиме редактирования
-  const editRow = document.getElementById("profile-edit-name-row");
-  const isEditingNow = editRow && editRow.style.display === "block";
+  const editBtn = document.getElementById("edit-profile-btn");
+  const isEditingNow = editBtn && editBtn.getAttribute('data-mode') === 'save';
 
   document.getElementById("display-name").textContent = name;
   document.getElementById("display-country").textContent = country;
@@ -89,9 +87,7 @@ function updateProfileUI() {
   }
 
   const avatarEl = document.getElementById("profile-avatar");
-  
-  // Если мы редактируем и есть временное фото — берем его. В остальных случаях — из стейта.
-  const currentAvatar = (isEditingNow && tempAvatar) ? tempAvatar : avatar;
+  const currentAvatar = isEditingNow ? tempAvatar : avatar;
 
   if (currentAvatar) {
       avatarEl.style.backgroundImage = `url(${currentAvatar})`;
@@ -100,12 +96,6 @@ function updateProfileUI() {
       avatarEl.style.backgroundImage = "none";
       avatarEl.textContent = (name.replace('@', '')[0] || 'A').toUpperCase();
   }
-}
-
-function renderListComponent(containerId, data, templateFn) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = data.map(templateFn).join("");
 }
 
 function refreshAllLists() {
@@ -144,6 +134,12 @@ function refreshAllLists() {
   renderListComponent("received-postcards-grid", state.receivedPostcards, cardTemplate);
 }
 
+function renderListComponent(containerId, data, templateFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = data.map(templateFn).join("");
+}
+
 function renderMapSections() {
   const mapTemplate = (containerId) => {
       const container = document.getElementById(containerId);
@@ -165,7 +161,7 @@ function renderMapSections() {
 }
 
 // ==========================================================================
-// 4. ЛОГИКА И СОБЫТИЯ
+// 4. ЛОГИКА РЕДАКТИРОВАНИЯ
 // ==========================================================================
 
 function setupProfileEditing() {
@@ -173,23 +169,34 @@ function setupProfileEditing() {
   const flagGrid = document.getElementById("flag-grid-picker");
   const inputCountry = document.getElementById("input-country");
   const flagPicker = document.getElementById("flag-picker-container");
+  const avatarIcon = document.getElementById("avatar-edit-hint");
+  const avatarUpload = document.getElementById("avatar-upload");
 
-// Находим иконку фотоаппарата (убедись, что в HTML у неё id="avatar-edit-hint")
-const avatarIcon = document.getElementById("avatar-edit-hint");
-const avatarUpload = document.getElementById("avatar-upload");
+  // Клик по иконке фотоаппарата
+  if (avatarIcon && avatarUpload) {
+      avatarIcon.onclick = (e) => {
+          e.stopPropagation();
+          if (editBtn && editBtn.getAttribute('data-mode') === 'save') {
+              avatarUpload.click();
+          }
+      };
+  }
 
-if (avatarIcon && avatarUpload) {
-    avatarIcon.onclick = (e) => {
-        e.stopPropagation(); // Чтобы клик не улетел на круг или другие элементы
-        
-        // Проверяем, что мы в режиме сохранения (кнопка имеет data-mode="save")
-        const editBtn = document.getElementById("edit-profile-btn");
-        if (editBtn && editBtn.getAttribute('data-mode') === 'save') {
-            avatarUpload.click(); // Открываем выбор файла
-        }
+  // Загрузка фото (превью)
+  if (avatarUpload) {
+    avatarUpload.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            tempAvatar = ev.target.result;
+            updateProfileUI(); 
+        };
+        reader.readAsDataURL(file);
     };
-}
+  }
 
+  // Настройка выбора флага
   if (flagGrid && flagGrid.children.length === 0) {
       const allFlags = Object.values(COUNTRIES_BY_CONTINENT).flat().sort((a, b) => a.localeCompare(b));
       flagGrid.innerHTML = allFlags.map(flag => `<span class="flag-item" style="cursor:pointer;font-size:24px;padding:5px;">${flag}</span>`).join("");
@@ -207,34 +214,14 @@ if (avatarIcon && avatarUpload) {
   if (inputCountry && flagPicker) {
       inputCountry.onclick = (e) => {
           e.stopPropagation();
-          const isVisible = flagPicker.style.display === "block";
-          flagPicker.style.display = isVisible ? "none" : "block";
+          flagPicker.style.display = flagPicker.style.display === "block" ? "none" : "block";
       };
-
-      document.addEventListener('click', (e) => {
-          if (!flagPicker.contains(e.target) && e.target !== inputCountry) {
-              flagPicker.style.display = "none";
-          }
-      });
-  }
-
-  if (avatarUpload) {
-    avatarUpload.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            tempAvatar = ev.target.result;
-            updateProfileUI(); // Превью отобразится корректно, т.к. мы в режиме Save
-        };
-        reader.readAsDataURL(file);
-    };
   }
 
   if (editBtn) {
     editBtn.onclick = () => {
-        const isEditing = editBtn.getAttribute('data-mode') === 'save';
-        toggleEditMode(!isEditing);
+        const isEditingNow = editBtn.getAttribute('data-mode') === 'save';
+        toggleEditMode(!isEditingNow);
     };
   }
 }
@@ -245,23 +232,22 @@ function toggleEditMode(enable) {
   const editIds = ["profile-edit-name-row", "input-bio", "avatar-edit-hint", "edit-tags-wrapper"];
 
   if (enable) {
-      // ПЕРЕДВИГАЕМ СМЕНУ РЕЖИМА В НАЧАЛО
+      // ПЕРЕХОД В РЕЖИМ РЕДАКТИРОВАНИЯ
       editBtn.setAttribute('data-mode', 'save');
-      
-      document.getElementById("input-name").value = state.profile.name;
-      document.getElementById("input-country").value = state.profile.country;
-      document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
       
       tempSelectedCountry = state.profile.country;
       tempSelectedInterests = [...state.profile.interests];
       tempAvatar = state.profile.avatar;
+
+      document.getElementById("input-name").value = state.profile.name;
+      document.getElementById("input-country").value = state.profile.country;
+      document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
       
       ids.forEach(id => document.getElementById(id).style.display = "none");
       editIds.forEach(id => document.getElementById(id).style.display = "block");
-      
       renderEditTags();
   } else {
-      // Сохранение
+      // СОХРАНЕНИЕ
       state.profile.name = document.getElementById("input-name").value;
       state.profile.country = tempSelectedCountry;
       const newBio = document.getElementById("input-bio").value.trim();
@@ -276,7 +262,24 @@ function toggleEditMode(enable) {
       document.getElementById("flag-picker-container").style.display = "none";
   }
 
-  // Вызываем перевод в конце, когда display: block/none уже применены
+  applyLanguage(localStorage.getItem('selectedLang') || 'en');
+}
+
+function cancelEditMode() {
+  const editBtn = document.getElementById("edit-profile-btn");
+  if (!editBtn || editBtn.getAttribute('data-mode') !== 'save') return;
+
+  // Сброс без сохранения
+  editBtn.setAttribute('data-mode', 'edit');
+  
+  const ids = ["profile-display-name-row", "display-bio", "display-tags-minimal"];
+  const editIds = ["profile-edit-name-row", "input-bio", "avatar-edit-hint", "edit-tags-wrapper"];
+
+  ids.forEach(id => document.getElementById(id).style.display = "flex");
+  editIds.forEach(id => document.getElementById(id).style.display = "none");
+  document.getElementById("flag-picker-container").style.display = "none";
+
+  updateProfileUI();
   applyLanguage(localStorage.getItem('selectedLang') || 'en');
 }
 
@@ -305,7 +308,7 @@ function renderEditTags() {
 }
 
 // ==========================================================================
-// 5. ИНИЦИАЛИЗАЦИЯ И СИСТЕМНЫЕ ФУНКЦИИ
+// 5. СИСТЕМНЫЕ ФУНКЦИИ
 // ==========================================================================
 
 function applyLanguage(lang) {
@@ -314,6 +317,15 @@ function applyLanguage(lang) {
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
+      
+      // Динамический перевод кнопки
+      if (key === 'edit_profile') {
+          const mode = el.getAttribute('data-mode');
+          const finalKey = (mode === 'save') ? 'save_profile' : 'edit_profile';
+          el.textContent = translations[lang][finalKey] || translations[lang][key];
+          return;
+      }
+
       const translation = translations[lang][key];
       if (translation) {
           if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
@@ -327,7 +339,6 @@ function applyLanguage(lang) {
   updateProfileUI();
   refreshAllLists();
   renderMapSections();
-  renderEditTags(); 
 }
 
 function setupTheme() {
@@ -341,11 +352,11 @@ function setupTheme() {
   if (themeToggle) {
       themeToggle.onchange = () => applyTheme(themeToggle.checked ? 'dark' : 'light');
   }
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  applyTheme(savedTheme);
+  applyTheme(localStorage.getItem('theme') || 'light');
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Навигация
   const navItems = document.querySelectorAll(".nav-item");
   const screens = document.querySelectorAll(".screen");
   navItems.forEach(btn => {
@@ -356,49 +367,49 @@ document.addEventListener("DOMContentLoaded", () => {
       };
   });
 
+  // Аккордеоны
   document.querySelectorAll('.expand-trigger').forEach(trigger => {
-      trigger.onclick = (e) => {
-          e.stopPropagation();
-          const block = trigger.closest('.clickable-block');
-          const isExpanding = !block.classList.contains('expanded');
-          
-          document.querySelectorAll('.clickable-block').forEach(b => {
-              b.classList.remove('expanded');
-              const t = b.querySelector('.expand-trigger');
-              if (t) t.textContent = "⬇️";
-          });
+    trigger.onclick = (e) => {
+        e.stopPropagation();
+        const block = trigger.closest('.clickable-block');
+        const isExpanding = !block.classList.contains('expanded');
+        
+        document.querySelectorAll('.clickable-block').forEach(b => {
+            b.classList.remove('expanded');
+            const t = b.querySelector('.expand-trigger');
+            if (t) t.textContent = "⬇️";
+        });
 
-          if (isExpanding) {
-              block.classList.add('expanded');
-              trigger.textContent = "⬆️";
-          }
-          if (block.id === 'profile-block' && !isExpanding) toggleEditMode(false);
-      };
+        if (isExpanding) {
+            block.classList.add('expanded');
+            trigger.textContent = "⬆️";
+        } else {
+            if (block.id === 'profile-block') cancelEditMode(); 
+        }
+    };
   });
 
   setupTheme();
-  
+  setupProfileEditing();
+
+  // Языковые чипы
   const langChips = document.querySelectorAll('.chip-select');
   langChips.forEach(chip => {
       chip.onclick = () => {
           const lang = chip.getAttribute('data-lang');
-          if (lang) {
-              applyLanguage(lang);
-              langChips.forEach(c => c.classList.remove('chip-active'));
-              chip.classList.add('chip-active');
-          }
+          applyLanguage(lang);
+          langChips.forEach(c => c.classList.remove('chip-active'));
+          chip.classList.add('chip-active');
       };
   });
 
-  setupProfileEditing();
-
   const savedLang = localStorage.getItem('selectedLang') || 'en';
   applyLanguage(savedLang);
-  
   document.querySelectorAll('.chip-select').forEach(chip => {
       chip.classList.toggle('chip-active', chip.getAttribute('data-lang') === savedLang);
   });
-  
+
+  // Синхронизация ассетов
   const syncAssets = () => {
       document.querySelectorAll('[id*="postcards"]').forEach(el => el.textContent = state.postcards);
       document.querySelectorAll('[id*="energy"]').forEach(el => el.textContent = state.energy);
