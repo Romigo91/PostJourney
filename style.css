@@ -513,10 +513,12 @@
   
   /* Тексты */
   .screen-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #7b4d28;
-    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: 800;
+    color: #5d4037;
+    margin-bottom: 20px;
+    margin-top: 4px; /* Отступ от верхнего края */
+    padding-left: 4px;
   }
   
   .placeholder-text, .small-text {
