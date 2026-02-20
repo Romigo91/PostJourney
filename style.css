@@ -1,7 +1,48 @@
 /* ==========================================================================
-   1. ГЛОБАЛЬНЫЕ СТИЛИ (BASE)
+   0. ПЕРЕМЕННЫЕ ТЕМ (ЦВЕТА)
    ========================================================================== */
-   * {
+   :root {
+    --bg-body: #f8e9d9;
+    --bg-phone: #fff7ec;
+    --bg-card: #ffffff;
+    --bg-accent: #ffd49b;
+    --bg-input: #fffaf2;
+    --bg-flag-picker: #fdfaf5;
+    --bg-flag-circle: #ffe7c8;
+    --text-main: #7b4d28;
+    --text-sub: #a57a4d;
+    --text-title: #5d4037;
+    --text-status: #8b6b4b;
+    --primary: #f28b68;
+    --border: #d8c2a5;
+    --border-input: #f0caa0;
+    --nav-bg: #ffffff;
+    --nav-border: rgba(0, 0, 0, 0.05);
+  }
+  
+  [data-theme="dark"] {
+    --bg-body: #121212;
+    --bg-phone: #1e1e1e;
+    --bg-card: #2d2d2d;
+    --bg-accent: #3d3d3d;
+    --bg-input: #252525;
+    --bg-flag-picker: #252525;
+    --bg-flag-circle: #3d3d3d;
+    --text-main: #e0e0e0;
+    --text-sub: #b0b0b0;
+    --text-title: #ffffff;
+    --text-status: #a0a0a0;
+    --primary: #ff9d7d;
+    --border: #444444;
+    --border-input: #555555;
+    --nav-bg: #1e1e1e;
+    --nav-border: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* ==========================================================================
+     1. ГЛОБАЛЬНЫЕ СТИЛИ (BASE)
+     ========================================================================== */
+  * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -9,124 +50,79 @@
   }
   
   body {
-    background: #f8e9d9;
+    background: var(--bg-body);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
   }
   
- /* ==========================================================================
-   2. ОБОЛОЧКА ТЕЛЕФОНА И ЭКРАНЫ (LAYOUT)
-   ========================================================================== */
-.app-root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  width: 100%;
-  padding: 20px; /* Отступ для ПК версии */
-  box-sizing: border-box;
-}
-
-.phone-frame {
-  width: 360px;
-  height: 720px;
-  border-radius: 32px;
-  background: #fff7ec;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
-
-/* АДАПТАЦИЯ ПОД МОБИЛЬНЫЕ УСТРОЙСТВА (Смартфоны) */
-@media (max-width: 450px) {
-  body {
-    background: #fff7ec; 
-    display: block; 
-  }
-
+  /* ==========================================================================
+     2. ОБОЛОЧКА ТЕЛЕФОНА И ЭКРАНЫ (LAYOUT)
+     ========================================================================== */
   .app-root {
-    padding: 0;
-    display: block;
-    /* Исправляет проблему высоты в мобильных Chrome/Safari */
-    height: 100vh;
-    height: -webkit-fill-available;
-  }
-
-  .phone-frame {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
     width: 100%;
-    /* Растягиваем строго по высоте видимой области */
-    height: 100vh;
-    height: -webkit-fill-available;
-    border-radius: 0;
-    box-shadow: none;
+    padding: 20px;
+    box-sizing: border-box;
   }
-
-  /* Добавляем «воздуха» снизу контенту, чтобы меню его не перекрывало */
-  #screen-container {
-    padding-bottom: 90px; 
+  
+  .phone-frame {
+    width: 360px;
+    height: 720px;
+    border-radius: 32px;
+    background: var(--bg-phone);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
   }
-
+  
+  @media (max-width: 450px) {
+    body { background: var(--bg-phone); display: block; }
+    .app-root { padding: 0; display: block; height: 100vh; height: -webkit-fill-available; }
+    .phone-frame { width: 100%; height: 100vh; height: -webkit-fill-available; border-radius: 0; box-shadow: none; }
+    #screen-container { padding-bottom: 90px; }
+    .status-bar { padding-top: env(safe-area-inset-top); height: calc(32px + env(safe-area-inset-top)); }
+  }
+  
   .status-bar {
-    padding-top: env(safe-area-inset-top); 
-    height: calc(32px + env(safe-area-inset-top));
+    height: 32px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-status);
+    flex-shrink: 0;
   }
-}
-
-.status-bar {
-  height: 32px;
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #8b6b4b;
-  flex-shrink: 0;
-}
-
-#screen-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px 85px; /* 85px — это запас места под меню */
-  -webkit-overflow-scrolling: touch;
-}
-/* Принудительно фиксируем нижнее меню, чтобы оно не сжималось и не уплывало */
-.bottom-nav {
-  flex-shrink: 0; 
-  height: 65px;
-  background: #ffffff;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  padding-bottom: env(safe-area-inset-bottom); /* Отступ для полоски iPhone */
-  box-sizing: content-box;
-}
-
-.screen {
-  display: none;
-}
-
-.screen-active {
-  display: block;
-}
+  
+  #screen-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px 85px;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .screen { display: none; }
+  .screen-active { display: block; }
   
   /* ==========================================================================
      3. ЛОГИКА "АККОРДЕОНА" (INTERACTIVE)
-     ========================================================================= */
-  
-  /* Общие стили для кликабельных блоков */
-  .profile-card, 
-  .section-block {
+     ========================================================================== */
+  .profile-card, .section-block {
     transition: all 0.3s ease;
     cursor: pointer;
-    background: #ffffff;
+    background: var(--bg-card);
     border-radius: 16px;
     margin-bottom: 14px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
   }
   
-  /* Скрытый контент */
   .extra-content {
     display: block; 
     max-height: 0;
@@ -136,554 +132,199 @@
     transition: all 0.4s ease-in-out;
   }
   
-  /* Развернутое состояние */
-  .expanded {
-    flex: none; /* Убираем растягивание на весь экран */
-    height: auto !important; 
-    z-index: 10;
-  }
-  
+  .expanded { flex: none; height: auto !important; z-index: 10; }
   .expanded .extra-content {
-    max-height: 800px; /* С запасом для контента */
+    max-height: 800px;
     opacity: 1;
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--nav-border);
   }
-
-  /* Стили для иконки-триггера */
-.expand-trigger {
-  cursor: pointer;
-  font-size: 20px;
-  transition: transform 0.3s ease;
-  user-select: none; /* чтобы не выделялся текст при клике */
-  display: inline-block;
-  padding: 5px;
-}
-
-/* Позиционирование конверта в профиле (т.к. там нет section-header) */
-.profile-card {
-  position: relative;
-}
-.profile-card .expand-trigger {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-}
-
-/* Эффект увеличения только для устройств с мышкой */
-@media (hover: hover) {
-  .expand-trigger:hover {
-    transform: scale(1.2);
+  
+  .expand-trigger {
+    cursor: pointer;
+    font-size: 20px;
+    transition: transform 0.3s ease;
+    user-select: none;
+    display: inline-block;
+    padding: 5px;
   }
-}
-
-/* Эффект при непосредственном нажатии (для всех устройств) */
-.expand-trigger:active {
-  transform: scale(0.9); /* Слегка уменьшается при клике, как настоящая кнопка */
-  transition: transform 0.1s;
-}
+  
+  .profile-card { position: relative; }
+  .profile-card .expand-trigger { position: absolute; top: 12px; right: 12px; }
+  
+  @media (hover: hover) { .expand-trigger:hover { transform: scale(1.2); } }
+  .expand-trigger:active { transform: scale(0.9); transition: transform 0.1s; }
   
   /* ==========================================================================
      4. КОМПОНЕНТЫ ГЛАВНОГО ЭКРАНА (HOME)
      ========================================================================== */
-  
-  /* Профиль */
-  .profile-card {
-    display: flex;
-    flex-direction: column;
-    padding: 12px;
-  }
-  
-  .profile-header-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-  }
+  .profile-card { display: flex; flex-direction: column; padding: 12px; }
+  .profile-header-top { display: flex; align-items: center; gap: 12px; width: 100%; }
   
   .avatar-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: #ffd49b;
+    width: 48px; height: 48px; border-radius: 50%;
+    background-color: var(--bg-accent);
     flex-shrink: 0;
-     
-    /* Центрирование буквы внутри */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: #7b4d28;
-  
-    /* Настройки для загруженного фото */
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: var(--text-main);
+    overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat;
   }
   
-  .profile-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .profile-info { display: flex; flex-direction: column; justify-content: center; }
+  .profile-name { font-weight: 600; color: var(--text-main); }
+  .profile-country, .profile-membership { font-size: 12px; color: var(--text-sub); }
+  
+  .tags-full-width-container { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 12px; padding: 0 4px; }
+  .tag-mini {
+    font-size: 10px; padding: 3px 10px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; color: var(--text-main);
+    white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
   
-  .profile-name {
-    font-weight: 600;
-    color: #7b4d28;
+  .profile-card .expand-trigger { position: static !important; }
+  
+  .tags-container-edit {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0;
+    max-height: 200px; overflow-y: auto; scrollbar-width: none;
+  }
+  .tags-container-edit::-webkit-scrollbar { display: none; }
+  
+  .tag-selectable {
+    font-size: 12px; padding: 6px 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; cursor: pointer; color: var(--text-main);
+  }
+  .tag-selectable.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+  
+  .flag-grid-picker-style {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 8px;
+    background: var(--bg-flag-picker); border: 1px solid var(--border);
+    border-radius: 12px; max-height: 140px; overflow-y: auto;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .flag-grid-picker-style::-webkit-scrollbar { display: none; }
+  
+  #input-country {
+    width: 35px; height: 22px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    user-select: none; touch-action: manipulation; outline: none;
+    border: 1px solid var(--border); background: var(--bg-card);
+    border-radius: 4px; caret-color: transparent; text-align: center; font-size: 12px; color: var(--text-main);
   }
   
-  .profile-country,
-  .profile-membership {
-    font-size: 12px;
-    color: #a57a4d;
-  }
-
-  /* Контейнер тегов в закрытом состоянии */
-/* Контейнер тегов: теперь он просто идет следующим блоком после аватара */
-.tags-full-width-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  width: 100%;
-  margin-top: 12px; /* Отступ от аватара */
-  padding: 0 4px;   /* Чтобы не липли к краям */
-}
-
-.tag-mini {
-  font-size: 10px;
-  padding: 3px 10px;
-  background: #fff;
-  border: 1px solid #d8c2a5;
-  border-radius: 999px;
-  color: #7b4d28;
-  white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-/* Фикс для стрелочки, чтобы она не ломала верстку */
-.profile-card .expand-trigger {
-  position: static !important; /* Отменяем абсолютное позиционирование из старых стилей */
-}
-
-.tags-container-edit {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 0;
-  max-height: 200px; /* Ограничиваем высоту */
-  overflow-y: auto;  /* Добавляем прокрутку */
-  scrollbar-width: none; /* Прячем скроллбар для красоты */
-}
-
-.tags-container-edit::-webkit-scrollbar {
-  display: none; /* Прячем скроллбар для Chrome/Safari */
-}
-
-.tag-selectable {
-  font-size: 12px;
-  padding: 6px 12px;
-  background: #fff;
-  border: 1px solid #d8c2a5;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.tag-selectable.selected {
-  background: #f28b68;
-  color: #fff;
-  border-color: #f28b68;
-}
-
-.flag-grid-picker-style {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 флагов в ряд */
-  gap: 8px;
-  padding: 8px;
-  background: #fdfaf5;
-  border: 1px solid #d8c2a5;
-  border-radius: 12px;
-  max-height: 140px; /* Ограничиваем высоту, чтобы не перекрывать всё */
-  overflow-y: auto;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* Убираем скроллбар для эстетики */
-.flag-grid-picker-style::-webkit-scrollbar {
-  display: none;
-}
-
-/* 1. Кнопка-инпут выбора страны */
-#input-country {
-  width: 35px;
-  height: 22px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  touch-action: manipulation;
-  outline: none;
-  border: 1px solid #d8c2a5;
-  background: #fff;
-  border-radius: 4px;
-  caret-color: transparent;
-  text-align: center;
-  font-size: 12px;
-}
-
-/* 2. Контейнер-обертка всего выпадающего списка */
-#flag-picker-container {
-  display: none;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  background: #fff;
-  border: 1px solid #d8c2a5;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-/* 3. Сетка с флагами (ровно 7 в ряд) */
-#flag-grid-picker {
-  display: grid;
-  /* КРИТИЧЕСКИ ВАЖНО: жестко 7 колонок, которые не шире контейнера */
-  grid-template-columns: repeat(7, 1fr); 
-  gap: 2px; /* Уменьшил отступ, чтобы 7 штук влезли свободнее */
-  padding: 8px;
-  width: 100%; 
-  box-sizing: border-box; /* Чтобы паддинги не расширяли блок */
-  
-  touch-action: pan-y;
-  overflow-y: auto;
-  max-height: 220px;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* 4. Стили каждого отдельного флажка */
-#flag-grid-picker span {
-  cursor: pointer;
-  /* Уменьшил шрифт до 22px, чтобы 7 флагов гарантированно влезли без обрезки */
-  font-size: 22px; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1 / 1;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  border-radius: 6px;
-  transition: transform 0.1s ease;
-  min-width: 0; /* Важно: позволяет элементу сжиматься внутри грида */
-}
-
-/* Эффект при нажатии */
-#flag-grid-picker span:active {
-  transform: scale(1.2);
-  background: rgba(216, 194, 165, 0.3);
-  border-radius: 4px;
-}
-  
-  /* Активы */
-  .assets-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
+  #flag-picker-container {
+    display: none; width: 100%; max-width: 100%; box-sizing: border-box;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; margin-top: 8px;
   }
   
-  .asset-card {
-    flex: 1;
-    padding: 10px;
-    border-radius: 14px;
-    background: #ffd49b;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+  #flag-grid-picker {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px;
+    width: 100%; box-sizing: border-box; touch-action: pan-y;
+    overflow-y: auto; max-height: 220px; -webkit-overflow-scrolling: touch;
   }
   
-  .asset-label {
-    font-size: 12px;
-    color: #a57a4d;
+  #flag-grid-picker span {
+    cursor: pointer; font-size: 22px; display: flex; align-items: center;
+    justify-content: center; aspect-ratio: 1 / 1; -webkit-tap-highlight-color: transparent;
+    user-select: none; border-radius: 6px; transition: transform 0.1s ease; min-width: 0;
   }
+  #flag-grid-picker span:active { transform: scale(1.2); background: rgba(216, 194, 165, 0.3); border-radius: 4px; }
   
-  .asset-value {
-    margin-top: 4px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #7b4d28;
-  }
+  .assets-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .asset-card { flex: 1; padding: 10px; border-radius: 14px; background: var(--bg-accent); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04); }
+  .asset-label { font-size: 12px; color: var(--text-sub); }
+  .asset-value { margin-top: 4px; font-size: 18px; font-weight: 700; color: var(--text-main); }
   
-  /* Трекинг */
-  .tracking-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .tracking-card {
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: #ffd49b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .tracking-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  
-  .tracking-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #7b4d28;
-  }
-  
-  .tracking-subtitle {
-    font-size: 11px;
-    color: #8b6b4b;
-  }
-  
-  .tracking-status {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: #fff;
-    color: #7b4d28;
-  }
-
-  
+  .tracking-list { display: flex; flex-direction: column; gap: 8px; }
+  .tracking-card { padding: 10px 12px; border-radius: 14px; background: var(--bg-accent); display: flex; align-items: center; justify-content: space-between; }
+  .tracking-info { display: flex; flex-direction: column; gap: 2px; }
+  .tracking-title { font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .tracking-subtitle { font-size: 11px; color: var(--text-status); }
+  .tracking-status { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--bg-card); color: var(--text-main); }
   
   /* ==========================================================================
      5. ОБЩИЕ ЭЛЕМЕНТЫ (UI COMPONENTS)
      ========================================================================== */
+  .section-block { padding: 10px 12px; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
   
-  .section-block {
-    padding: 10px 12px;
-  }
+  .primary-button { width: 100%; margin-top: 4px; padding: 10px; border-radius: 999px; border: none; background: var(--primary); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .secondary-button { padding: 8px 10px; border-radius: 999px; border: none; background: var(--primary); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .icon-button { border: none; background: none; font-size: 14px; cursor: pointer; color: var(--text-main); }
   
-  .section-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #7b4d28;
-    margin-bottom: 8px;
-  }
-  
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: #7b4d28;
-    margin-bottom: 6px;
-  }
-  
-  /* Кнопки */
-  .primary-button {
-    width: 100%;
-    margin-top: 4px;
-    padding: 10px;
-    border-radius: 999px;
-    border: none;
-    background: #f28b68;
-    color: #fff;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  
-  .secondary-button {
-    padding: 8px 10px;
-    border-radius: 999px;
-    border: none;
-    background: #f28b68;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  
-  .icon-button {
-    border: none;
-    background: none;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  
-  /* Тексты */
-  .screen-title {
-    font-size: 24px;
-    font-weight: 800;
-    color: #5d4037;
-    margin-bottom: 20px;
-    margin-top: 4px; /* Отступ от верхнего края */
-    padding-left: 4px;
-  }
-  
-  .placeholder-text, .small-text {
-    font-size: 13px;
-    color: #8b6b4b;
-  }
-  
-  .small-text {
-    font-size: 12px;
-    margin-bottom: 8px;
-  }
+  .screen-title { font-size: 24px; font-weight: 800; color: var(--text-title); margin-bottom: 20px; margin-top: 4px; padding-left: 4px; }
+  .placeholder-text, .small-text { font-size: 13px; color: var(--text-status); }
+  .small-text { font-size: 12px; margin-bottom: 8px; }
   
   /* ==========================================================================
      6. СПЕЦИФИЧЕСКИЕ ЭКРАНЫ (MAP, GAMES, SETTINGS)
      ========================================================================== */
-  
-  /* Map */
   .continent-list { display: flex; flex-direction: column; gap: 8px; }
   .continent-row { display: flex; flex-direction: column; gap: 4px; }
-  .continent-header { display: flex; justify-content: space-between; font-size: 12px; color: #7b4d28; }
+  .continent-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); }
   .continent-name { font-weight: 600; }
-  .continent-progress { font-size: 11px; color: #a57a4d; }
+  .continent-progress { font-size: 11px; color: var(--text-sub); }
   
   .flag-grid { display: flex; flex-wrap: wrap; gap: 4px; }
   .flag-circle {
     width: 20px; height: 20px; border-radius: 999px;
-    background: #ffe7c8; display: flex; align-items: center;
-    justify-content: center; font-size: 12px;
+    background: var(--bg-flag-circle); display: flex; align-items: center;
+    justify-content: center; font-size: 12px; color: var(--text-main);
   }
   
-  /* Leaderboard */
   .leaderboard { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin-top: 4px; }
   .leaderboard-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-  .leaderboard-name { font-weight: 600; color: #7b4d28; }
-  .leaderboard-stats { font-size: 11px; color: #a57a4d; }
+  .leaderboard-name { font-weight: 600; color: var(--text-main); }
+  .leaderboard-stats { font-size: 11px; color: var(--text-sub); }
   
-  /* Constructor */
   .constructor-toggle { display: flex; gap: 8px; margin: 8px 0; }
-  .constructor-mode {
-    flex: 1; border-radius: 999px; border: none; padding: 6px 8px;
-    font-size: 12px; cursor: pointer; background: #ffe7c8; color: #7b4d28;
-  }
-  .constructor-mode-active { background: #f28b68; color: #fff; }
+  .constructor-mode { flex: 1; border-radius: 999px; border: none; padding: 6px 8px; font-size: 12px; cursor: pointer; background: var(--bg-flag-circle); color: var(--text-main); }
+  .constructor-mode-active { background: var(--primary); color: #fff; }
   .constructor-panel-hidden { display: none; }
-  .constructor-preview-card {
-    margin-top: 4px; padding: 8px; border-radius: 14px;
-    background: #fff7ec; display: flex; gap: 8px; align-items: center;
-  }
-  .postcard-preview-image {
-    width: 48px; height: 32px; border-radius: 8px; background: #ffe7c8;
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-  }
+  .constructor-preview-card { margin-top: 4px; padding: 8px; border-radius: 14px; background: var(--bg-phone); display: flex; gap: 8px; align-items: center; }
+  .postcard-preview-image { width: 48px; height: 32px; border-radius: 8px; background: var(--bg-flag-circle); display: flex; align-items: center; justify-content: center; font-size: 20px; }
   
-  /* Collections */
   .postcard-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-  .postcard-card {
-    width: calc(50% - 4px); border-radius: 12px; background: #ffe7c8;
-    padding: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 11px;
-  }
+  .postcard-card { width: calc(50% - 4px); border-radius: 12px; background: var(--bg-flag-circle); padding: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
   .postcard-card-header { display: flex; justify-content: space-between; align-items: center; }
-  .postcard-destination { font-weight: 600; color: #7b4d28; }
+  .postcard-destination { font-weight: 600; color: var(--text-main); }
   
-  /* Settings Form */
   .form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; }
-  .form-row label { color: #7b4d28; }
-  .form-row input, .form-row select, .about-input {
-    border-radius: 10px; border: 1px solid #f0caa0; padding: 6px 8px;
-    font-size: 12px; background: #fffaf2; color: #7b4d28;
-  }
+  .form-row label { color: var(--text-main); }
+  .form-row input, .form-row select, .about-input { border-radius: 10px; border: 1px solid var(--border-input); padding: 6px 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); }
   .about-input { width: 100%; resize: none; }
   
-  /* Toggles (Switches) */
   .toggle-row { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
   .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
   .switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #d8c2a5; transition: 0.2s; border-radius: 999px;
-  }
-  .slider:before {
-    position: absolute; content: ""; height: 14px; width: 14px;
-    left: 3px; bottom: 3px; background-color: white; transition: 0.2s; border-radius: 50%;
-  }
-  input:checked + .slider { background-color: #f28b68; }
+  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: 0.2s; border-radius: 999px; }
+  .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: 0.2s; border-radius: 50%; }
+  input:checked + .slider { background-color: var(--primary); }
   input:checked + .slider:before { transform: translateX(14px); }
   
-  /* Language Chips */
-  .settings-lang-chips {
-    display: flex;
-    flex-wrap: wrap; /* Разрешаем перенос на новую строку */
-    gap: 8px;        /* Расстояние между кнопками */
-    margin-top: 12px;
-  }
+  .settings-lang-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip { padding: 6px 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-status); font-size: 13px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+  .chip-active { background: var(--primary); color: #fff; border-color: var(--primary); }
   
-  .chip {
-    padding: 6px 12px;
-    border-radius: 16px;
-    border: 1px solid #d8c2a5;
-    background: #fff;
-    color: #8b6b4b;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap; /* Чтобы название языка не разрывалось */
-    outline: none;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none; /* Чтобы текст не выделялся при случайном долгом нажатии */
-  }
-  
-  .chip-active {
-    background: #f28b68;
-    color: #fff;
-    border-color: #f28b68;
-  }
-  
-/* ==========================================================================
-   7. НАВИГАЦИЯ (BOTTOM NAV)
-   ========================================================================== */
-   .bottom-nav {
-    /* Фиксируем панель */
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    
-    height: 65px;
-    background: #ffffff;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
-    display: flex;
-    z-index: 1000; /* Чтобы меню всегда было поверх всех списков и карт */
-    
-    /* Учет безопасной зоны для безрамочных смартфонов */
-    padding-bottom: env(safe-area-inset-bottom);
+  /* ==========================================================================
+     7. НАВИГАЦИЯ (BOTTOM NAV)
+     ========================================================================== */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+    background: var(--nav-bg); border-top: 1px solid var(--nav-border);
+    display: flex; z-index: 1000; padding-bottom: env(safe-area-inset-bottom);
     box-sizing: content-box;
   }
   
-  /* Возвращаем навигацию внутрь рамки телефона, если смотрим с ПК */
-  @media (min-width: 450px) {
-    .bottom-nav {
-      position: absolute;
-      border-radius: 0 0 32px 32px;
-    }
-  }
+  @media (min-width: 450px) { .bottom-nav { position: absolute; border-radius: 0 0 32px 32px; } }
   
   .nav-item {
-    flex: 1;
-    border: none;
-    background: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    font-size: 11px;
-    color: #a57a4d;
-    cursor: pointer;
-    /* Убираем синий блик при нажатии на мобилках */
-    -webkit-tap-highlight-color: transparent;
+    flex: 1; border: none; background: none; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; font-size: 11px;
+    color: var(--text-sub); cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
-  
-  .nav-item span:first-child { 
-    font-size: 18px; /* Немного увеличил иконки для удобства */
-  }
-  
-  .nav-active { 
-    color: #f28b68; 
-    font-weight: 600;
-  }
+  .nav-item span:first-child { font-size: 18px; }
+  .nav-active { color: var(--primary); font-weight: 600; }
