@@ -606,9 +606,33 @@
   input:checked + .slider:before { transform: translateX(14px); }
   
   /* Language Chips */
-  .settings-lang-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .chip-select { border: none; cursor: pointer; }
-  .chip-active { background: #f28b68; color: #fff; }
+  .settings-lang-chips {
+    display: flex;
+    flex-wrap: wrap; /* Разрешаем перенос на новую строку */
+    gap: 8px;        /* Расстояние между кнопками */
+    margin-top: 12px;
+  }
+  
+  .chip {
+    padding: 6px 12px;
+    border-radius: 16px;
+    border: 1px solid #d8c2a5;
+    background: #fff;
+    color: #8b6b4b;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* Чтобы название языка не разрывалось */
+    outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none; /* Чтобы текст не выделялся при случайном долгом нажатии */
+  }
+  
+  .chip-active {
+    background: #f28b68;
+    color: #fff;
+    border-color: #f28b68;
+  }
   
 /* ==========================================================================
    7. НАВИГАЦИЯ (BOTTOM NAV)

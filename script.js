@@ -1,5 +1,8 @@
-let tempSelectedInterests = []; // Здесь будут лежать теги до нажатия Save
+// --- ИНИЦИАЛИЗАЦИЯ СОСТОЯНИЯ ---
+let tempSelectedInterests = []; 
 let tempSelectedCountry = "";
+let tempAvatar = null;
+
 const AVAILABLE_INTERESTS = [
   "Travel", "Postcards", "Nature", "Art", "Books", 
   "Music", "Cooking", "Photography", "Sport", "Tech", 
@@ -13,11 +16,11 @@ const state = {
   profile: {
     name: "@Alex",
     country: "🇫🇷",
+    // Оставляем дефолтную фразу на английском, JS сам заменит её на перевод
     bio: "Detailed statistics and recent achievements...",
     avatar: null,
-    interests: ["Art", "Travel"] // начальные теги
+    interests: ["Art", "Travel"]
   },
-  
   postcards: 5,
   energy: 500,
   tracking: [
@@ -50,33 +53,47 @@ const COUNTRIES_BY_CONTINENT = {
   "Oceania": ["🇦🇺","🇫🇯","🇰🇮","🇲🇭","🇫🇲","🇳🇷","🇳🇿","🇵🇼","🇵🇬","🇼🇸","🇸🇧","🇹🇴","🇹🇻","🇻🇺"]
 };
 
-// Обновление текста профиля на экране
+// --- ОСНОВНЫЕ ФУНКЦИИ ИНТЕРФЕЙСА ---
+
 function updateProfileUI() {
   document.getElementById("display-name").textContent = state.profile.name;
   document.getElementById("display-country").textContent = state.profile.country;
-  document.getElementById("display-bio").textContent = state.profile.bio;
+
+  // ЛОГИКА ПЕРЕВОДА БИО
+  const bioElement = document.getElementById("display-bio");
+  const inputBio = document.getElementById("input-bio");
   
-  // Отрисовка тегов под аватаром
+  // Если био пустое или содержит стандартную английскую фразу
+  if (!state.profile.bio || state.profile.bio.includes("Detailed statistics")) {
+    const translation = getTranslation("bio_placeholder");
+    bioElement.textContent = translation;
+    if (inputBio) inputBio.placeholder = translation; 
+  } else {
+    bioElement.textContent = state.profile.bio;
+  }
+  
   const tagsContainer = document.getElementById("display-tags-minimal");
   if (tagsContainer) {
     tagsContainer.innerHTML = state.profile.interests
-      .map(tag => `<span class="tag-mini">${tag}</span>`)
+      .map(tag => {
+        // Превращаем "Travel" в "interest_travel"
+        const key = `interest_${tag.toLowerCase()}`;
+        return `<span class="tag-mini">${getTranslation(key)}</span>`;
+      })
       .join("");
   }
 
-  // Обновляем аватарку
   const avatarEl = document.getElementById("profile-avatar");
   if (state.profile.avatar) {
-      avatarEl.style.backgroundImage = `url(${state.profile.avatar})`;
-      avatarEl.textContent = "";
+    avatarEl.style.backgroundImage = `url(${state.profile.avatar})`;
+    avatarEl.textContent = "";
   } else {
-      avatarEl.style.backgroundImage = "none";
-      const firstLetter = state.profile.name.replace('@', '')[0] || 'A';
-      avatarEl.textContent = firstLetter.toUpperCase();
+    avatarEl.style.backgroundImage = "none";
+    const firstLetter = state.profile.name.replace('@', '')[0] || 'A';
+    avatarEl.textContent = firstLetter.toUpperCase();
   }
 }
 
-// --- ЛОГИКА РЕДАКТИРОВАНИЯ ПРОФИЛЯ ---
 function setupProfileEditing() {
   const editBtn = document.getElementById("edit-profile-btn");
   const displayRow = document.getElementById("profile-display-name-row");
@@ -88,71 +105,86 @@ function setupProfileEditing() {
   const avatarHint = document.getElementById("avatar-edit-hint");
   const avatarUpload = document.getElementById("avatar-upload");
   const avatarContainer = document.querySelector(".avatar-container");
-  
   const flagPicker = document.getElementById("flag-picker-container");
   const flagGrid = document.getElementById("flag-grid-picker");
-  const displayCountry = document.getElementById("display-country");
-  let tempAvatar = null;
-
-// 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
-if (flagGrid && flagGrid.children.length === 0) {
-  let allFlagsFlat = [];
-  for (let continent in COUNTRIES_BY_CONTINENT) {
+  
+  // Инициализация сетки флагов
+  if (flagGrid && flagGrid.children.length === 0) {
+    let allFlagsFlat = [];
+    for (let continent in COUNTRIES_BY_CONTINENT) {
       allFlagsFlat = allFlagsFlat.concat(COUNTRIES_BY_CONTINENT[continent]);
-  }
-
-  allFlagsFlat.sort((a, b) => a.localeCompare(b));
-
-  allFlagsFlat.forEach(flag => {
+    }
+    allFlagsFlat.sort((a, b) => a.localeCompare(b));
+    allFlagsFlat.forEach(flag => {
       const span = document.createElement("span");
       span.textContent = flag;
-      span.style.cssText = "cursor: pointer; font-size: 24px; text-align: center; padding: 5px; border-radius: 4px; user-select: none; -webkit-tap-highlight-color: transparent;";
-      
-      const onSelect = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          // ИСПРАВЛЕНО: Записываем только во временную переменную и инпут
-          tempSelectedCountry = flag; 
-          inputCountry.value = flag;
-          flagPicker.style.display = "none";
+      span.className = "flag-item";
+      span.style.cssText = "cursor: pointer; font-size: 24px; padding: 5px; border-radius: 4px;";
+      span.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        tempSelectedCountry = flag; 
+        inputCountry.value = flag;
+        flagPicker.style.display = "none";
       };
-
-      span.addEventListener('click', onSelect);
       flagGrid.appendChild(span);
-  });
-}
+    });
+  }
 
-  // 2. ОТКРЫТИЕ СПИСКА
-  const handleFlagInteraction = (e) => {
-    if (editBtn.textContent === "Save Changes") {
-      e.preventDefault();
-      e.stopPropagation(); 
-      
-      const isHidden = flagPicker.style.display === "none" || flagPicker.style.display === "";
-      flagPicker.style.display = isHidden ? "block" : "none";
+  inputCountry.onclick = (e) => {
+    if (editBtn.getAttribute('data-mode') === 'save') {
+      e.stopPropagation();
+      flagPicker.style.display = flagPicker.style.display === "block" ? "none" : "block";
     }
   };
 
-  inputCountry.addEventListener("touchstart", handleFlagInteraction, { passive: false });
-  inputCountry.addEventListener("click", handleFlagInteraction);
+  if (avatarContainer) {
+    avatarContainer.onclick = (e) => {
+      e.stopPropagation();
+      if (editBtn.getAttribute('data-mode') === 'save') avatarUpload.click();
+    };
+  }
 
-  // 3. КНОПКА EDIT / SAVE
-  editBtn.addEventListener("click", (e) => {
+  if (avatarUpload) {
+    avatarUpload.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { 
+          tempAvatar = ev.target.result;
+          const avatarEl = document.getElementById("profile-avatar");
+          avatarEl.style.backgroundImage = `url(${tempAvatar})`;
+          avatarEl.textContent = "";
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+  }
+
+  editBtn.onclick = (e) => {
     e.stopPropagation();
-  
-    if (editBtn.textContent === "Edit Profile") {
-      // ВХОД В РЕЖИМ РЕДАКТИРОВАНИЯ
+    const isEditing = editBtn.getAttribute('data-mode') === 'save';
+
+    if (!isEditing) {
+      // ПЕРЕХОД В РЕЖИМ РЕДАКТИРОВАНИЯ
+      editBtn.setAttribute('data-mode', 'save');
+      editBtn.setAttribute('data-i18n', 'save_profile');
+      
       inputName.value = state.profile.name;
       inputCountry.value = state.profile.country;
-      inputBio.value = state.profile.bio;
       
-      // ИСПРАВЛЕНО: Инициализируем временную страну при входе
+      // Если био стандартное, очищаем поле для плейсхолдера
+      if (state.profile.bio.includes("Detailed statistics")) {
+        inputBio.value = ""; 
+      } else {
+        inputBio.value = state.profile.bio;
+      }
+      
       tempSelectedCountry = state.profile.country;
       tempSelectedInterests = [...state.profile.interests]; 
       tempAvatar = state.profile.avatar;
+      
       renderEditTags();
-  
+
       displayRow.style.display = "none";
       displayBio.style.display = "none";
       document.getElementById("display-tags-minimal").style.display = "none";
@@ -161,19 +193,23 @@ if (flagGrid && flagGrid.children.length === 0) {
       inputBio.style.display = "block";
       avatarHint.style.display = "block";
       document.getElementById("edit-tags-wrapper").style.display = "block";
-  
-      editBtn.textContent = "Save Changes";
     } else {
       // СОХРАНЕНИЕ
+      editBtn.setAttribute('data-mode', 'edit');
+      editBtn.setAttribute('data-i18n', 'edit_profile');
+      
       state.profile.name = inputName.value;
-      // ИСПРАВЛЕНО: Присваиваем основному состоянию значение из временной переменной
       state.profile.country = tempSelectedCountry; 
-      state.profile.bio = inputBio.value;
+      
+      // Если пользователь ничего не ввел, возвращаем дефолтную фразу
+      const newBio = inputBio.value.trim();
+      state.profile.bio = newBio === "" ? "Detailed statistics and recent achievements..." : newBio;
+      
       state.profile.interests = [...tempSelectedInterests]; 
       state.profile.avatar = tempAvatar;
-  
+
       updateProfileUI();
-  
+
       displayRow.style.display = "flex";
       displayBio.style.display = "block";
       document.getElementById("display-tags-minimal").style.display = "flex"; 
@@ -183,65 +219,87 @@ if (flagGrid && flagGrid.children.length === 0) {
       avatarHint.style.display = "none";
       flagPicker.style.display = "none";
       document.getElementById("edit-tags-wrapper").style.display = "none";
-  
-      editBtn.textContent = "Edit Profile";
     }
-  });
- 
-  // Остальное без изменений
-  avatarContainer.onclick = (e) => {
-    e.stopPropagation();
-    if (editBtn.textContent === "Save Changes") avatarUpload.click();
-  };
-  avatarUpload.onchange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => { 
-        tempAvatar = ev.target.result; // Сохраняем только в "черновик"
-        
-        // Визуально меняем кружок, чтобы юзер видел, что он выбрал, 
-        // но в state.profile.avatar это еще не попало!
-        const avatarEl = document.getElementById("profile-avatar");
-        avatarEl.style.backgroundImage = `url(${tempAvatar})`;
-        avatarEl.textContent = "";
-      };
-      reader.readAsDataURL(file);
-    }
+    // Принудительно обновляем переводы кнопок
+    applyLanguage(localStorage.getItem('selectedLang') || 'en');
   };
 }
 
-// Все остальные функции оставляю без изменений, как ты и просил...
+// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ) ---
+
+function getTranslation(key) {
+  const lang = localStorage.getItem('selectedLang') || 'en';
+  return (translations[lang] && translations[lang][key]) ? translations[lang][key] : key;
+}
+
+function applyLanguage(lang) {
+  if (!translations || !translations[lang]) return;
+
+  // 1. Сразу сохраняем выбранный язык
+  localStorage.setItem('selectedLang', lang);
+
+  // 2. Переводим статические элементы с data-i18n
+  const elements = document.querySelectorAll('[data-i18n]');
+  elements.forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const translation = translations[lang][key];
+    
+    if (translation) {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.placeholder = translation;
+      } else {
+        el.textContent = translation;
+      }
+    }
+  });
+
+  // ВАЖНО: Обновляем динамические части профиля
+  updateProfileUI();
+  
+  if (typeof renderTracking === 'function') renderTracking();
+  renderMapSection("sent", "sent-by-continent");
+  renderMapSection("received", "received-by-continent");
+  renderPostcardCollection("sentPostcards", "sent-postcards-grid");
+  renderPostcardCollection("receivedPostcards", "received-postcards-grid");
+
+  localStorage.setItem('selectedLang', lang);
+}
+
 function setupExpandableBlocks() {
   const triggers = document.querySelectorAll('.expand-trigger');
   triggers.forEach(trigger => {
-    trigger.addEventListener('click', (e) => {
+    trigger.onclick = (e) => {
+      e.stopPropagation();
       const block = trigger.closest('.clickable-block');
       const isExpanded = block.classList.contains('expanded');
+      
       document.querySelectorAll('.clickable-block').forEach(b => {
         if (b !== block) {
           b.classList.remove('expanded');
           const t = b.querySelector('.expand-trigger');
           if (t) t.textContent = "⬇️";
-          if (b.id === 'profile-block') { resetProfileEditMode(); }
+          if (b.id === 'profile-block') resetProfileEditMode();
         }
       });
+
       if (!isExpanded) {
         block.classList.add('expanded');
         trigger.textContent = "⬆️";
       } else {
         block.classList.remove('expanded');
         trigger.textContent = "⬇️";
-        if (block.id === 'profile-block') { resetProfileEditMode(); }
+        if (block.id === 'profile-block') resetProfileEditMode();
       }
-    });
+    };
   });
 }
 
 function resetProfileEditMode() {
   const editBtn = document.getElementById("edit-profile-btn");
-  if (editBtn && editBtn.textContent === "Save Changes") {
-    editBtn.textContent = "Edit Profile";
+  if (editBtn && editBtn.getAttribute('data-mode') === 'save') {
+    editBtn.setAttribute('data-mode', 'edit');
+    editBtn.setAttribute('data-i18n', 'edit_profile');
+    
     document.getElementById("profile-display-name-row").style.display = "flex";
     document.getElementById("display-bio").style.display = "block";
     document.getElementById("display-tags-minimal").style.display = "flex";
@@ -250,9 +308,9 @@ function resetProfileEditMode() {
     document.getElementById("avatar-edit-hint").style.display = "none";
     document.getElementById("flag-picker-container").style.display = "none";
     document.getElementById("edit-tags-wrapper").style.display = "none";
-    tempSelectedInterests = []; 
-    tempSelectedCountry = ""; // Очищаем временную страну
+    
     updateProfileUI();
+    applyLanguage(localStorage.getItem('selectedLang') || 'en');
   }
 }
 
@@ -261,29 +319,47 @@ function renderTracking() {
   if (!list) return;
   list.innerHTML = "";
   state.tracking.forEach(item => {
+    // Генерируем ключ
+    const statusKey = `status_${item.status.toLowerCase().replace(' ', '_')}`;
+    const translatedStatus = getTranslation(statusKey);
+
     const card = document.createElement("div");
     card.className = "tracking-card";
-    card.innerHTML = `<div class="tracking-info"><div class="tracking-title">To ${item.to}</div><div class="tracking-subtitle">${item.status === "Delivered" ? "Delivered" : "In Transit"}</div></div><div class="tracking-status">${item.status}</div>`;
+    card.innerHTML = `
+      <div class="tracking-info">
+        <div class="tracking-title">To ${item.to}</div>
+        <div class="tracking-subtitle">${translatedStatus}</div>
+      </div>
+      <div class="tracking-status">${translatedStatus}</div>`; // Здесь тоже перевод
     list.appendChild(card);
   });
 }
 
 function syncAssets() {
-  const postcardIds = ["asset-postcards", "create-postcards"];
-  postcardIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = state.postcards; });
-  const energyIds = ["asset-energy", "create-energy"];
-  energyIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = state.energy; });
+  ["asset-postcards", "create-postcards"].forEach(id => { 
+    const el = document.getElementById(id); if (el) el.textContent = state.postcards; 
+  });
+  ["asset-energy", "create-energy"].forEach(id => { 
+    const el = document.getElementById(id); if (el) el.textContent = state.energy; 
+  });
 }
 
 function renderMapSection(mode, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = "";
+  
   Object.keys(COUNTRIES_BY_CONTINENT).forEach(continent => {
+    const continentKey = `continent_${continent.toLowerCase().replace(' ', '_')}`;
     const flags = COUNTRIES_BY_CONTINENT[continent];
     const row = document.createElement("div");
     row.className = "continent-row";
-    row.innerHTML = `<div class="continent-header"><span class="continent-name">${continent}</span><span class="continent-progress">${flags.length} countries</span></div><div class="flag-grid">${flags.map(f => `<div class="flag-circle">${f}</div>`).join('')}</div>`;
+    row.innerHTML = `
+      <div class="continent-header">
+        <span class="continent-name">${getTranslation(continentKey)}</span>
+        <span class="continent-progress">${flags.length} ${getTranslation('countries_count')}</span>
+      </div>
+      <div class="flag-grid">${flags.map(f => `<div class="flag-circle">${f}</div>`).join('')}</div>`;
     container.appendChild(row);
   });
 }
@@ -304,11 +380,11 @@ function setupNavigation() {
   const buttons = document.querySelectorAll(".nav-item");
   const screens = document.querySelectorAll(".screen");
   buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       const target = btn.dataset.target;
       screens.forEach(scr => scr.classList.toggle("screen-active", scr.dataset.screen === target));
       buttons.forEach(b => b.classList.toggle("nav-active", b === btn));
-    });
+    };
   });
 }
 
@@ -317,9 +393,15 @@ function renderPostcardCollection(type, containerId) {
   if (!container) return;
   container.innerHTML = "";
   state[type].forEach(cardData => {
+    const statusKey = `status_${cardData.status.toLowerCase().replace(' ', '_')}`;
     const card = document.createElement("div");
     card.className = "postcard-card";
-    card.innerHTML = `<div class="postcard-card-header"><span class="postcard-flag">${cardData.countryFlag}</span><span class="postcard-destination">${cardData.to}</span></div><div class="postcard-meta">${cardData.status}</div>`;
+    card.innerHTML = `
+      <div class="postcard-card-header">
+        <span class="postcard-flag">${cardData.countryFlag}</span>
+        <span class="postcard-destination">${cardData.to}</span>
+      </div>
+      <div class="postcard-meta">${getTranslation(statusKey)}</div>`;
     container.appendChild(card);
   });
 }
@@ -328,28 +410,36 @@ function setupConstructorToggle() {
   const modes = document.querySelectorAll(".constructor-mode");
   const panels = document.querySelectorAll(".constructor-panel");
   modes.forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.onclick = () => {
       const mode = btn.dataset.mode;
       modes.forEach(b => b.classList.toggle("constructor-mode-active", b === btn));
       panels.forEach(p => p.classList.toggle("constructor-panel-hidden", p.dataset.panel !== mode));
-    });
+    };
   });
 }
 
 function renderEditTags() {
   const container = document.getElementById("edit-tags-list");
   if (!container) return;
+  
   container.innerHTML = AVAILABLE_INTERESTS.map(tag => {
     const isSelected = tempSelectedInterests.includes(tag);
-    return `<span class="tag-selectable ${isSelected ? 'selected' : ''}">${tag}</span>`;
+    // Генерируем ключ для перевода
+    const key = `interest_${tag.toLowerCase()}`;
+    const translatedTag = getTranslation(key);
+    
+    // В data-tag сохраняем ОРИГИНАЛ (Travel), а показываем ПЕРЕВОД (Путешествия)
+    return `<span class="tag-selectable ${isSelected ? 'selected' : ''}" data-tag="${tag}">${translatedTag}</span>`;
   }).join("");
+
   container.querySelectorAll('.tag-selectable').forEach(el => {
     el.onclick = (e) => {
       e.stopPropagation();
-      const tag = el.textContent;
+      // Берем оригинал из атрибута
+      const tag = el.getAttribute('data-tag'); 
       if (tempSelectedInterests.includes(tag)) {
         tempSelectedInterests = tempSelectedInterests.filter(t => t !== tag);
-      } else if (tempSelectedInterests.length < 4) { // Изменил на 4, как договаривались ранее
+      } else if (tempSelectedInterests.length < 4) {
         tempSelectedInterests.push(tag);
       }
       renderEditTags();
@@ -357,17 +447,42 @@ function renderEditTags() {
   });
 }
 
+function setupSettingsLogic() {
+  const langChips = document.querySelectorAll('.chip-select');
+  langChips.forEach(chip => {
+    chip.onclick = () => {
+      const lang = chip.getAttribute('data-lang');
+      if (lang) {
+        applyLanguage(lang);
+        langChips.forEach(c => c.classList.remove('chip-active'));
+        chip.classList.add('chip-active');
+      }
+    };
+  });
+}
+
+// --- ИНИЦИАЛИЗАЦИЯ ---
 document.addEventListener("DOMContentLoaded", () => {
-  if (typeof updateProfileUI === 'function') updateProfileUI(); 
-  setupProfileEditing(); 
+  const savedLang = localStorage.getItem('selectedLang') || 'en';
+  
+  setupNavigation();
+  setupSettingsLogic();
+  setupProfileEditing();
+  setupConstructorToggle();
+  setupExpandableBlocks();
+
+  updateProfileUI(); 
   renderTracking();
   syncAssets();
-  setupNavigation();
   renderMapSection("sent", "sent-by-continent");
   renderMapSection("received", "received-by-continent");
   renderLeaderboard();
   renderPostcardCollection("sentPostcards", "sent-postcards-grid");
   renderPostcardCollection("receivedPostcards", "received-postcards-grid");
-  setupConstructorToggle();
-  setupExpandableBlocks();
+
+  applyLanguage(savedLang);
+
+  document.querySelectorAll('.chip-select').forEach(chip => {
+    chip.classList.toggle('chip-active', chip.getAttribute('data-lang') === savedLang);
+  });
 });

@@ -9,13 +9,9 @@
 <body>
   <div class="app-root">
     <div class="phone-frame">
-      </header>
-
-      <!-- MAIN CONTENT -->
       <main id="screen-container">
-        <!-- HOME SCREEN -->
         <section class="screen screen-active" data-screen="home" id="home-screen">
-          <h2 class="screen-title">PostJourney</h2>
+          <h2 class="screen-title" data-i18n="app_name">PostJourney</h2>
           
           <div class="profile-card clickable-block" id="profile-block">
   
@@ -37,322 +33,304 @@
                   <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
                 </div>
 
-                
-          
-                <div class="profile-membership">In app for: 1 days</div>
+                <div class="profile-membership" data-i18n="membership">In app for: 1 days</div>
               </div>
           
               <span class="expand-trigger" style="margin-left: auto; align-self: flex-start;">⬇️</span>
             </div>
 
             <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 10px;">
-              <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
+              <div style="font-size: 11px; color: #888; margin-bottom: 8px;" data-i18n="select_country">Select your country:</div>
               <div id="flag-grid-picker" class="flag-grid-picker-style"></div>
             </div>
           
             <div id="display-tags-minimal" class="tags-full-width-container"></div>
           
             <div class="extra-content">
-              <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here.</p>
-              <textarea id="input-bio" style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;"></textarea>
-          
+              <p class="small-text" id="display-bio" data-i18n="bio_placeholder">Detailed statistics and recent achievements will be shown here.</p>
+              
+              <textarea id="input-bio" 
+                        data-i18n="bio_placeholder" 
+                        placeholder="Detailed statistics and recent achievements..." 
+                        style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;">
+              </textarea>
+              
               <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
-                <div style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select interests (max 4):</div>
+                <div style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;" data-i18n="select_interests">Select interests (max 4):</div>
                 <div id="edit-tags-list" class="tags-container-edit"></div>
               </div>
-          
-             
-              <button class="secondary-button" id="edit-profile-btn">Edit Profile</button>
+              
+              <button class="secondary-button" id="edit-profile-btn" data-i18n="edit_profile">Edit Profile</button>
             </div>
           </div>
 
-  <!-- 2. Блок состояния активов -->
-  <div class="section-block home-assets clickable-block">
-    <div class="section-header">
-      <span>My Assets</span>
-      <span class="expand-trigger">⬇️</span> </div>
-    <div class="assets-row">
-      <div class="asset-card">
-        <div class="asset-label">Available postcards</div>
-        <div class="asset-value">5</div>
-      </div>
-      <div class="asset-card">
-        <div class="asset-label">Available energy</div>
-        <div class="asset-value">500</div>
-      </div>
-    </div>
-    <div class="extra-content">
-      <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
-      <button class="primary-button">Refill Energy</button>
-    </div>
-  </div>
-
-  <div class="section-block home-tracking clickable-block">
-    <div class="section-header">
-      <span>Tracking Board</span>
-      <span class="expand-trigger">⬇️</span> </div>
-    <div class="tracking-list" id="tracking-list">
-      </div>
-    <div class="extra-content">
-      <p class="small-text">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
-    </div>
-  </div>
-</section>
-
-        <!-- MAP SCREEN -->
-<section class="screen" data-screen="map">
-    <h2 class="screen-title">World Map</h2>
-  
-    <!-- Блок отправленных -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Sent postcards</span>
-      </div>
-      <div class="continent-list" id="sent-by-continent">
-        <!-- Заполним через JS -->
-      </div>
-    </div>
-  
-    <!-- Блок полученных -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Received postcards</span>
-      </div>
-      <div class="continent-list" id="received-by-continent">
-        <!-- Заполним через JS -->
-      </div>
-    </div>
-  
-    <!-- Таблица лидеров -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Leaderboard</span>
-      </div>
-      <ol class="leaderboard" id="leaderboard-list">
-        <!-- Заполним через JS -->
-      </ol>
-    </div>
-  </section>
-
-<!-- CREATE / POSTCARDS MENU -->
-<section class="screen" data-screen="create">
-    <h2 class="screen-title">Postcards</h2>
-  
-    <!-- 1. Блок создания открыток (конструктор) -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Create postcard</span>
-      </div>
-  
-      <p class="small-text">
-        AI postcard costs <strong>50 energy</strong> and <strong>1 postcard</strong>.<br />
-        Uploading your own image costs only <strong>1 postcard</strong>.
-      </p>
-  
-      <div class="assets-row">
-        <div class="asset-card">
-          <div class="asset-label">Available postcards</div>
-          <div class="asset-value" id="create-postcards">5</div>
-        </div>
-        <div class="asset-card">
-          <div class="asset-label">Available energy</div>
-          <div class="asset-value" id="create-energy">500</div>
-        </div>
-      </div>
-  
-      <div class="constructor-toggle">
-        <button class="constructor-mode constructor-mode-active" data-mode="ai">
-          Generate with AI
-        </button>
-        <button class="constructor-mode" data-mode="upload">
-          Upload my postcard
-        </button>
-      </div>
-  
-      <div class="constructor-body">
-        <!-- AI режим -->
-        <div class="constructor-panel" data-panel="ai">
-          <label class="form-row">
-            <span>Prompt for AI</span>
-            <textarea class="about-input" rows="3"
-              placeholder="Example: cozy winter postcard with small village and snow"></textarea>
-          </label>
-        </div>
-  
-        <!-- Upload режим -->
-        <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
-          <label class="form-row">
-            <span>Upload image</span>
-            <input type="file" />
-          </label>
-        </div>
-  
-        <div class="section-header constructor-preview-title">
-          <span>Preview</span>
-        </div>
-        <div class="constructor-preview-card">
-          <div class="postcard-preview-image">✉️</div>
-          <div class="postcard-preview-text">
-            Your postcard preview will appear here.
+          <div class="section-block home-assets clickable-block">
+            <div class="section-header">
+              <span data-i18n="my_assets">My Assets</span>
+              <span class="expand-trigger">⬇️</span> 
+            </div>
+            <div class="assets-row">
+              <div class="asset-card">
+                <div class="asset-label" data-i18n="postcards_label">Available postcards</div>
+                <div class="asset-value">5</div>
+              </div>
+              <div class="asset-card">
+                <div class="asset-label" data-i18n="energy_label">Available energy</div>
+                <div class="asset-value">500</div>
+              </div>
+            </div>
+            <div class="extra-content">
+              <p class="small-text" data-i18n="assets_hint">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
+              <button class="primary-button" data-i18n="refill_btn">Refill Energy</button>
+            </div>
           </div>
-        </div>
-  
-        <button class="primary-button">Send postcard</button>
-      </div>
-    </div>
-  
-    <!-- 2. Коллекция отправленных открыток -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Sent postcards</span>
-      </div>
-      <div class="postcard-grid" id="sent-postcards-grid">
-        <!-- заполняется через JS -->
-      </div>
-    </div>
-  
-    <!-- 3. Коллекция полученных открыток -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Received postcards</span>
-      </div>
-      <div class="postcard-grid" id="received-postcards-grid">
-        <!-- заполняется через JS -->
-      </div>
-    </div>
-  </section>
 
-        <!-- GAMES SCREEN -->
-<section class="screen" data-screen="games">
-    <h2 class="screen-title">Games</h2>
-  
-    <!-- 1. Угадай флаг страны -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Flag</span>
-      </div>
-      <p class="small-text">
-        You see a flag, you choose the correct country from several options.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  
-    <!-- 2. Угадай столицу страны -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Capital</span>
-      </div>
-      <p class="small-text">
-        You see a country name, you pick its capital from the list.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  
-    <!-- 3. Угадай страну по факту -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Country by Fact</span>
-      </div>
-      <p class="small-text">
-        You get a fun fact, you try to guess which country it is about.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  </section>
+          <div class="section-block home-tracking clickable-block">
+            <div class="section-header">
+              <span data-i18n="tracking_board">Tracking Board</span>
+              <span class="expand-trigger">⬇️</span> 
+            </div>
+            <div class="tracking-list" id="tracking-list"></div>
+            <div class="extra-content">
+              <p class="small-text" data-i18n="tracking_hint">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
+            </div>
+          </div>
+        </section>
 
-       <!-- SETTINGS SCREEN -->
-<section class="screen" data-screen="settings">
-    <h2 class="screen-title">Settings</h2>
-  
-    <!-- Язык -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Language</span>
-      </div>
-      <p class="small-text">
-        Choose interface language.
-      </p>
-      <div class="settings-lang-chips">
-        <button class="chip chip-select chip-active">English</button>
-        <button class="chip chip-select">Русский</button>
-        <button class="chip chip-select">Français</button>
-        <button class="chip chip-select">Español</button>
-        <button class="chip chip-select">Italiano</button>
-        <button class="chip chip-select">中文</button>
-      </div>
-    </div>
-  
-    <!-- Тема -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Theme</span>
-      </div>
-      <div class="toggle-row">
-        <span class="small-text">Light / Dark</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-    </div>
-  
-    <!-- Уведомления -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Notifications</span>
-      </div>
-  
-      <div class="toggle-row">
-        <span class="small-text">Email notifications</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-   
-      <div class="toggle-row">
-        <span class="small-text">In‑app notifications</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-    </div>
-  </section>
+        <section class="screen" data-screen="map">
+            <h2 class="screen-title" data-i18n="map_title">World Map</h2>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="sent_title">Sent postcards</span>
+              </div>
+              <div class="continent-list" id="sent-by-continent">
+                </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="received_title">Received postcards</span>
+              </div>
+              <div class="continent-list" id="received-by-continent">
+                </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="leaderboard_title">Leaderboard</span>
+              </div>
+              <ol class="leaderboard" id="leaderboard-list">
+                </ol>
+            </div>
+          </section>
+
+        <section class="screen" data-screen="create">
+            <h2 class="screen-title" data-i18n="create_title">Postcards</h2>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="create_card">Create postcard</span>
+              </div>
+          
+              <p class="small-text" data-i18n="create_hint">
+                AI postcard costs <strong>50 energy</strong> and <strong>1 postcard</strong>.<br />
+                Uploading your own image costs only <strong>1 postcard</strong>.
+              </p>
+          
+              <div class="assets-row">
+                <div class="asset-card">
+                  <div class="asset-label" data-i18n="postcards_label">Available postcards</div>
+                  <div class="asset-value" id="create-postcards">5</div>
+                </div>
+                <div class="asset-card">
+                  <div class="asset-label" data-i18n="energy_label">Available energy</div>
+                  <div class="asset-value" id="create-energy">500</div>
+                </div>
+              </div>
+          
+              <div class="constructor-toggle">
+                <button class="constructor-mode constructor-mode-active" data-mode="ai" data-i18n="mode_ai">
+                  Generate with AI
+                </button>
+                <button class="constructor-mode" data-mode="upload" data-i18n="mode_upload">
+                  Upload my postcard
+                </button>
+              </div>
+          
+              <div class="constructor-body">
+                <div class="constructor-panel" data-panel="ai">
+                  <label class="form-row">
+                    <span data-i18n="prompt_label">Prompt for AI</span>
+                    <textarea id="ai-prompt" data-i18n="ai_prompt_placeholder" placeholder="Example: cozy winter postcard with small village and snow"></textarea>
+                  </label>
+                </div>
+          
+                <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
+                  <label class="form-row">
+                    <span data-i18n="upload_label">Upload image</span>
+                    <input type="file" />
+                  </label>
+                </div>
+          
+                <div class="section-header constructor-preview-title">
+                  <span data-i18n="preview_label">Preview</span>
+                </div>
+                <div class="constructor-preview-card">
+                  <div class="postcard-preview-image">✉️</div>
+                  <div class="postcard-preview-text" data-i18n="preview_text">
+                    Your postcard preview will appear here.
+                  </div>
+                </div>
+          
+                <button class="primary-button" data-i18n="send_btn">Send postcard</button>
+              </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="sent_collection">Sent postcards</span>
+              </div>
+              <div class="postcard-grid" id="sent-postcards-grid">
+                </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="received_collection">Received postcards</span>
+              </div>
+              <div class="postcard-grid" id="received-postcards-grid">
+                </div>
+            </div>
+          </section>
+
+        <section class="screen" data-screen="games">
+            <h2 class="screen-title" data-i18n="games_title">Games</h2>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="game_flag">Guess the Flag</span>
+              </div>
+              <p class="small-text" data-i18n="game_flag_desc">
+                You see a flag, you choose the correct country from several options.
+              </p>
+              <button class="secondary-button" disabled data-i18n="play_btn">
+                Play (coming soon)
+              </button>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="game_capital">Guess the Capital</span>
+              </div>
+              <p class="small-text" data-i18n="game_capital_desc">
+                You see a country name, you pick its capital from the list.
+              </p>
+              <button class="secondary-button" disabled data-i18n="play_btn">
+                Play (coming soon)
+              </button>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="game_fact">Guess the Country by Fact</span>
+              </div>
+              <p class="small-text" data-i18n="game_fact_desc">
+                You get a fun fact, you try to guess which country it is about.
+              </p>
+              <button class="secondary-button" disabled data-i18n="play_btn">
+                Play (coming soon)
+              </button>
+            </div>
+          </section>
+
+        <section class="screen" data-screen="settings">
+            <h2 class="screen-title" data-i18n="settings_title">Settings</h2>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="lang_label">Language</span>
+              </div>
+              <p class="small-text" data-i18n="lang_desc">
+                Choose interface language.
+              </p>
+              <div class="settings-lang-chips">
+                <button class="chip chip-select chip-active" data-lang="en">English</button>
+                <button class="chip chip-select" data-lang="hi">हिन्दी</button>    
+                <button class="chip chip-select" data-lang="zh">中文</button>
+                <button class="chip chip-select" data-lang="ru">Русский</button>
+                <button class="chip chip-select" data-lang="de">Deutsch</button>  
+                <button class="chip chip-select" data-lang="fr">Français</button>
+                <button class="chip chip-select" data-lang="es">Español</button>
+                <button class="chip chip-select" data-lang="it">Italiano</button>
+                <button class="chip chip-select" data-lang="pl">Polski</button>  
+                <button class="chip chip-select" data-lang="be">Белорусский</button> 
+              </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="theme_label">Theme</span>
+              </div>
+              <div class="toggle-row">
+                <span class="small-text" data-i18n="theme_mode">Light / Dark</span>
+                <label class="switch">
+                  <input type="checkbox" checked />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          
+            <div class="section-block">
+              <div class="section-header">
+                <span data-i18n="notifications_label">Notifications</span>
+              </div>
+          
+              <div class="toggle-row">
+                <span class="small-text" data-i18n="email_notif">Email notifications</span>
+                <label class="switch">
+                  <input type="checkbox" checked />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            
+              <div class="toggle-row">
+                <span class="small-text" data-i18n="app_notif">In‑app notifications</span>
+                <label class="switch">
+                  <input type="checkbox" checked />
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+          </section>
       </main>
 
-      <!-- BOTTOM NAV -->
       <nav class="bottom-nav">
         <button class="nav-item nav-active" data-target="home">
           <span>🏠</span>
-          <span>Home</span>
+          <span data-i18n="nav_home">Home</span>
         </button>
         <button class="nav-item" data-target="map">
           <span>🗺️</span>
-          <span>Map</span>
+          <span data-i18n="nav_map">Map</span>
         </button>
         <button class="nav-item" data-target="create">
           <span>➕</span>
-          <span>Create</span>
+          <span data-i18n="nav_create">Create</span>
         </button>
         <button class="nav-item" data-target="games">
           <span>🎮</span>
-          <span>Games</span>
+          <span data-i18n="nav_games">Games</span>
         </button>
         <button class="nav-item" data-target="settings">
           <span>⚙️</span>
-          <span>Settings</span>
+          <span data-i18n="nav_settings">Settings</span>
         </button>
       </nav>
     </div>
   </div>
 
+  <script src="translations.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
