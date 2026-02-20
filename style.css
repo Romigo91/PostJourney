@@ -119,9 +119,17 @@
   right: 12px;
 }
 
-/* Эффект при наведении */
-.expand-trigger:hover {
-  transform: scale(1.2);
+/* Эффект увеличения только для устройств с мышкой */
+@media (hover: hover) {
+  .expand-trigger:hover {
+    transform: scale(1.2);
+  }
+}
+
+/* Эффект при непосредственном нажатии (для всех устройств) */
+.expand-trigger:active {
+  transform: scale(0.9); /* Слегка уменьшается при клике, как настоящая кнопка */
+  transition: transform 0.1s;
 }
   
   /* ==========================================================================
@@ -148,7 +156,7 @@
     border-radius: 50%;
     background-color: #ffd49b;
     flex-shrink: 0;
-    
+     
     /* Центрирование буквы внутри */
     display: flex;
     align-items: center;

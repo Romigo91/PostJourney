@@ -92,6 +92,7 @@ function setupProfileEditing() {
   const flagPicker = document.getElementById("flag-picker-container");
   const flagGrid = document.getElementById("flag-grid-picker");
   const displayCountry = document.getElementById("display-country");
+  let tempAvatar = null;
 
 // 1. ГЕНЕРАЦИЯ СЕТКИ ФЛАГОВ
 if (flagGrid && flagGrid.children.length === 0) {
@@ -149,6 +150,7 @@ if (flagGrid && flagGrid.children.length === 0) {
       // ИСПРАВЛЕНО: Инициализируем временную страну при входе
       tempSelectedCountry = state.profile.country;
       tempSelectedInterests = [...state.profile.interests]; 
+      tempAvatar = state.profile.avatar;
       renderEditTags();
   
       displayRow.style.display = "none";
@@ -168,6 +170,7 @@ if (flagGrid && flagGrid.children.length === 0) {
       state.profile.country = tempSelectedCountry; 
       state.profile.bio = inputBio.value;
       state.profile.interests = [...tempSelectedInterests]; 
+      state.profile.avatar = tempAvatar;
   
       updateProfileUI();
   
@@ -184,7 +187,7 @@ if (flagGrid && flagGrid.children.length === 0) {
       editBtn.textContent = "Edit Profile";
     }
   });
-
+ 
   // Остальное без изменений
   avatarContainer.onclick = (e) => {
     e.stopPropagation();
@@ -194,7 +197,15 @@ if (flagGrid && flagGrid.children.length === 0) {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (ev) => { state.profile.avatar = ev.target.result; updateProfileUI(); };
+      reader.onload = (ev) => { 
+        tempAvatar = ev.target.result; // Сохраняем только в "черновик"
+        
+        // Визуально меняем кружок, чтобы юзер видел, что он выбрал, 
+        // но в state.profile.avatar это еще не попало!
+        const avatarEl = document.getElementById("profile-avatar");
+        avatarEl.style.backgroundImage = `url(${tempAvatar})`;
+        avatarEl.textContent = "";
+      };
       reader.readAsDataURL(file);
     }
   };
