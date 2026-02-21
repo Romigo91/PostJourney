@@ -149,25 +149,47 @@
                     <button class="constructor-mode constructor-mode-active" data-mode="ai" data-i18n="mode_ai">Generate with AI</button>
                     <button class="constructor-mode" data-mode="upload" data-i18n="mode_upload">Upload Photo</button>
                   </div>
+                
                   <div class="constructor-panel" data-panel="ai">
                     <label class="form-row">
                       <span data-i18n="prompt_label">Prompt for AI</span>
                       <textarea id="ai-prompt" data-i18n="ai_prompt_placeholder" placeholder="Example: cozy winter postcard..."></textarea>
                     </label>
+                    
+                    <button id="btn-generate-ai" class="btn-main" style="width: 100%; margin-top: 10px;">
+                      <span data-i18n="generate_btn">Generate Image</span>
+                    </button>
+                
+                    <div id="ai-progress-container" style="display: none; margin-top: 15px;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 11px; color: #888; font-weight: 500;">AI is painting...</span>
+                        <span id="ai-progress-percent" style="font-size: 11px; color: #e67e22; font-weight: bold;">0%</span>
+                      </div>
+                      <div style="width: 100%; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; border: 1px solid #ddd;">
+                        <div id="ai-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); transition: width 0.3s ease; box-shadow: 0 0 10px rgba(255,126,95,0.5);"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
+                
+                  <div class="constructor-panel constructor-panel-hidden" data-panel="upload" style="display: none;">
                     <label class="form-row">
                       <span data-i18n="upload_label">Upload image</span>
-                      <input type="file" id="front-upload" accept="image/*" />
+                      <div class="upload-field" style="margin-top: 8px;">
+                        <input type="file" id="front-upload" accept="image/*" />
+                      </div>
                     </label>
                   </div>
                 </div>
           
                 <div id="panel-back" style="display: none;">
                   <label class="form-row">
-                    <span style="font-size: 12px; color: var(--text-sub);">Message</span>
-                    <textarea id="card-message" placeholder="Write your message here..."></textarea>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                      <span style="font-size: 12px; color: var(--text-sub);">Message</span>
+                      <span id="char-count" style="font-size: 11px; color: var(--text-sub); font-weight: bold;">0 / 150</span>
+                    </div>
+                    <textarea id="card-message" maxlength="150" placeholder="Write your message here..."></textarea>
                   </label>
+                
                   <label class="form-row">
                     <span style="font-size: 12px; color: var(--text-sub);">Font Style</span>
                     <select id="font-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main);">
