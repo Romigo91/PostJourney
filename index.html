@@ -125,7 +125,7 @@
             </div>
           </section>
 
-        <section class="screen" data-screen="create">
+          <section class="screen" data-screen="create">
             <h2 class="screen-title" data-i18n="create_title">Postcards</h2>
           
             <div class="section-block">
@@ -134,73 +134,71 @@
               </div>
           
               <p class="small-text" data-i18n="create_hint">
-                AI postcard costs <strong>50 energy</strong> and <strong>1 postcard</strong>.<br />
+                AI postcard costs <strong>100 energy</strong> and <strong>1 postcard</strong>.<br />
                 Uploading your own image costs only <strong>1 postcard</strong>.
               </p>
           
-              <div class="assets-row">
-                <div class="asset-card">
-                  <div class="asset-label" data-i18n="postcards_label">Available postcards</div>
-                  <div class="asset-value" id="create-postcards">5</div>
-                </div>
-                <div class="asset-card">
-                  <div class="asset-label" data-i18n="energy_label">Available energy</div>
-                  <div class="asset-value" id="create-energy">500</div>
-                </div>
-              </div>
-          
-              <div class="constructor-toggle">
-                <button class="constructor-mode constructor-mode-active" data-mode="ai" data-i18n="mode_ai">
-                  Generate with AI
-                </button>
-                <button class="constructor-mode" data-mode="upload" data-i18n="mode_upload">
-                  Upload my postcard
-                </button>
-              </div>
-          
-              <div class="constructor-body">
-                <div class="constructor-panel" data-panel="ai">
-                  <label class="form-row">
-                    <span data-i18n="prompt_label">Prompt for AI</span>
-                    <textarea id="ai-prompt" data-i18n="ai_prompt_placeholder" placeholder="Example: cozy winter postcard with small village and snow"></textarea>
-                  </label>
+              <div class="constructor-body" style="margin-top: 15px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                  <button class="constructor-mode constructor-mode-active" id="btn-front-side" style="flex:1;">Front Side</button>
+                  <button class="constructor-mode" id="btn-back-side" style="flex:1;">Back Side</button>
                 </div>
           
-                <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
-                  <label class="form-row">
-                    <span data-i18n="upload_label">Upload image</span>
-                    <input type="file" />
-                  </label>
-                </div>
-          
-                <div class="section-header constructor-preview-title">
-                  <span data-i18n="preview_label">Preview</span>
-                </div>
-                <div class="constructor-preview-card">
-                  <div class="postcard-preview-image">✉️</div>
-                  <div class="postcard-preview-text" data-i18n="preview_text">
-                    Your postcard preview will appear here.
+                <div id="panel-front">
+                  <div class="constructor-toggle">
+                    <button class="constructor-mode constructor-mode-active" data-mode="ai" data-i18n="mode_ai">Generate with AI</button>
+                    <button class="constructor-mode" data-mode="upload" data-i18n="mode_upload">Upload Photo</button>
+                  </div>
+                  <div class="constructor-panel" data-panel="ai">
+                    <label class="form-row">
+                      <span data-i18n="prompt_label">Prompt for AI</span>
+                      <textarea id="ai-prompt" data-i18n="ai_prompt_placeholder" placeholder="Example: cozy winter postcard..."></textarea>
+                    </label>
+                  </div>
+                  <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
+                    <label class="form-row">
+                      <span data-i18n="upload_label">Upload image</span>
+                      <input type="file" id="front-upload" accept="image/*" />
+                    </label>
                   </div>
                 </div>
           
-                <button class="primary-button" data-i18n="send_btn">Send postcard</button>
+                <div id="panel-back" style="display: none;">
+                  <label class="form-row">
+                    <span style="font-size: 12px; color: var(--text-sub);">Message</span>
+                    <textarea id="card-message" placeholder="Write your message here..."></textarea>
+                  </label>
+                  <label class="form-row">
+                    <span style="font-size: 12px; color: var(--text-sub);">Font Style</span>
+                    <select id="font-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main);">
+                      <option value="'Brush Script MT', cursive">Handwritten</option>
+                      <option value="serif">Classic Serif</option>
+                      <option value="sans-serif">Modern</option>
+                    </select>
+                  </label>
+                </div>
+          
+                <div class="section-header constructor-preview-title" style="margin-top: 20px;">
+                  <span data-i18n="preview_label">Preview</span>
+                </div>
+                <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                  <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; font-size: 24px; width: 45px; height: 55px; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; background: #fafafa; z-index: 2;"></div>
+                  <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc;">
+                    <span data-i18n="preview_text">Your postcard preview will appear here.</span>
+                  </div>
+                </div>
+          
+                <button class="primary-button" id="send-card-btn" data-i18n="send_btn">Send postcard</button>
               </div>
             </div>
           
             <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="sent_collection">Sent postcards</span>
-              </div>
-              <div class="postcard-grid" id="sent-postcards-grid">
-                </div>
+              <div class="section-header"><span data-i18n="sent_collection">Sent postcards</span></div>
+              <div class="postcard-grid" id="sent-postcards-grid"></div>
             </div>
-          
             <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="received_collection">Received postcards</span>
-              </div>
-              <div class="postcard-grid" id="received-postcards-grid">
-                </div>
+              <div class="section-header"><span data-i18n="received_collection">Received postcards</span></div>
+              <div class="postcard-grid" id="received-postcards-grid"></div>
             </div>
           </section>
 
@@ -332,5 +330,6 @@
 
   <script src="translations.js"></script>
   <script src="script.js"></script>
+  <script src="postcard-constructor.js"></script>
 </body>
 </html>
