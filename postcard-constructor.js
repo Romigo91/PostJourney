@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let postcardData = {
         frontImage: null,
         message: '',
-        font: "'Brush Script MT', cursive",
+        font: "'Brush Script MT', cursive", // Шрифт по умолчанию
         currentSide: 'front'
     };
 
@@ -38,18 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // --- ЛИЦЕВАЯ СТОРОНА ---
             stampArea.style.display = 'none'; 
             if (postcardData.frontImage) {
-                // Используем object-fit: cover, чтобы картинка не ломала пропорции
-                previewContent.innerHTML = `<img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block;">`;
+                // Убираем все отступы и ставим display: block для идеального прилегания
+                previewContent.innerHTML = `<img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: center;">`;
             } else {
                 previewContent.innerHTML = `<span style="color: #ccc;">Front Side Preview</span>`;
             }
         } else {
             // --- ОБОРОТНАЯ СТОРОНА ---
-            // Скрываем внешнюю марку, будем использовать внутреннюю
             stampArea.style.display = 'none'; 
     
             const textContainer = document.createElement('div');
-            // Стили контейнера: ВАЖНО добавить display: block и убрать любые float
             textContainer.style.cssText = `
                 width: 100%; 
                 height: 100%; 
@@ -60,19 +58,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 overflow: hidden; 
                 white-space: pre-wrap; 
                 word-break: break-word; 
-                position: relative;
                 background: #fff;
                 display: block;
+                line-height: 1.4;
             `;
     
-            // Создаем марку. Используем position: absolute вместо float!
-            // Это гарантирует, что она не сдвинет блоки ВНЕ превью.
+            // СОЗДАЕМ МАРКУ С FLOAT
             const innerStamp = document.createElement('div');
             innerStamp.innerHTML = '📬';
             innerStamp.style.cssText = `
-                position: absolute;
-                top: 15px;
-                right: 15px;
+                float: right;
                 width: 50px;
                 height: 65px;
                 border: 2px dashed #ccc;
@@ -81,127 +76,90 @@ document.addEventListener('DOMContentLoaded', () => {
                 justify-content: center;
                 background: #fafafa;
                 font-size: 24px;
-                z-index: 2;
+                margin-left: 15px;
+                margin-bottom: 5px;
+                font-family: sans-serif;
             `;
     
-            // Чтобы текст не заходил ПОД марку, добавим обертку для текста с отступом справа
-            const textSpan = document.createElement('div');
-            textSpan.innerText = postcardData.message || "Write your message here...";
-            textSpan.style.cssText = `
-                width: 100%;
-                height: 100%;
-                padding-right: 60px; /* Резервируем место под марку, чтобы текст ее не перекрывал */
-                display: block;
-            `;
-    
+            const textContent = document.createTextNode(postcardData.message || "Write your message here...");
+            
             textContainer.appendChild(innerStamp);
-            textContainer.appendChild(textSpan);
+            textContainer.appendChild(textContent);
             previewContent.appendChild(textContainer);
     
             // --- МАГИЯ АВТОПОДБОРА ШРИФТА ---
             let fontSize = 20; 
             textContainer.style.fontSize = fontSize + 'px';
     
-            // Проверка: пока текст не влезает в контейнер, уменьшаем шрифт
-            // Используем scrollHeight, чтобы понимать реальный размер текста
-            while (textSpan.scrollHeight > textContainer.offsetHeight - 40 && fontSize > 10) {
+            while (textContainer.scrollHeight > textContainer.offsetHeight && fontSize > 10) {
                 fontSize -= 0.5;
                 textContainer.style.fontSize = fontSize + 'px';
             }
         }
     };
-   // --- ЛОГИКА AI ГЕНЕРАЦИИ ---
-   btnGenerateAI.onclick = async () => {
-    const promptText = aiPrompt.value.trim();
-    if (!promptText) return alert("Please enter a prompt!");
 
-    // 1. UI и Прогресс
-    btnGenerateAI.disabled = true;
-    progressContainer.style.display = 'block';
-    let progress = 0;
-    progressBar.style.width = '0%';
+    btnGenerateAI.onclick = async () => {
+        const promptText = aiPrompt.value.trim();
+        if (!promptText) return alert("Введите описание!");
     
-    const progressInterval = setInterval(() => {
-        if (progress < 90) {
-            progress += 1;
-            progressBar.style.width = progress + '%';
-            progressPercent.innerText = Math.round(progress) + '%';
-        }
-    }, 100);
-
-    // 2. ИСПОЛЬЗУЕМ НОВЫЙ СЕРВИС (Stable Diffusion / Flux)
-    // Этот URL напрямую обращается к генератору, который возвращает JPG/PNG
-    const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=1024&height=768&seed=${seed}&nologo=true&enhance=false`;
-
-    // 3. ПРОВЕРКА ЧЕРЕЗ FETCH (с обходом кэша)
-    try {
-        // Мы просто пытаемся "простучать" ссылку
-        const response = await fetch(imageUrl, { mode: 'no-cors' });
+        btnGenerateAI.disabled = true;
+        progressContainer.style.display = 'block';
         
-        // Ждем небольшую паузу для генерации на стороне сервера
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        // 4. Отрисовка
-        clearInterval(progressInterval);
-        progressBar.style.width = '100%';
-        progressPercent.innerText = '100%';
-
-        postcardData.frontImage = imageUrl;
-        postcardData.currentSide = 'front';
-        
-        if (btnFront) btnFront.click();
-
-        const previewContent = document.getElementById('preview-content');
-        if (previewContent) {
-            // 1. Полная очистка контейнера и сброс мешающих стилей
-            previewContent.innerHTML = '';
-            previewContent.style.padding = '0'; 
-            previewContent.style.margin = '0';
-            previewContent.style.overflow = 'hidden';
-            
-            // Используем flex, чтобы картинка центрировалась мертво
-            previewContent.style.display = 'flex'; 
-            previewContent.style.alignItems = 'center';
-            previewContent.style.justifyContent = 'center';
-
-            const finalImg = new Image();
-            
-            finalImg.onload = () => {
-                // Очищаем еще раз перед вставкой, чтобы убрать возможные тексты ошибок
-                previewContent.innerHTML = ''; 
-                previewContent.appendChild(finalImg);
-            };
-            
-            finalImg.onerror = () => {
-                const fallback = `https://loremflickr.com/1200/800/${encodeURIComponent(promptText)}`;
-                // Если сработала ошибка, подменяем источник. Onload сработает для fallback автоматически.
-                finalImg.src = fallback;
-                previewContent.innerHTML = `<p style="color:red; font-size:10px; position:absolute;">AI Load Error. Trying fallback...</p>`;
-            };
-
-            // Устанавливаем адрес картинки
-            finalImg.src = imageUrl;
-
-            // 2. ЖЕСТКИЕ стили для картинки, чтобы она не "гуляла"
-            finalImg.style.width = '100%';
-            finalImg.style.height = '100%';
-            finalImg.style.objectFit = 'cover';    // Заполнение без пустых мест
-            finalImg.style.objectPosition = 'center'; 
-            finalImg.style.display = 'block';       // Убирает системный отступ снизу
-            finalImg.style.margin = '0';            // Убирает внешние отступы
-            finalImg.style.border = 'none';         // На всякий случай
+        // Эмуляция прогресса
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            if (progress < 95) {
+                progress += (95 - progress) * 0.05;
+                progressBar.style.width = Math.round(progress) + '%';
+                progressPercent.innerText = Math.round(progress) + '%';
+            }
+        }, 400);
+    
+        const seed = Math.floor(Math.random() * 1000000);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed}&width=1024&height=768&model=flux&nologo=true`;
+    
+        // Функция-обертка для загрузки через Image объект
+        const loadImage = (url) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous"; // Важно для работы с Canvas
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error("Ошибка загрузки изображения"));
+                img.src = url;
+            });
+        };
+    
+        try {
+            // Пробуем загрузить
+            const img = await loadImage(imageUrl);
+    
+            // Если успешно, сохраняем URL (или конвертируем в Base64/Blob если нужно)
+            postcardData.frontImage = imageUrl; 
+            postcardData.currentSide = 'front';
+    
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressPercent.innerText = '100%';
+    
+            if (btnFront) {
+                btnFront.classList.add('constructor-mode-active');
+                panelFront.style.display = 'block';
+                panelBack.style.display = 'none';
+            }
+    
+            updateDisplay();
+    
+        } catch (e) {
+            clearInterval(progressInterval);
+            console.error("Генерация не удалась:", e);
+            alert("Похоже, сервер генерации занят. Попробуйте еще раз через пару секунд — иногда помогает просто повторный клик.");
+        } finally {
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                btnGenerateAI.disabled = false;
+            }, 1000);
         }
-
-    } catch (e) {
-        console.error("Critical error:", e);
-    } finally {
-        setTimeout(() => {
-            if (progressContainer) progressContainer.style.display = 'none';
-            if (btnGenerateAI) btnGenerateAI.disabled = false;
-        }, 1000);
-    }
-};
+    };
 
     // --- ОБРАБОТКА ТЕКСТА ---
     cardMessage.addEventListener('input', (e) => {
@@ -210,12 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const currentLen = text.length;
         charCount.innerText = `${currentLen} / 150`;
-        
         charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
-    
+        
         if (postcardData.currentSide === 'back') updateDisplay();
     });
 
+    // Изменение шрифта
     fontSelect.addEventListener('change', (e) => {
         postcardData.font = e.target.value;
         if (postcardData.currentSide === 'back') updateDisplay();

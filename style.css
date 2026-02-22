@@ -311,28 +311,30 @@
   .chip { padding: 6px 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-status); font-size: 13px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
   .chip-active { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-  /* Контейнер превью открытки */
-#preview-content {
-  width: 100%;
-  aspect-ratio: 3 / 2; /* Золотой стандарт открытки */
-  background: var(--bg-flag-circle);
-  border-radius: 16px;
-  overflow: hidden; /* Важно: чтобы картинка не вылезала за углы */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin: 10px 0;
+  #preview-content {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    background: var(--bg-flag-circle);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+  }
+
+/* Стили для текста на обороте открытки */
+.postcard-message-preview {
+  width: 80%;
+  padding: 20px;
+  text-align: center;
+  word-wrap: break-word;
+  line-height: 1.4;
+  color: #333;
+  /* Шрифт будет меняться динамически через JS */
 }
 
-/* Стили для самой картинки внутри */
-#preview-content img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Заполняет всё пространство без искажений */
-  object-position: center;
-  display: block;
+/* Добавим стандартный рукописный шрифт, если Brush Script MT нет в системе */
+@font-face {
+  font-family: 'Handwritten';
+  src: local('Brush Script MT'), local('Comic Sans MS');
 }
   
   /* ==========================================================================
@@ -379,3 +381,4 @@
     from { background-position: 40px 0; }
     to { background-position: 0 0; }
 }
+
