@@ -310,6 +310,30 @@
   .settings-lang-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .chip { padding: 6px 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-status); font-size: 13px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
   .chip-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Контейнер превью открытки */
+#preview-content {
+  width: 100%;
+  aspect-ratio: 3 / 2; /* Золотой стандарт открытки */
+  background: var(--bg-flag-circle);
+  border-radius: 16px;
+  overflow: hidden; /* Важно: чтобы картинка не вылезала за углы */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin: 10px 0;
+}
+
+/* Стили для самой картинки внутри */
+#preview-content img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Заполняет всё пространство без искажений */
+  object-position: center;
+  display: block;
+}
   
   /* ==========================================================================
      7. НАВИГАЦИЯ (BOTTOM NAV)
