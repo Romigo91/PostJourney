@@ -403,6 +403,7 @@
 .card-3d-wrapper {
   perspective: 1200px;
   aspect-ratio: 3/2;
+  transition: opacity 0.5s ease;
 }
 
 .card-3d-inner {

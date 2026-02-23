@@ -248,45 +248,48 @@
             </div>
           </section>
 
-        <section class="screen" data-screen="games">
+          <section class="screen" data-screen="games">
             <h2 class="screen-title" data-i18n="games_title">Games</h2>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="game_flag">Guess the Flag</span>
-              </div>
-              <p class="small-text" data-i18n="game_flag_desc">
-                You see a flag, you choose the correct country from several options.
-              </p>
-              <button class="secondary-button" disabled data-i18n="play_btn">
-                Play (coming soon)
-              </button>
+        
+            <div id="games-menu-list">
+                <div class="section-block">
+                    <div class="section-header">
+                        <span data-i18n="game_flag">Guess the Flag</span>
+                    </div>
+                    <p class="small-text" data-i18n="game_flag_desc">
+                        You see a flag, you choose the correct country from several options.
+                    </p>
+                    <button class="secondary-button" onclick="startGame('flags')" data-i18n="play_btn">Play</button>
+                </div>
+        
+                <div class="section-block">
+                    <div class="section-header">
+                        <span data-i18n="game_capital">Guess the Capital</span>
+                    </div>
+                    <p class="small-text" data-i18n="game_capital_desc">
+                        You see a country name, you pick its capital from the list.
+                    </p>
+                    <button class="secondary-button" onclick="startGame('capitals')" data-i18n="play_btn">Play</button>
+                </div>
+        
+                <div class="section-block">
+                    <div class="section-header">
+                        <span data-i18n="game_fact">Guess the Country by Fact</span>
+                    </div>
+                    <p class="small-text" data-i18n="game_fact_desc">
+                        You get a fun fact, you try to guess which country it is about.
+                    </p>
+                    <button class="secondary-button" onclick="startGame('facts')" data-i18n="play_btn">Play</button>
+                </div>
             </div>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="game_capital">Guess the Capital</span>
-              </div>
-              <p class="small-text" data-i18n="game_capital_desc">
-                You see a country name, you pick its capital from the list.
-              </p>
-              <button class="secondary-button" disabled data-i18n="play_btn">
-                Play (coming soon)
-              </button>
+        
+            <div id="active-game-zone" class="section-block" style="display: none; text-align: center;">
+                <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:block;">← Back to Menu</button>
+                
+                <div id="game-content">
+                    </div>
             </div>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="game_fact">Guess the Country by Fact</span>
-              </div>
-              <p class="small-text" data-i18n="game_fact_desc">
-                You get a fun fact, you try to guess which country it is about.
-              </p>
-              <button class="secondary-button" disabled data-i18n="play_btn">
-                Play (coming soon)
-              </button>
-            </div>
-          </section>
+        </section>
 
         <section class="screen" data-screen="settings">
             <h2 class="screen-title" data-i18n="settings_title">Settings</h2>
@@ -377,5 +380,6 @@
   <script src="translations.js"></script>
   <script src="script.js"></script>
   <script src="postcard-constructor.js"></script>
+  <script src="games.js"></script>
 </body>
 </html>
