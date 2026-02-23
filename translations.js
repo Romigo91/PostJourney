@@ -75,7 +75,12 @@ const translations = {
         interest_fashion: "Fashion", interest_gaming: "Gaming", interest_hiking: "Hiking",
         interest_writing: "Writing", interest_painting: "Painting", interest_drawing: "Drawing",
         interest_vintage: "Vintage", interest_cultures: "Cultures", interest_sea: "Sea",
-        interest_mountains: "Mountains", interest_handmade: "Handmade", interest_dances: "Dances"
+        interest_mountains: "Mountains", interest_handmade: "Handmade", interest_dances: "Dances",
+        game_question_flag: "Which country is this?",
+        game_question_capital: "What is the capital of this country?",
+        game_question_fact: "Which country is this about?",
+        back_btn: "Back to Menu",
+        play_btn: "Play"
     },
     ru: {
         app_name: "PostJourney",
@@ -153,7 +158,12 @@ const translations = {
         interest_fashion: "Мода", interest_gaming: "Игры", interest_hiking: "Походы",
         interest_writing: "Писательство", interest_painting: "Живопись", interest_drawing: "Рисование",
         interest_vintage: "Винтаж", interest_cultures: "Культуры", interest_sea: "Море",
-        interest_mountains: "Горы", interest_handmade: "Рукоделие", interest_dances: "Танцы"
+        interest_mountains: "Горы", interest_handmade: "Рукоделие", interest_dances: "Танцы",
+        game_question_flag: "Какая это страна?",
+        game_question_capital: "Какая столица у этой страны?",
+        game_question_fact: "О какой стране речь?",
+        back_btn: "В меню",
+        play_btn: "Играть"
     },
     be: {
         app_name: "PostJourney",
@@ -231,7 +241,12 @@ const translations = {
         interest_fashion: "Мода", interest_gaming: "Гульні", interest_hiking: "Паходы",
         interest_writing: "Пісьменства", interest_painting: "Жывапіс", interest_drawing: "Маляванне",
         interest_vintage: "Вінтаж", interest_cultures: "Культуры", interest_sea: "Мора",
-        interest_mountains: "Горы", interest_handmade: "Рукадзелле", interest_dances: "Танцы"
+        interest_mountains: "Горы", interest_handmade: "Рукадзелле", interest_dances: "Танцы",
+        game_question_flag: "Якая гэта краіна?",
+game_question_capital: "Якая сталіца гэтай краіны?",
+game_question_fact: "Пра якую краіну ідзе гаворка?",
+back_btn: "У меню гульняў",
+play_btn: "Гуляць",
     },
     hi: {
         app_name: "PostJourney", membership: "ऐप में: 1 दिन से", select_country: "अपना देश चुनें:",
@@ -266,7 +281,12 @@ const translations = {
         interest_fashion: "फैशन", interest_gaming: "गेमिंग", interest_hiking: "लंबी पैदल यात्रा",
         interest_writing: "लेखन", interest_painting: "पेंटिंग", interest_drawing: "ड्राइंग",
         interest_vintage: "विंटेज", interest_cultures: "संस्कृति", interest_sea: "समुद्र",
-        interest_mountains: "पहाड़", interest_handmade: "हस्तशिल्प", interest_dances: "नृत्य"
+        interest_mountains: "पहाड़", interest_handmade: "हस्तशिल्प", interest_dances: "नृत्य",
+        game_question_flag: "यह कौन सा देश है?",
+game_question_capital: "राजधानी क्या है?",
+game_question_fact: "यह किस देश के बारे में है?",
+back_btn: "खेल मेनू पर वापस",
+play_btn: "खेलें",
     },
     zh: {
         app_name: "PostJourney", membership: "加入时间：1天", select_country: "选择你的国家:",
@@ -301,7 +321,12 @@ const translations = {
         interest_fashion: "时尚", interest_gaming: "游戏", interest_hiking: "徒步",
         interest_writing: "写作", interest_painting: "绘画", interest_drawing: "素描",
         interest_vintage: "复古", interest_cultures: "文化", interest_sea: "海洋",
-        interest_mountains: "山脉", interest_handmade: "手工", interest_dances: "舞蹈"
+        interest_mountains: "山脉", interest_handmade: "手工", interest_dances: "舞蹈",
+        game_question_flag: "这是哪个国家？",
+game_question_capital: "首都是哪里？",
+game_question_fact: "这是关于哪个国家的？",
+back_btn: "返回菜单",
+play_btn: "开始游戏"
     },
     de: {
         app_name: "PostJourney", membership: "Dabei seit: 1 Tag", select_country: "Wähle dein Land:",
@@ -336,7 +361,12 @@ const translations = {
         interest_fashion: "Mode", interest_gaming: "Gaming", interest_hiking: "Wandern",
         interest_writing: "Schreiben", interest_painting: "Malen", interest_drawing: "Zeichnen",
         interest_vintage: "Vintage", interest_cultures: "Cultures", interest_sea: "Meer",
-        interest_mountains: "Berge", interest_handmade: "Handarbeit", interest_dances: "Tanzen"
+        interest_mountains: "Berge", interest_handmade: "Handarbeit", interest_dances: "Tanzen",
+        game_question_flag: "Welches Land ist das?",
+game_question_capital: "Was ist die Hauptstadt?",
+game_question_fact: "Um welches Land geht es?",
+back_btn: "Zurück zum Menü",
+play_btn: "Spielen",
     },
     fr: {
         app_name: "PostJourney", membership: "Inscrit depuis: 1 jour", select_country: "Choisissez votre pays:",
@@ -371,7 +401,12 @@ const translations = {
         interest_fashion: "Mode", interest_gaming: "Jeux vidéo", interest_hiking: "Randonnée",
         interest_writing: "Écriture", interest_painting: "Peinture", interest_drawing: "Dessin",
         interest_vintage: "Vintage", interest_cultures: "Cultures", interest_sea: "Mer",
-        interest_mountains: "Montagnes", interest_handmade: "Fait main", interest_dances: "Danse"
+        interest_mountains: "Montagnes", interest_handmade: "Fait main", interest_dances: "Danse",
+        game_question_flag: "Quel est ce pays ?",
+game_question_capital: "Quelle est la capitale ?",
+game_question_fact: "De quel pays s'agit-il ?",
+back_btn: "Retour au menu",
+play_btn: "Jouer"
     },
     es: {
         app_name: "PostJourney", membership: "En la app por: 1 día", select_country: "Selecciona tu país:",
@@ -406,7 +441,12 @@ const translations = {
         interest_fashion: "Moda", interest_gaming: "Juegos", interest_hiking: "Senderismo",
         interest_writing: "Escritura", interest_painting: "Pintura", interest_drawing: "Dibujo",
         interest_vintage: "Vintage", interest_cultures: "Culturas", interest_sea: "Mar",
-        interest_mountains: "Montañas", interest_handmade: "Hecho a mano", interest_dances: "Danza"
+        interest_mountains: "Montañas", interest_handmade: "Hecho a mano", interest_dances: "Danza",
+        game_question_flag: "¿Qué país es este?",
+game_question_capital: "¿Cuál es la capital?",
+game_question_fact: "¿De qué país se trata?",
+back_btn: "Volver al menú",
+play_btn: "Jugar",
     },
     it: {
         app_name: "PostJourney", membership: "In app da: 1 giorno", select_country: "Seleziona il tuo paese:",
@@ -441,7 +481,12 @@ const translations = {
         interest_fashion: "Moda", interest_gaming: "Giochi", interest_hiking: "Escursionismo",
         interest_writing: "Scrittura", interest_painting: "Pittura", interest_drawing: "Disegno",
         interest_vintage: "Vintage", interest_cultures: "Culture", interest_sea: "Mare",
-        interest_mountains: "Montagne", interest_handmade: "Fatto a mano", interest_dances: "Danza"
+        interest_mountains: "Montagne", interest_handmade: "Fatto a mano", interest_dances: "Danza",
+        game_question_flag: "Che paese è questo?",
+game_question_capital: "Qual è la capitale?",
+game_question_fact: "Di quale paese si tratta?",
+back_btn: "Torna al menu",
+play_btn: "Gioca",
     },
     pl: {
         app_name: "PostJourney", membership: "W aplikacji od: 1 dzień", select_country: "Wybierz swój kraj:",
@@ -480,6 +525,11 @@ const translations = {
         interest_fashion: "Moda", interest_gaming: "Gry", interest_hiking: "Wędrówki",
         interest_writing: "Pisanie", interest_painting: "Malarstwo", interest_drawing: "Rysowanie",
         interest_vintage: "Vintage", interest_cultures: "Kultury", interest_sea: "Morze",
-        interest_mountains: "Góry", interest_handmade: "Rękodzieło", interest_dances: "Taniec"
+        interest_mountains: "Góry", interest_handmade: "Rękodzieło", interest_dances: "Taniec",
+        game_question_flag: "Jaki to kraj?",
+game_question_capital: "Jaka jest stolica?",
+game_question_fact: "O jakim kraju mowa?",
+back_btn: "Powrót do menu",
+play_btn: "Graj",
     }
 };
