@@ -102,61 +102,71 @@ document.addEventListener('DOMContentLoaded', () => {
         const promptText = aiPrompt.value.trim();
         if (!promptText) return alert("Введите описание!");
     
-        btnGenerateAI.disabled = true;
-        progressContainer.style.display = 'block';
+        const API_KEY = 'sk_Q94e3xilY3hHcZKbWZvLuIUosJXgSKMF'; 
         
-        // Эмуляция прогресса
+        // Привязываемся к вашим ID из HTML
+        const container = document.getElementById('ai-progress-container');
+        const bar = document.getElementById('ai-progress-bar');
+        const percentText = document.getElementById('ai-progress-percent');
+    
+        btnGenerateAI.disabled = true;
+        container.style.display = 'block'; // Показываем блок
+        bar.style.width = '0%';
+        percentText.innerText = "0%";
+    
+        // Эмуляция загрузки
         let progress = 0;
         const progressInterval = setInterval(() => {
-            if (progress < 95) {
-                progress += (95 - progress) * 0.05;
-                progressBar.style.width = Math.round(progress) + '%';
-                progressPercent.innerText = Math.round(progress) + '%';
+            if (progress < 90) {
+                progress += Math.random() * 3; 
+                const rounded = Math.floor(progress);
+                bar.style.width = rounded + '%';
+                percentText.innerText = rounded + '%';
             }
         }, 400);
     
-        const seed = Math.floor(Math.random() * 1000000);
-        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?seed=${seed}&width=1024&height=768&model=flux&nologo=true`;
-    
-        // Функция-обертка для загрузки через Image объект
-        const loadImage = (url) => {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = "anonymous"; // Важно для работы с Canvas
-                img.onload = () => resolve(img);
-                img.onerror = () => reject(new Error("Ошибка загрузки изображения"));
-                img.src = url;
-            });
-        };
-    
         try {
-            // Пробуем загрузить
-            const img = await loadImage(imageUrl);
+            const encodedPrompt = encodeURIComponent(promptText);
+            // Пропорция 3:2 (1200x800)
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux&width=1200&height=800&seed=-1`;
     
-            // Если успешно, сохраняем URL (или конвертируем в Base64/Blob если нужно)
-            postcardData.frontImage = imageUrl; 
-            postcardData.currentSide = 'front';
+            const response = await fetch(url, {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${API_KEY}` }
+            });
     
+            if (!response.ok) throw new Error("Ошибка API");
+    
+            const imageBlob = await response.blob();
+            
+            // Завершаем прогресс
             clearInterval(progressInterval);
-            progressBar.style.width = '100%';
-            progressPercent.innerText = '100%';
+            bar.style.width = '100%';
+            percentText.innerText = '100%';
     
-            if (btnFront) {
-                btnFront.classList.add('constructor-mode-active');
-                panelFront.style.display = 'block';
-                panelBack.style.display = 'none';
+            const imageUrl = URL.createObjectURL(imageBlob);
+            
+            // Сохраняем в данные открытки
+            postcardData.frontImage = imageUrl;
+            
+            // Обновляем превью (у вас это блок postcard-preview-container)
+            if (typeof updateDisplay === 'function') {
+                updateDisplay();
+            } else {
+                // Если функции updateDisplay нет, просто вставим картинку в превью
+                const preview = document.getElementById('preview-content');
+                preview.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;">`;
             }
-    
-            updateDisplay();
     
         } catch (e) {
             clearInterval(progressInterval);
-            console.error("Генерация не удалась:", e);
-            alert("Похоже, сервер генерации занят. Попробуйте еще раз через пару секунд — иногда помогает просто повторный клик.");
+            console.error(e);
+            alert("Ошибка генерации: " + e.message);
         } finally {
+            btnGenerateAI.disabled = false;
+            // Скрываем полосу через секунду после успеха, чтобы пользователь увидел 100%
             setTimeout(() => {
-                progressContainer.style.display = 'none';
-                btnGenerateAI.disabled = false;
+                container.style.display = 'none';
             }, 1000);
         }
     };
