@@ -27,24 +27,36 @@ document.addEventListener('DOMContentLoaded', () => {
     let postcardData = {
         frontImage: null,
         message: '',
-        font: "'Brush Script MT', cursive", // Шрифт по умолчанию
+        font: "'Brush Script MT', cursive", 
         currentSide: 'front'
     };
+
+    // Функция обновления состояния иконки 3D
+    function update3DButtonState() {
+        const btn3D = document.getElementById('btn-view-3d');
+        if (!btn3D) return; // Защита от ошибок, если элемента нет
+
+        const hasFront = !!postcardData.frontImage; 
+        const hasBack = postcardData.message && postcardData.message.trim().length > 0;
+
+        if (hasFront && hasBack) {
+            btn3D.classList.remove('disabled');
+        } else {
+            btn3D.classList.add('disabled');
+        }
+    }
 
     const updateDisplay = () => {
         previewContent.innerHTML = ''; 
     
         if (postcardData.currentSide === 'front') {
-            // --- ЛИЦЕВАЯ СТОРОНА ---
             stampArea.style.display = 'none'; 
             if (postcardData.frontImage) {
-                // Убираем все отступы и ставим display: block для идеального прилегания
                 previewContent.innerHTML = `<img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: center;">`;
             } else {
                 previewContent.innerHTML = `<span style="color: #ccc;">Front Side Preview</span>`;
             }
         } else {
-            // --- ОБОРОТНАЯ СТОРОНА ---
             stampArea.style.display = 'none'; 
     
             const textContainer = document.createElement('div');
@@ -63,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 line-height: 1.4;
             `;
     
-            // СОЗДАЕМ МАРКУ С FLOAT
             const innerStamp = document.createElement('div');
             innerStamp.innerHTML = '📬';
             innerStamp.style.cssText = `
@@ -87,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
             textContainer.appendChild(textContent);
             previewContent.appendChild(textContainer);
     
-            // --- МАГИЯ АВТОПОДБОРА ШРИФТА ---
             let fontSize = 20; 
             textContainer.style.fontSize = fontSize + 'px';
     
@@ -96,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 textContainer.style.fontSize = fontSize + 'px';
             }
         }
+        update3DButtonState(); // <--- ОБНОВЛЯЕМ ПРИ КАЖДОЙ ПЕРЕРИСОВКЕ
     };
 
     btnGenerateAI.onclick = async () => {
@@ -104,17 +115,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
         const API_KEY = 'sk_Q94e3xilY3hHcZKbWZvLuIUosJXgSKMF'; 
         
-        // Привязываемся к вашим ID из HTML
         const container = document.getElementById('ai-progress-container');
         const bar = document.getElementById('ai-progress-bar');
         const percentText = document.getElementById('ai-progress-percent');
     
         btnGenerateAI.disabled = true;
-        container.style.display = 'block'; // Показываем блок
+        container.style.display = 'block';
         bar.style.width = '0%';
         percentText.innerText = "0%";
     
-        // Эмуляция загрузки
         let progress = 0;
         const progressInterval = setInterval(() => {
             if (progress < 90) {
@@ -127,8 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
         try {
             const encodedPrompt = encodeURIComponent(promptText);
-            // Пропорция 3:2 (1200x800)
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=flux&width=1200&height=800&seed=-1`;
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=gptimage&width=1200&height=800&seed=-1`;
     
             const response = await fetch(url, {
                 method: "GET",
@@ -139,39 +147,28 @@ document.addEventListener('DOMContentLoaded', () => {
     
             const imageBlob = await response.blob();
             
-            // Завершаем прогресс
             clearInterval(progressInterval);
             bar.style.width = '100%';
             percentText.innerText = '100%';
     
             const imageUrl = URL.createObjectURL(imageBlob);
-            
-            // Сохраняем в данные открытки
             postcardData.frontImage = imageUrl;
             
-            // Обновляем превью (у вас это блок postcard-preview-container)
-            if (typeof updateDisplay === 'function') {
-                updateDisplay();
-            } else {
-                // Если функции updateDisplay нет, просто вставим картинку в превью
-                const preview = document.getElementById('preview-content');
-                preview.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:cover;">`;
-            }
-    
+            updateDisplay();
+            update3DButtonState(); // <--- ОБНОВЛЯЕМ ПОСЛЕ ГЕНЕРАЦИИ AI
+
         } catch (e) {
             clearInterval(progressInterval);
             console.error(e);
             alert("Ошибка генерации: " + e.message);
         } finally {
             btnGenerateAI.disabled = false;
-            // Скрываем полосу через секунду после успеха, чтобы пользователь увидел 100%
             setTimeout(() => {
                 container.style.display = 'none';
             }, 1000);
         }
     };
 
-    // --- ОБРАБОТКА ТЕКСТА ---
     cardMessage.addEventListener('input', (e) => {
         const text = e.target.value;
         postcardData.message = text;
@@ -180,16 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
         charCount.innerText = `${currentLen} / 150`;
         charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
         
-        if (postcardData.currentSide === 'back') updateDisplay();
+        updateDisplay();
+        update3DButtonState(); // <--- ОБНОВЛЯЕМ ПРИ КАЖДОМ СИМВОЛЕ
     });
 
-    // Изменение шрифта
     fontSelect.addEventListener('change', (e) => {
         postcardData.font = e.target.value;
-        if (postcardData.currentSide === 'back') updateDisplay();
+        updateDisplay();
     });
 
-    // --- ПЕРЕКЛЮЧЕНИЕ СТОРОН ---
     btnFront.onclick = () => {
         postcardData.currentSide = 'front';
         btnFront.classList.add('constructor-mode-active');
@@ -208,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDisplay();
     };
 
-    // --- AI VS UPLOAD PANELS ---
     modeButtons.forEach(btn => {
         btn.onclick = () => {
             const mode = btn.getAttribute('data-mode');
@@ -220,20 +215,53 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // --- ЗАГРУЗКА ФОТО ---
     frontUpload.onchange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 postcardData.frontImage = event.target.result;
-                postcardData.currentSide = 'front';
                 updateDisplay();
+                update3DButtonState(); // <--- ОБНОВЛЯЕМ ПОСЛЕ ЗАГРУЗКИ ФАЙЛА
             };
             reader.readAsDataURL(file);
         }
     };
 
+    // Открытие 3D вида
+    document.getElementById('btn-view-3d').onclick = function() {
+        if (this.classList.contains('disabled')) return;
+
+        const modal = document.getElementById('modal-3d');
+        const frontDiv = document.getElementById('3d-front');
+        const backDiv = document.getElementById('3d-back');
+
+        // Наполняем контентом (всегда лицевая сторона на фронт)
+        frontDiv.innerHTML = `<img src="${postcardData.frontImage}" style="width:100%; height:100%; object-fit:cover;">`;
+        
+        // Рендерим оборот для 3D
+        postcardData.currentSide = 'back'; // Временно переключаем для генерации контента
+        updateDisplay(); 
+        const previewClone = previewContent.cloneNode(true);
+        backDiv.innerHTML = '';
+        backDiv.appendChild(previewClone);
+        
+        // Возвращаем как было в превью
+        postcardData.currentSide = 'front'; 
+        updateDisplay();
+
+        modal.style.display = 'flex';
+    };
+
+    document.getElementById('card-3d-inner').onclick = function() {
+        this.classList.toggle('flipped');
+    };
+
+    document.getElementById('close-3d-btn').onclick = () => {
+        document.getElementById('modal-3d').style.display = 'none';
+    };
+
     // Инициализация
     updateDisplay();
+    update3DButtonState(); // <--- ПРОВЕРКА ПРИ ЗАГРУЗКЕ
 });

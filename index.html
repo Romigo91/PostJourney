@@ -200,27 +200,43 @@
                   </label>
                 </div>
           
-               
-              
-              <div style="clear: both; display: block; width: 100%;">
-                <div class="section-header" style="margin-top: 20px;">
-                  <span data-i18n="preview_label">Preview</span>
-              </div>
-              
-              <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block; clear: both;">
-                  
-                  <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
-                      <span style="font-size: 24px; opacity: 0.5;">✉️</span>
+                <div style="clear: both; display: block; width: 100%;">
+                  <div class="section-header" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <span data-i18n="preview_label">Preview</span>
+                    
+                    <div id="btn-view-3d" class="icon-3d disabled" title="View 3D View">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16.06V7.94a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 7.94v8.12a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                      </svg>
+                    </div>
                   </div>
-              
-                  <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
-                      <span data-i18n="preview_text">Your postcard preview will appear here.</span>
+                
+                  <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block; clear: both;">
+                      <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
+                          <span style="font-size: 24px; opacity: 0.5;">✉️</span>
+                      </div>
+                      <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
+                          <span data-i18n="preview_text">Your postcard preview will appear here.</span>
+                      </div>
                   </div>
-              </div>
-              
-              <button class="primary-button" id="send-card-btn" data-i18n="send_btn" style="width: 100%;">Send postcard</button>
-            </div>
-            </div>
+                
+                  <button class="primary-button" id="send-card-btn" data-i18n="send_btn" style="width: 100%;">Send postcard</button>
+                </div>
+                
+                <div id="modal-3d" class="modal-3d">
+                    <div class="modal-3d-overlay" id="modal-3d-overlay"></div>
+                    <div class="modal-3d-container">
+                        <div class="card-3d-wrapper">
+                            <div id="card-3d-inner" class="card-3d-inner">
+                                <div class="card-3d-front" id="3d-front"></div>
+                                <div class="card-3d-back" id="3d-back"></div>
+                            </div>
+                        </div>
+                        <button id="close-3d-btn" class="close-3d-btn">✕</button>
+                    </div>
+                </div>
           
             <div class="section-block">
               <div class="section-header"><span data-i18n="sent_collection">Sent postcards</span></div>
