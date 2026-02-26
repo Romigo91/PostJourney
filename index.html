@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <title>Postcard Exchange</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Montserrat:wght@500&family=Special+Elite&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Dancing+Script:wght@500;700&family=Montserrat:wght@500&family=Playfair+Display:ital,wght@0,500;1,500&family=Special+Elite&display=swap" rel="stylesheet">  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app-root">
@@ -27,11 +26,13 @@
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
                   <div class="profile-name" id="display-name">@Alex</div>
                   <div class="profile-country" id="display-country">🇫🇷</div>
+                  <div class="profile-city" id="display-city" style="font-size: 12px; color: var(--text-sub);">Paris</div>
                 </div>
           
                 <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
-                  <input type="text" id="input-name" style="width: 80px; font-size: 12px;">
-                  <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
+                  <input type="text" id="input-name" style="width: 80px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
+                  <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);" readonly>
+                  <input type="text" id="input-city" placeholder="City" style="width: 70px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
                 </div>
 
                 <div class="profile-membership">In app for: 1 days</div>
@@ -52,7 +53,7 @@
               
               <textarea id="input-bio" 
                         placeholder="Detailed statistics and recent achievements..." 
-                        style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;">
+                        style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-input); padding: 6px; background: var(--bg-input); color: var(--text-main);">
               </textarea>
               
               <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
@@ -193,9 +194,15 @@
                   <label class="form-row">
                     <span style="font-size: 12px; color: var(--text-sub);">Font Style</span>
                     <select id="font-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main);">
-                      <option value="'Caveat', cursive">Handwritten (Caveat)</option>
-                      <option value="'Special Elite', system-ui">Typewriter</option>
-                      <option value="'Montserrat', sans-serif">Modern Classic</option>
+                      <option value="'Caveat', cursive">Casual Pen (Caveat)</option>
+                      
+                      <option value="'Dancing Script', cursive">Elegant Cursive (Dancing Script)</option>
+                      
+                      <option value="'Special Elite', monospace">Typewriter (Special Elite)</option>
+                      
+                      <option value="'Playfair Display', serif">Classic Serif (Playfair)</option>
+                      
+                      <option value="'Montserrat', sans-serif">Modern Clean (Montserrat)</option>
                     </select>
                   </label>
                 

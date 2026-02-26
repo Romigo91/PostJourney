@@ -13,6 +13,7 @@ const AVAILABLE_INTERESTS = [
     profile: {
         name: "@Alex",
         country: "🇫🇷",
+        city: "Paris",
         bio: "Detailed statistics and recent achievements...",
         avatar: null,
         interests: ["Art", "Travel"]
@@ -58,12 +59,17 @@ const AVAILABLE_INTERESTS = [
   // ==========================================================================
   
   function updateProfileUI() {
-    const { name, country, bio, avatar, interests } = state.profile;
+    const { name, country, city, bio, avatar, interests } = state.profile; 
     const editBtn = document.getElementById("edit-profile-btn");
     const isEditingNow = editBtn && editBtn.getAttribute('data-mode') === 'save';
   
     document.getElementById("display-name").textContent = name;
     document.getElementById("display-country").textContent = country;
+
+    const displayCity = document.getElementById("display-city");
+    if (displayCity) {
+        displayCity.textContent = city;
+    }
   
     const bioElement = document.getElementById("display-bio");
     const isDefaultBio = !bio || bio.includes("Detailed statistics");
@@ -218,7 +224,7 @@ const AVAILABLE_INTERESTS = [
     if (enable) {
         // ПЕРЕХОД В РЕЖИМ РЕДАКТИРОВАНИЯ
         editBtn.setAttribute('data-mode', 'save');
-        editBtn.textContent = "Save Changes"; // Меняем текст напрямую
+        editBtn.textContent = "Save Changes"; 
         
         tempSelectedCountry = state.profile.country;
         tempSelectedInterests = [...state.profile.interests];
@@ -226,26 +232,34 @@ const AVAILABLE_INTERESTS = [
   
         document.getElementById("input-name").value = state.profile.name;
         document.getElementById("input-country").value = state.profile.country;
+        // НОВОЕ: Подставляем текущий город в поле ввода
+        document.getElementById("input-city").value = state.profile.city || ""; 
         document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
         
         ids.forEach(id => document.getElementById(id).style.display = "none");
-        editIds.forEach(id => document.getElementById(id).style.display = "block");
+        editIds.forEach(id => document.getElementById(id).style.display = "flex"); // Исправил на flex, чтобы input'ы стояли в ряд
         renderEditTags();
     } else {
         // СОХРАНЕНИЕ
         state.profile.name = document.getElementById("input-name").value;
         state.profile.country = tempSelectedCountry;
+        // НОВОЕ: Записываем город из поля ввода в стейт
+        state.profile.city = document.getElementById("input-city").value.trim(); 
+        
         const newBio = document.getElementById("input-bio").value.trim();
         state.profile.bio = newBio === "" ? "Detailed statistics and recent achievements..." : newBio;
         state.profile.interests = [...tempSelectedInterests];
         state.profile.avatar = tempAvatar;
   
         editBtn.setAttribute('data-mode', 'edit');
-        editBtn.textContent = "Edit Profile"; // Возвращаем текст
+        editBtn.textContent = "Edit Profile"; 
         
         ids.forEach(id => document.getElementById(id).style.display = "flex");
         editIds.forEach(id => document.getElementById(id).style.display = "none");
         document.getElementById("flag-picker-container").style.display = "none";
+
+        // НОВОЕ: ОБЯЗАТЕЛЬНО вызываем перерисовку, чтобы новые данные появились на экране!
+        updateProfileUI(); 
     }
   }
   

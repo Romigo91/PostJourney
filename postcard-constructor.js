@@ -85,9 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
         stampArea.style.display = 'none';
         previewContent.style.cursor = 'default';
 
-        const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷' };
-        const { name, country } = profile;
+        const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷', city: 'Paris', avatar: null };
+        const { name, country, city, avatar } = profile; // Забираем avatar
         const initial = (name.replace('@', '')[0] || 'A').toUpperCase();
+
+        const avatarStyle = avatar ? `background-image: url(${avatar}); background-size: cover; background-position: center;` : '';
+        const avatarContent = avatar ? '' : initial;
 
         if (!profile.userId) {
             profile.userId = 'PJ-' + Math.floor(1000 + Math.random() * 9000);
@@ -107,18 +110,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="postcard-right-side">
                     <div class="stamp-place">${postcardData.stamp}</div>
                     <div class="sender-profile-block">
-                        <div class="sender-mini-avatar">${initial}</div>
+                        <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-                            <span style="font-size:9px; color:var(--text-sub);">${country} Sender</span>
+                            <span style="font-size:9px; color:var(--text-sub);">${country} ${city ? city : ''}</span>
                         </div>
                     </div>
                     <div class="data-badge-block">
-                        <div>📍 FROM: ${country.toUpperCase()}</div>
-                        <div>📅 DATE: ${date}</div>
-                        <div>🔢 ID: ${cardID}</div>
-                        <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
-                    </div>
+                            <div>📍 FROM: ${country.toUpperCase()}${city ? ', ' + city.toUpperCase() : ''}</div>
+                            <div>📅 DATE: ${date}</div>
+                            <div>🔢 ID: ${cardID}</div>
+                            <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
+                        </div>
                     <div class="postmark-circle">
                         POSTJOURNEY<br>${new Date().getFullYear()}<br>OFFICIAL
                     </div>
