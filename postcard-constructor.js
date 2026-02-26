@@ -27,15 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let postcardData = {
         frontImage: null,
         message: '',
-        font: "'Caveat', cursive", // Ставим новый шрифт по умолчанию
-        color: '#1e3799', // Синий цвет чернил по умолчанию
-        currentSide: 'front'
+        font: "'Caveat', cursive", 
+        color: '#1e3799', 
+        currentSide: 'front',
+        imagePosX: 50, // НОВОЕ: Позиция картинки по X (50% = центр)
+        imagePosY: 50  // НОВОЕ: Позиция картинки по Y (50% = центр)
     };
 
     // Функция обновления состояния иконки 3D
     function update3DButtonState() {
         const btn3D = document.getElementById('btn-view-3d');
-        if (!btn3D) return; // Защита от ошибок, если элемента нет
+        if (!btn3D) return; 
 
         const hasFront = !!postcardData.frontImage; 
         const hasBack = postcardData.message && postcardData.message.trim().length > 0;
@@ -52,13 +54,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
         if (postcardData.currentSide === 'front') {
             stampArea.style.display = 'none'; 
+            previewContent.style.cursor = postcardData.frontImage ? 'grab' : 'default';
+
             if (postcardData.frontImage) {
-                previewContent.innerHTML = `<img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: center;">`;
+                // НОВОЕ: Добавлен object-position и подсказка "Drag to reposition"
+                previewContent.innerHTML = `
+                    <img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: ${postcardData.imagePosX}% ${postcardData.imagePosY}%; pointer-events: none;">
+                    <div id="drag-hint" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">👆 Drag to reposition</div>
+                `;
             } else {
                 previewContent.innerHTML = `<span style="color: #ccc;">Front Side Preview</span>`;
             }
         } else {
             stampArea.style.display = 'none'; 
+            previewContent.style.cursor = 'default';
     
             const textContainer = document.createElement('div');
             textContainer.style.cssText = `
@@ -155,6 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const imageUrl = URL.createObjectURL(imageBlob);
             postcardData.frontImage = imageUrl;
             
+            // НОВОЕ: Сбрасываем позицию в центр при новой генерации
+            postcardData.imagePosX = 50;
+            postcardData.imagePosY = 50;
+            
             updateDisplay();
             update3DButtonState(); 
 
@@ -234,6 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 postcardData.frontImage = event.target.result;
+                // НОВОЕ: Сбрасываем позицию в центр при загрузке нового фото
+                postcardData.imagePosX = 50;
+                postcardData.imagePosY = 50;
                 updateDisplay();
                 update3DButtonState(); 
             };
@@ -249,7 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const frontDiv = document.getElementById('3d-front');
         const backDiv = document.getElementById('3d-back');
 
-        frontDiv.innerHTML = `<img src="${postcardData.frontImage}" style="width:100%; height:100%; object-fit:cover;">`;
+        // НОВОЕ: Передаем смещение картинки в 3D сцену
+        frontDiv.innerHTML = `<img src="${postcardData.frontImage}" style="width:100%; height:100%; object-fit:cover; object-position: ${postcardData.imagePosX}% ${postcardData.imagePosY}%;">`;
         
         postcardData.currentSide = 'back'; 
         updateDisplay(); 
@@ -268,7 +285,81 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-3d').style.display = 'none';
     };
 
-    // === ЛОГИКА ИНТЕРАКТИВНОГО ВРАЩЕНИЯ (МЫШЬ + ПАЛЕЦ) ===
+    // ====================================================================
+    // НОВОЕ: ЛОГИКА КАДРИРОВАНИЯ (DRAG TO REPOSITION)
+    // ====================================================================
+    let isDraggingImg = false;
+    let imgStartX = 0, imgStartY = 0;
+    let imgStartPosX = 50, imgStartPosY = 50;
+
+    function getImgCoords(e) {
+        if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    function imgDragStart(e) {
+        // Запускаем перетаскивание только если открыта лицевая сторона с загруженным фото
+        if (postcardData.currentSide !== 'front' || !postcardData.frontImage) return;
+        
+        isDraggingImg = true;
+        const coords = getImgCoords(e);
+        imgStartX = coords.x;
+        imgStartY = coords.y;
+        imgStartPosX = postcardData.imagePosX;
+        imgStartPosY = postcardData.imagePosY;
+        
+        previewContent.style.cursor = 'grabbing';
+        
+        // Скрываем подсказку "Drag to reposition" при первом клике
+        const hint = document.getElementById('drag-hint');
+        if (hint) hint.style.opacity = '0';
+    }
+
+    function imgDragMove(e) {
+        if (!isDraggingImg) return;
+        e.preventDefault(); // Запрещаем скролл страницы на телефоне во время кадрирования
+
+        const coords = getImgCoords(e);
+        const deltaX = coords.x - imgStartX;
+        const deltaY = coords.y - imgStartY;
+
+        // Чувствительность движения. Меняет позицию в %
+        let newPosX = imgStartPosX - (deltaX * 0.2);
+        let newPosY = imgStartPosY - (deltaY * 0.2);
+
+        // Ограничиваем от 0% (левый/верхний край) до 100% (правый/нижний край)
+        newPosX = Math.max(0, Math.min(100, newPosX));
+        newPosY = Math.max(0, Math.min(100, newPosY));
+
+        postcardData.imagePosX = newPosX;
+        postcardData.imagePosY = newPosY;
+
+        // Плавно обновляем стиль без перерисовки всего блока
+        const img = previewContent.querySelector('img');
+        if (img) {
+            img.style.objectPosition = `${newPosX}% ${newPosY}%`;
+        }
+    }
+
+    function imgDragEnd() {
+        if (!isDraggingImg) return;
+        isDraggingImg = false;
+        previewContent.style.cursor = 'grab';
+    }
+
+    // Слушатели для превью-окошка
+    previewContent.addEventListener('mousedown', imgDragStart);
+    window.addEventListener('mousemove', imgDragMove);
+    window.addEventListener('mouseup', imgDragEnd);
+
+    previewContent.addEventListener('touchstart', imgDragStart, { passive: false });
+    window.addEventListener('touchmove', imgDragMove, { passive: false });
+    window.addEventListener('touchend', imgDragEnd);
+
+
+    // ====================================================================
+    // ЛОГИКА ИНТЕРАКТИВНОГО ВРАЩЕНИЯ (МЫШЬ + ПАЛЕЦ ДЛЯ 3D СЦЕНЫ)
+    // ====================================================================
     const wrapper = document.querySelector('.card-3d-wrapper');
     const inner = document.getElementById('card-3d-inner');
 
@@ -278,19 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRotateX = 0;
     let currentRotateY = 0;
 
-    function getCoords(e) {
-        if (e.touches && e.touches.length > 0) {
-            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        }
-        return { x: e.clientX, y: e.clientY };
-    }
-
     function dragStart(e) {
         isDragging = true;
-        const coords = getCoords(e);
+        const coords = getImgCoords(e);
         startX = coords.x;
         startY = coords.y;
-        
         inner.style.transition = 'none';
     }
 
@@ -298,13 +381,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isDragging) return;
         e.preventDefault();
 
-        const coords = getCoords(e);
+        const coords = getImgCoords(e);
         const deltaX = coords.x - startX;
         const deltaY = coords.y - startY;
 
         currentRotateY += deltaX * 0.5; 
-        
         currentRotateX -= deltaY * 0.5;
+        
         if (currentRotateX > 20) currentRotateX = 20;
         if (currentRotateX < -20) currentRotateX = -20;
 
@@ -319,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isDragging = false;
 
         inner.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s ease';
-
         currentRotateY = Math.round(currentRotateY / 180) * 180;
         currentRotateX = 0; 
 
