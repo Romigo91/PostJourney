@@ -501,3 +501,161 @@
     border-color: var(--primary); /* Оранжевая рамка снаружи */
     box-shadow: inset 0 0 0 2px #ffffff; /* Белое кольцо внутри */
   }
+
+/* ====================================================================
+   ОБНОВЛЕННЫЕ, УКРУПНЕННЫЕ СТИЛИ ДЛЯ ПРАВОЙ СТОРОНЫ ОБОРОТА (600x400)
+   ==================================================================== */
+
+/* Разметка оборотной стороны */
+.postcard-back-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: #fdfaf5;
+  position: relative;
+}
+
+/* Левая часть: Немного сузим, чтобы дать место правой */
+.postcard-left-side {
+  flex: 1;
+  min-width: 0; /* Жестко запрещаем блоку расширяться из-за длинного текста */
+  padding: 10px 15px;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+}
+
+/* Жесткий контейнер ровно на 7 строк */
+.lines-container {
+  width: 100%;
+  height: 168px; /* 7 строк * 24px = 168px */
+  position: relative;
+  /* Рисуем 7 линий, которые никогда никуда не съедут */
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 23px,
+    var(--border) 23px,
+    var(--border) 24px
+  );
+}
+
+/* Сам текст */
+#postcard-text-area {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0 4px 0 0; 
+  box-sizing: border-box; 
+  line-height: 24px; 
+  white-space: pre-wrap; 
+  overflow-wrap: break-word; 
+  word-break: break-word; /* Заставляет переносить сплошные буквы */
+  overflow: hidden;
+}
+
+/* Центральный разделитель */
+.postcard-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 10px 0; 
+  opacity: 0.5;
+}
+
+/* Правая часть: Увеличили долю места */
+.postcard-right-side {
+  flex: 1;
+  padding: 20px; /* Увеличили отступы внутри */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Визитка автора (центр): СТАЛА КРУПНЕЕ */
+.sender-profile-block {
+  margin-top: 100px; /* Было 75px, чтобы быть ниже крупной марки */
+  margin-bottom: auto; 
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Было 8px */
+  padding: 12px; /* Было 8px */
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.5);
+  position: relative;
+  z-index: 2; 
+}
+
+.sender-mini-avatar {
+  width: 45px; height: 45px; /* Было 30x30 */
+  border-radius: 50%;
+  background: var(--bg-accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; /* Шрифт буквы стал крупнее */
+  font-weight: bold;
+}
+
+/* Шрифты внутри визитки */
+.sender-profile-block span[style*="font-size:10px"] {
+  font-size: 14px !important; /* Имя юзера */
+}
+.sender-profile-block span[style*="font-size:9px"] {
+  font-size: 12px !important; /* Страна и Sender */
+}
+
+/* Блок "Маршрут и статистика" (низ слева/центр) */
+.data-badge-block {
+  font-size: 13px; /* БЫЛО 9px! Теперь легко читается */
+  color: var(--text-main); /* Сделали цвет чуть темнее для чёткости */
+  margin-top: auto;
+  line-height: 1.4; /* Увеличили межстрочное расстояние */
+}
+
+/* Иконки транспорта: СТАЛИ КРУПНЕЕ */
+.data-badge-block div[style*="font-size:12px"] {
+  font-size: 18px !important; /* Было 12px */
+  margin-top: 8px !important; /* Было 4px */
+}
+
+/* Марка (верх право): СТАЛА КРУПНЕЕ */
+.stamp-place {
+  position: absolute;
+  top: 20px; right: 20px;
+  width: 60px; height: 75px; /* Было 45x55 */
+  border: 2px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 38px; /* Было 28px */
+  background: white;
+  transform: rotate(3deg);
+}
+
+/* Штемпель (низ право): СТАЛ КРУПНЕЕ */
+.postmark-circle {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  width: 85px; height: 85px; /* Было 70x70 */
+  border: 2px solid rgba(25, 25, 25, 0.7);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  font-size: 10px; /* Было 8px */
+  font-weight: 900; 
+  color: rgba(25, 25, 25, 0.7); 
+  text-transform: uppercase;
+  transform: rotate(-15deg);
+  z-index: 10; 
+  pointer-events: none; 
+  mix-blend-mode: multiply; 
+}
+
+/* Кнопки марок в меню */
+.stamp-btn {
+  min-width: 40px; height: 40px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 20px;
+}
+.stamp-btn.active { border: 2px solid var(--primary); background: var(--bg-accent); }
+.stamp-btn.premium { border-color: #ffd700; position: relative; }
+.stamp-btn.premium::after { content: '💎'; position: absolute; top: -5px; right: -5px; font-size: 10px; }
