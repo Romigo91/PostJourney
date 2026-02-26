@@ -51,103 +51,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // === ОБНОВЛЕННАЯ ФУНКЦИЯ UPDATE DISPLAY (Масштабируемый холст 600x400) ===
-    const updateDisplay = () => {
-        // Узнаем ширину нашего блока превью
-        const previewWidth = previewContent.clientWidth || 300;
-        const scale = previewWidth / 600; // Высчитываем масштаб для идеального холста 600px
+   // === 1. ОБНОВЛЕННАЯ ФУНКЦИЯ ОТРИСОВКИ ===
+   const updateDisplay = (is3DMode = false) => { // Добавили параметр is3DMode
+    let previewWidth = previewContent.clientWidth;
+    
+    // Если вкладка скрыта (ширина 0), не рисуем кривой фон, а ждем открытия!
+    if (previewWidth === 0) return; 
+    
+    const scale = previewWidth / 600;
 
-        // Задаем контейнеру высоту, чтобы он сохранял пропорции 3:2
-        previewContent.style.height = (400 * scale) + 'px';
-        previewContent.style.display = 'flex';
-        previewContent.style.alignItems = 'center';
-        previewContent.style.justifyContent = 'center';
-        previewContent.style.overflow = 'hidden';
-        previewContent.style.position = 'relative';
+    previewContent.style.height = (400 * scale) + 'px';
+    previewContent.style.padding = '0';
+    previewContent.style.display = 'block'; // Убрали flex, чтобы холст встал идеально ровно
 
-        let innerHTML = '';
+    let innerHTML = '';
 
-        if (postcardData.currentSide === 'front') {
-            stampArea.style.display = 'none';
-            previewContent.style.cursor = postcardData.frontImage ? 'grab' : 'default';
+    if (postcardData.currentSide === 'front') {
+        stampArea.style.display = 'none';
+        previewContent.style.cursor = postcardData.frontImage ? 'grab' : 'default';
 
-            if (postcardData.frontImage) {
-                innerHTML = `
-                    <img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: ${postcardData.imagePosX}% ${postcardData.imagePosY}%; pointer-events: none;">
-                    <div id="drag-hint" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">👆 Drag to reposition</div>
-                `;
-            } else {
-                innerHTML = `<span style="color: #ccc; display: flex; width: 100%; height: 100%; align-items: center; justify-content: center;">Front Side Preview</span>`;
-            }
-        } else {
-            stampArea.style.display = 'none';
-            previewContent.style.cursor = 'default';
-
-            const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷' };
-            const { name, country } = profile;
-            const initial = (name.replace('@', '')[0] || 'A').toUpperCase();
-
-            if (!profile.userId) {
-                profile.userId = 'PJ-' + Math.floor(1000 + Math.random() * 9000);
-            }
-
-            const date = new Date().toLocaleDateString('en-GB');
-            const cardID = profile.userId;
-
+        if (postcardData.frontImage) {
+            // Если это 3D-режим, подсказку просто НЕ добавляем
+            const hintHTML = is3DMode ? '' : `<div id="drag-hint" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); color: white; padding: 6px 14px; border-radius: 20px; font-size: 11px; pointer-events: none; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.2);">👆 Drag to reposition</div>`;
+            
             innerHTML = `
-                <div class="postcard-back-layout" style="width: 100%; height: 100%;">
-                    <div class="postcard-left-side">
-                        <div class="lines-container">
-                            <div id="postcard-text-area" style="font-family: ${postcardData.font}; color: ${postcardData.color};">${postcardData.message || "Write your message here..."}</div>
-                        </div>
-                    </div>
-                    <div class="postcard-divider"></div>
-                    <div class="postcard-right-side">
-                        <div class="stamp-place">${postcardData.stamp}</div>
-                        <div class="sender-profile-block">
-                            <div class="sender-mini-avatar">${initial}</div>
-                            <div style="display:flex; flex-direction:column; gap:2px;">
-                                <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-                                <span style="font-size:9px; color:var(--text-sub);">${country} Sender</span>
-                            </div>
-                        </div>
-                        <div class="data-badge-block">
-                            <div>📍 FROM: ${country.toUpperCase()}</div>
-                            <div>📅 DATE: ${date}</div>
-                            <div>🔢 ID: ${cardID}</div>
-                            <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
-                        </div>
-                        <div class="postmark-circle">
-                            POSTJOURNEY<br>${new Date().getFullYear()}<br>OFFICIAL
-                        </div>
+                <img src="${postcardData.frontImage}" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0; padding: 0; border: none; object-position: ${postcardData.imagePosX}% ${postcardData.imagePosY}%; pointer-events: none;">
+                ${hintHTML}
+            `;
+        } else {
+            innerHTML = `<div style="color: #ccc; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px;">Front Side Preview</div>`;
+        }
+    } else {
+        stampArea.style.display = 'none';
+        previewContent.style.cursor = 'default';
+
+        const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷' };
+        const { name, country } = profile;
+        const initial = (name.replace('@', '')[0] || 'A').toUpperCase();
+
+        if (!profile.userId) {
+            profile.userId = 'PJ-' + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        const date = new Date().toLocaleDateString('en-GB');
+        const cardID = profile.userId;
+
+        innerHTML = `
+            <div class="postcard-back-layout" style="width: 100%; height: 100%;">
+                <div class="postcard-left-side">
+                    <div class="lines-container">
+                        <div id="postcard-text-area" style="font-family: ${postcardData.font}; color: ${postcardData.color};">${postcardData.message || "Write your message here..."}</div>
                     </div>
                 </div>
-            `;
-        }
+                <div class="postcard-divider"></div>
+                <div class="postcard-right-side">
+                    <div class="stamp-place">${postcardData.stamp}</div>
+                    <div class="sender-profile-block">
+                        <div class="sender-mini-avatar">${initial}</div>
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
+                            <span style="font-size:9px; color:var(--text-sub);">${country} Sender</span>
+                        </div>
+                    </div>
+                    <div class="data-badge-block">
+                        <div>📍 FROM: ${country.toUpperCase()}</div>
+                        <div>📅 DATE: ${date}</div>
+                        <div>🔢 ID: ${cardID}</div>
+                        <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
+                    </div>
+                    <div class="postmark-circle">
+                        POSTJOURNEY<br>${new Date().getFullYear()}<br>OFFICIAL
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
-// ПОМЕЩАЕМ ВСЁ В ИДЕАЛЬНЫЙ ЖЕСТКИЙ ХОЛСТ 600x400
-previewContent.innerHTML = `
-<div id="postcard-canvas" style="width: 600px; height: 400px; position: absolute; top: 0; left: 0; transform: scale(${scale}); transform-origin: top left; border-radius: 12px; overflow: hidden; background: #fff;">
-    ${innerHTML}
-</div>
-`;
+    // ЖЕСТКАЯ ОБЕРТКА. Она гарантирует, что фон никуда не уедет при загрузке.
+    previewContent.innerHTML = `
+        <div style="width: ${previewWidth}px; height: ${400 * scale}px; position: relative; border-radius: 12px; overflow: hidden;">
+            <div id="postcard-canvas" style="width: 600px; height: 400px; position: absolute; top: 0; left: 0; transform: scale(${scale}); transform-origin: top left; background: #fff;">
+                ${innerHTML}
+            </div>
+        </div>
+    `;
 
-        // Логика уменьшения шрифта срабатывает только для обратной стороны
-        if (postcardData.currentSide === 'back') {
-            const textArea = document.getElementById('postcard-text-area');
-            let fontSize = 22;
+    if (postcardData.currentSide === 'back') {
+        const textArea = document.getElementById('postcard-text-area');
+        let fontSize = 22;
+        textArea.style.fontSize = fontSize + 'px';
+        while (textArea.scrollHeight > 170 && fontSize > 10) {
+            fontSize -= 0.5;
             textArea.style.fontSize = fontSize + 'px';
-
-            while (textArea.scrollHeight > 170 && fontSize > 10) {
-                fontSize -= 0.5;
-                textArea.style.fontSize = fontSize + 'px';
-            }
         }
-        
-        update3DButtonState();
-    };
+    }
+    update3DButtonState();
+};
 
-    // Перерисовываем холст, если пользователь повернул телефон горизонтально
-    window.addEventListener('resize', updateDisplay);
+const resizeObserver = new ResizeObserver(() => {
+    updateDisplay();
+});
+resizeObserver.observe(previewContent);
 
     btnGenerateAI.onclick = async () => {
         const promptText = aiPrompt.value.trim();
@@ -294,52 +298,53 @@ previewContent.innerHTML = `
     };
 
     // === ОБНОВЛЕННАЯ ЛОГИКА ОТКРЫТИЯ 3D ===
-    document.getElementById('btn-view-3d').onclick = function() {
-        if (this.classList.contains('disabled')) return;
+   // === 3. ОБНОВЛЕННАЯ ЛОГИКА 3D ===
+   document.getElementById('btn-view-3d').onclick = function() {
+    if (this.classList.contains('disabled')) return;
 
-        const modal = document.getElementById('modal-3d');
-        const frontDiv = document.getElementById('3d-front');
-        const backDiv = document.getElementById('3d-back');
-        const wrapper = document.querySelector('.card-3d-wrapper');
+    const modal = document.getElementById('modal-3d');
+    const frontDiv = document.getElementById('3d-front');
+    const backDiv = document.getElementById('3d-back');
+    const wrapper = document.querySelector('.card-3d-wrapper');
 
-        wrapper.style.width = '';
-        wrapper.style.height = '';
+    wrapper.style.width = '';
+    wrapper.style.height = '';
 
-        const originalSide = postcardData.currentSide;
+    const originalSide = postcardData.currentSide;
 
-        // Временно рисуем Лицевую
-        postcardData.currentSide = 'front';
-        updateDisplay();
-        frontDiv.innerHTML = '';
-        frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+    // Рисуем Лицевую в режиме 3D (передаем true, чтобы скрыть текст подсказки!)
+    postcardData.currentSide = 'front';
+    updateDisplay(true); 
+    frontDiv.innerHTML = '';
+    frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-        // Временно рисуем Оборот
-        postcardData.currentSide = 'back';
-        updateDisplay();
-        backDiv.innerHTML = '';
-        backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+    // Рисуем Оборот
+    postcardData.currentSide = 'back';
+    updateDisplay(true);
+    backDiv.innerHTML = '';
+    backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-        // Возвращаем как было
-        postcardData.currentSide = originalSide;
-        updateDisplay();
+    // Возвращаем в обычный режим
+    postcardData.currentSide = originalSide;
+    updateDisplay(false);
 
-        modal.style.display = 'flex';
+    modal.style.display = 'flex';
 
-        // Рассчитываем масштаб для 3D сцены
-        setTimeout(() => {
-            const rect = wrapper.getBoundingClientRect();
-            const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
-            const scale3D = w / 600;
+    setTimeout(() => {
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
+        const scale3D = w / 600;
 
-            const frontCanvas = frontDiv.querySelector('#postcard-canvas');
-            const backCanvas = backDiv.querySelector('#postcard-canvas');
+        const frontCanvas = frontDiv.querySelector('#postcard-canvas');
+        const backCanvas = backDiv.querySelector('#postcard-canvas');
 
-            if(frontCanvas) frontCanvas.style.transform = `scale(${scale3D})`;
-            if(backCanvas) backCanvas.style.transform = `scale(${scale3D})`;
+        if(frontCanvas) frontCanvas.style.transform = `scale(${scale3D})`;
+        if(backCanvas) backCanvas.style.transform = `scale(${scale3D})`;
 
-            wrapper.style.height = (w * (400 / 600)) + 'px'; 
-        }, 10);
-    };
+        wrapper.style.height = (w * (400 / 600)) + 'px'; 
+    }, 10);
+};
+
 
     // Закрытие 3D вида
     document.getElementById('close-3d-btn').onclick = () => {
