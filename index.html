@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Postcard Exchange</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Montserrat:wght@500&family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,7 +12,7 @@
     <div class="phone-frame">
       <main id="screen-container">
         <section class="screen screen-active" data-screen="home" id="home-screen">
-          <h2 class="screen-title" data-i18n="app_name">PostJourney</h2>
+          <h2 class="screen-title">PostJourney</h2>
           
           <div class="profile-card clickable-block" id="profile-block">
   
@@ -33,76 +34,75 @@
                   <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
                 </div>
 
-                <div class="profile-membership" data-i18n="membership">In app for: 1 days</div>
+                <div class="profile-membership">In app for: 1 days</div>
               </div>
           
               <span class="expand-trigger" style="margin-left: auto; align-self: flex-start;">⬇️</span>
             </div>
 
             <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 10px;">
-              <div style="font-size: 11px; color: #888; margin-bottom: 8px;" data-i18n="select_country">Select your country:</div>
+              <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
               <div id="flag-grid-picker" class="flag-grid-picker-style"></div>
             </div>
           
             <div id="display-tags-minimal" class="tags-full-width-container"></div>
           
             <div class="extra-content">
-              <p class="small-text" id="display-bio" data-i18n="bio_placeholder">Detailed statistics and recent achievements will be shown here.</p>
+              <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here.</p>
               
               <textarea id="input-bio" 
-                        data-i18n="bio_placeholder" 
                         placeholder="Detailed statistics and recent achievements..." 
                         style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;">
               </textarea>
               
               <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
-                <div style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;" data-i18n="select_interests">Select interests (max 4):</div>
+                <div style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select interests (max 4):</div>
                 <div id="edit-tags-list" class="tags-container-edit"></div>
               </div>
               
-              <button class="secondary-button" id="edit-profile-btn" data-i18n="edit_profile">Edit Profile</button>
+              <button class="secondary-button" id="edit-profile-btn">Edit Profile</button>
             </div>
           </div>
 
           <div class="section-block home-assets clickable-block">
             <div class="section-header">
-              <span data-i18n="my_assets">My Assets</span>
+              <span>My Assets</span>
               <span class="expand-trigger">⬇️</span> 
             </div>
             <div class="assets-row">
               <div class="asset-card">
-                <div class="asset-label" data-i18n="postcards_label">Available postcards</div>
+                <div class="asset-label">Available postcards</div>
                 <div class="asset-value">5</div>
               </div>
               <div class="asset-card">
-                <div class="asset-label" data-i18n="energy_label">Available energy</div>
+                <div class="asset-label">Available energy</div>
                 <div class="asset-value">500</div>
               </div>
             </div>
             <div class="extra-content">
-              <p class="small-text" data-i18n="assets_hint">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
-              <button class="primary-button" data-i18n="refill_btn">Refill Energy</button>
+              <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
+              <button class="primary-button">Refill Energy</button>
             </div>
           </div>
 
           <div class="section-block home-tracking clickable-block">
             <div class="section-header">
-              <span data-i18n="tracking_board">Tracking Board</span>
+              <span>Tracking Board</span>
               <span class="expand-trigger">⬇️</span> 
             </div>
             <div class="tracking-list" id="tracking-list"></div>
             <div class="extra-content">
-              <p class="small-text" data-i18n="tracking_hint">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
+              <p class="small-text">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
             </div>
           </div>
         </section>
 
         <section class="screen" data-screen="map">
-            <h2 class="screen-title" data-i18n="map_title">World Map</h2>
+            <h2 class="screen-title">World Map</h2>
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="sent_title">Sent postcards</span>
+                <span>Sent collection</span>
               </div>
               <div class="continent-list" id="sent-by-continent">
                 </div>
@@ -110,7 +110,7 @@
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="received_title">Received postcards</span>
+                <span>Received postcards</span>
               </div>
               <div class="continent-list" id="received-by-continent">
                 </div>
@@ -118,7 +118,7 @@
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="leaderboard_title">Leaderboard</span>
+                <span>Leaderboard</span>
               </div>
               <ol class="leaderboard" id="leaderboard-list">
                 </ol>
@@ -126,14 +126,14 @@
           </section>
 
           <section class="screen" data-screen="create">
-            <h2 class="screen-title" data-i18n="create_title">Postcards</h2>
+            <h2 class="screen-title">Postcards</h2>
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="create_card">Create postcard</span>
+                <span>Create postcard</span>
               </div>
           
-              <p class="small-text" data-i18n="create_hint">
+              <p class="small-text">
                 AI postcard costs <strong>100 energy</strong> and <strong>1 postcard</strong>.<br />
                 Uploading your own image costs only <strong>1 postcard</strong>.
               </p>
@@ -146,18 +146,18 @@
           
                 <div id="panel-front">
                   <div class="constructor-toggle">
-                    <button class="constructor-mode constructor-mode-active" data-mode="ai" data-i18n="mode_ai">Generate with AI</button>
-                    <button class="constructor-mode" data-mode="upload" data-i18n="mode_upload">Upload Photo</button>
+                    <button class="constructor-mode constructor-mode-active" data-mode="ai">Generate with AI</button>
+                    <button class="constructor-mode" data-mode="upload">Upload Photo</button>
                   </div>
                 
                   <div class="constructor-panel" data-panel="ai">
                     <label class="form-row">
-                      <span data-i18n="prompt_label">Prompt for AI</span>
-                      <textarea id="ai-prompt" data-i18n="ai_prompt_placeholder" placeholder="Example: cozy winter postcard..."></textarea>
+                      <span>Prompt for AI</span>
+                      <textarea id="ai-prompt" placeholder="Example: cozy winter postcard..."></textarea>
                     </label>
                     
                     <button id="btn-generate-ai" class="btn-main" style="width: 100%; margin-top: 10px;">
-                      <span data-i18n="generate_btn">Generate Image</span>
+                      <span>Generate Image</span>
                     </button>
                 
                     <div id="ai-progress-container" style="display: none; margin-top: 15px;">
@@ -173,7 +173,7 @@
                 
                   <div class="constructor-panel constructor-panel-hidden" data-panel="upload" style="display: none;">
                     <label class="form-row">
-                      <span data-i18n="upload_label">Upload image</span>
+                      <span>Upload image</span>
                       <div class="upload-field" style="margin-top: 8px;">
                         <input type="file" id="front-upload" accept="image/*" />
                       </div>
@@ -193,16 +193,26 @@
                   <label class="form-row">
                     <span style="font-size: 12px; color: var(--text-sub);">Font Style</span>
                     <select id="font-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main);">
-                      <option value="'Brush Script MT', cursive">Handwritten</option>
-                      <option value="serif">Classic Serif</option>
-                      <option value="sans-serif">Modern</option>
+                      <option value="'Caveat', cursive">Handwritten (Caveat)</option>
+                      <option value="'Special Elite', system-ui">Typewriter</option>
+                      <option value="'Montserrat', sans-serif">Modern Classic</option>
                     </select>
+                  </label>
+                
+                  <label class="form-row" style="margin-top: 10px;">
+                    <span style="font-size: 12px; color: var(--text-sub);">Ink Color</span>
+                    <div id="ink-colors" style="display: flex; gap: 10px; margin-top: 5px;">
+                      <button class="ink-btn active" data-color="#1e3799" style="background-color: #1e3799;"></button>
+                      <button class="ink-btn" data-color="#2f3640" style="background-color: #2f3640;"></button>
+                      <button class="ink-btn" data-color="#b33939" style="background-color: #b33939;"></button>
+                      <button class="ink-btn" data-color="#8d6e63" style="background-color: #8d6e63;"></button>
+                    </div>
                   </label>
                 </div>
           
                 <div style="clear: both; display: block; width: 100%;">
                   <div class="section-header" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <span data-i18n="preview_label">Preview</span>
+                    <span>Preview</span>
                     
                     <div id="btn-view-3d" class="icon-3d disabled" title="View 3D View">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -218,11 +228,11 @@
                           <span style="font-size: 24px; opacity: 0.5;">✉️</span>
                       </div>
                       <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
-                          <span data-i18n="preview_text">Your postcard preview will appear here.</span>
+                          <span>Your postcard preview will appear here.</span>
                       </div>
                   </div>
                 
-                  <button class="primary-button" id="send-card-btn" data-i18n="send_btn" style="width: 100%;">Send postcard</button>
+                  <button class="primary-button" id="send-card-btn" style="width: 100%;">Send postcard</button>
                 </div>
                 
                 <div id="modal-3d" class="modal-3d">
@@ -239,47 +249,47 @@
                 </div>
           
             <div class="section-block">
-              <div class="section-header"><span data-i18n="sent_collection">Sent postcards</span></div>
+              <div class="section-header"><span>Sent postcards</span></div>
               <div class="postcard-grid" id="sent-postcards-grid"></div>
             </div>
             <div class="section-block">
-              <div class="section-header"><span data-i18n="received_collection">Received postcards</span></div>
+              <div class="section-header"><span>Received postcards</span></div>
               <div class="postcard-grid" id="received-postcards-grid"></div>
             </div>
           </section>
 
           <section class="screen" data-screen="games">
-            <h2 class="screen-title" data-i18n="games_title">Games</h2>
+            <h2 class="screen-title">Games</h2>
         
             <div id="games-menu-list">
                 <div class="section-block">
                     <div class="section-header">
-                        <span data-i18n="game_flag">Guess the Flag</span>
+                        <span>Guess the Flag</span>
                     </div>
-                    <p class="small-text" data-i18n="game_flag_desc">
+                    <p class="small-text">
                         You see a flag, you choose the correct country from several options.
                     </p>
-                    <button class="secondary-button" onclick="startGame('flags')" data-i18n="play_btn">Play</button>
+                    <button class="secondary-button" onclick="startGame('flags')">Play</button>
                 </div>
         
                 <div class="section-block">
                     <div class="section-header">
-                        <span data-i18n="game_capital">Guess the Capital</span>
+                        <span>Guess the Capital</span>
                     </div>
-                    <p class="small-text" data-i18n="game_capital_desc">
+                    <p class="small-text">
                         You see a country name, you pick its capital from the list.
                     </p>
-                    <button class="secondary-button" onclick="startGame('capitals')" data-i18n="play_btn">Play</button>
+                    <button class="secondary-button" onclick="startGame('capitals')">Play</button>
                 </div>
         
                 <div class="section-block">
                     <div class="section-header">
-                        <span data-i18n="game_fact">Guess the Country by Fact</span>
+                        <span>Guess the Country by Fact</span>
                     </div>
-                    <p class="small-text" data-i18n="game_fact_desc">
+                    <p class="small-text">
                         You get a fun fact, you try to guess which country it is about.
                     </p>
-                    <button class="secondary-button" onclick="startGame('facts')" data-i18n="play_btn">Play</button>
+                    <button class="secondary-button" onclick="startGame('facts')">Play</button>
                 </div>
             </div>
         
@@ -292,35 +302,14 @@
         </section>
 
         <section class="screen" data-screen="settings">
-            <h2 class="screen-title" data-i18n="settings_title">Settings</h2>
+            <h2 class="screen-title">Settings</h2>
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="lang_label">Language</span>
-              </div>
-              <p class="small-text" data-i18n="lang_desc">
-                Choose interface language.
-              </p>
-              <div class="settings-lang-chips">
-                <button class="chip chip-select chip-active" data-lang="en">English</button>
-                <button class="chip chip-select" data-lang="hi">हिन्दी</button>    
-                <button class="chip chip-select" data-lang="zh">中文</button>
-                <button class="chip chip-select" data-lang="ru">Русский</button>
-                <button class="chip chip-select" data-lang="de">Deutsch</button>  
-                <button class="chip chip-select" data-lang="fr">Français</button>
-                <button class="chip chip-select" data-lang="es">Español</button>
-                <button class="chip chip-select" data-lang="it">Italiano</button>
-                <button class="chip chip-select" data-lang="pl">Polski</button>  
-                <button class="chip chip-select" data-lang="be">Беларускі</button> 
-              </div>
-            </div>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span data-i18n="theme_label">Theme</span>
+                <span>Theme</span>
               </div>
               <div class="toggle-row">
-                <span class="small-text" data-i18n="theme_mode">Light / Dark</span>
+                <span class="small-text">Light / Dark</span>
                 <label class="switch">
                   <input type="checkbox" checked />
                   <span class="slider round"></span>
@@ -330,11 +319,11 @@
           
             <div class="section-block">
               <div class="section-header">
-                <span data-i18n="notifications_label">Notifications</span>
+                <span>Notifications</span>
               </div>
           
               <div class="toggle-row">
-                <span class="small-text" data-i18n="email_notif">Email notifications</span>
+                <span class="small-text">Email notifications</span>
                 <label class="switch">
                   <input type="checkbox" checked />
                   <span class="slider round"></span>
@@ -342,7 +331,7 @@
               </div>
             
               <div class="toggle-row">
-                <span class="small-text" data-i18n="app_notif">In‑app notifications</span>
+                <span class="small-text">In‑app notifications</span>
                 <label class="switch">
                   <input type="checkbox" checked />
                   <span class="slider round"></span>
@@ -355,29 +344,28 @@
       <nav class="bottom-nav">
         <button class="nav-item nav-active" data-target="home">
           <span>🏠</span>
-          <span data-i18n="nav_home">Home</span>
+          <span>Home</span>
         </button>
         <button class="nav-item" data-target="map">
           <span>🗺️</span>
-          <span data-i18n="nav_map">Map</span>
+          <span>Map</span>
         </button>
         <button class="nav-item" data-target="create">
           <span>➕</span>
-          <span data-i18n="nav_create">Create</span>
+          <span>Create</span>
         </button>
         <button class="nav-item" data-target="games">
           <span>🎮</span>
-          <span data-i18n="nav_games">Games</span>
+          <span>Games</span>
         </button>
         <button class="nav-item" data-target="settings">
           <span>⚙️</span>
-          <span data-i18n="nav_settings">Settings</span>
+          <span>Settings</span>
         </button>
       </nav>
     </div>
   </div>
 
-  <script src="translations.js"></script>
   <script src="script.js"></script>
   <script src="postcard-constructor.js"></script>
   <script src="games.js"></script>

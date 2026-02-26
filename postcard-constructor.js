@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let postcardData = {
         frontImage: null,
         message: '',
-        font: "'Brush Script MT', cursive", 
+        font: "'Caveat', cursive", // Ставим новый шрифт по умолчанию
+        color: '#1e3799', // Синий цвет чернил по умолчанию
         currentSide: 'front'
     };
 
@@ -66,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 padding: 20px; 
                 box-sizing: border-box; 
                 font-family: ${postcardData.font}; 
-                color: #333; 
+                color: ${postcardData.color};
                 overflow: hidden; 
                 white-space: pre-wrap; 
                 word-break: break-word; 
@@ -186,6 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDisplay();
     });
 
+    // Обработка клика по кружочкам цвета
+    const inkButtons = document.querySelectorAll('.ink-btn');
+    inkButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Убираем класс active у всех кнопок
+            inkButtons.forEach(b => b.classList.remove('active'));
+            // Добавляем класс active той кнопке, на которую нажали
+            e.target.classList.add('active');
+            
+            // Сохраняем цвет и обновляем картинку
+            postcardData.color = e.target.getAttribute('data-color');
+            updateDisplay();
+        });
+    });
+
     btnFront.onclick = () => {
         postcardData.currentSide = 'front';
         btnFront.classList.add('constructor-mode-active');
@@ -253,9 +269,54 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'flex';
     };
 
-    document.getElementById('card-3d-inner').onclick = function() {
-        this.classList.toggle('flipped');
-    };
+// === ЛОГИКА 3D PARALLAX ЭФФЕКТА ===
+const wrapper = document.querySelector('.card-3d-wrapper');
+const inner = document.getElementById('card-3d-inner');
+
+// 1. Следим за движением мыши
+wrapper.addEventListener('mousemove', (e) => {
+    // Высчитываем, где находится курсор относительно карточки
+    const rect = wrapper.getBoundingClientRect();
+    const x = e.clientX - rect.left; 
+    const y = e.clientY - rect.top;  
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Считаем угол наклона (максимум 15 градусов)
+    const rotateX = ((y - centerY) / centerY) * -15; 
+    const rotateY = ((x - centerX) / centerX) * 15;
+
+    // Проверяем, перевернута ли сейчас открытка
+    const isFlipped = inner.classList.contains('flipped');
+    const baseRotateY = isFlipped ? 180 : 0;
+    
+    // Умножаем на -1 для обратной стороны, чтобы она не "зеркалила" движения
+    const finalRotateY = baseRotateY + (isFlipped ? -rotateY : rotateY);
+
+    // Отключаем плавную анимацию на время движения, чтобы наклон был мгновенным
+    inner.style.transition = 'none'; 
+    inner.style.transform = `rotateX(${rotateX}deg) rotateY(${finalRotateY}deg)`;
+});
+
+// 2. Возвращаем карточку на место, когда мышка уходит
+wrapper.addEventListener('mouseleave', () => {
+    const isFlipped = inner.classList.contains('flipped');
+    // Включаем плавную анимацию обратно
+    inner.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease';
+    // Сбрасываем углы наклона, оставляя только нужную сторону (0 или 180 градусов)
+    inner.style.transform = `rotateX(0deg) rotateY(${isFlipped ? 180 : 0}deg)`;
+});
+
+// 3. Переворот карточки по клику
+inner.onclick = function() {
+    this.classList.toggle('flipped');
+    const isFlipped = this.classList.contains('flipped');
+    
+    // В момент клика возвращаем плавность и переворачиваем
+    this.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease';
+    this.style.transform = `rotateX(0deg) rotateY(${isFlipped ? 180 : 0}deg)`;
+};
 
     document.getElementById('close-3d-btn').onclick = () => {
         document.getElementById('modal-3d').style.display = 'none';
