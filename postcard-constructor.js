@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 textContainer.style.fontSize = fontSize + 'px';
             }
         }
-        update3DButtonState(); // <--- ОБНОВЛЯЕМ ПРИ КАЖДОЙ ПЕРЕРИСОВКЕ
+        update3DButtonState(); 
     };
 
     btnGenerateAI.onclick = async () => {
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             postcardData.frontImage = imageUrl;
             
             updateDisplay();
-            update3DButtonState(); // <--- ОБНОВЛЯЕМ ПОСЛЕ ГЕНЕРАЦИИ AI
+            update3DButtonState(); 
 
         } catch (e) {
             clearInterval(progressInterval);
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
         
         updateDisplay();
-        update3DButtonState(); // <--- ОБНОВЛЯЕМ ПРИ КАЖДОМ СИМВОЛЕ
+        update3DButtonState(); 
     });
 
     fontSelect.addEventListener('change', (e) => {
@@ -191,12 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const inkButtons = document.querySelectorAll('.ink-btn');
     inkButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Убираем класс active у всех кнопок
             inkButtons.forEach(b => b.classList.remove('active'));
-            // Добавляем класс active той кнопке, на которую нажали
             e.target.classList.add('active');
             
-            // Сохраняем цвет и обновляем картинку
             postcardData.color = e.target.getAttribute('data-color');
             updateDisplay();
         });
@@ -238,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onload = (event) => {
                 postcardData.frontImage = event.target.result;
                 updateDisplay();
-                update3DButtonState(); // <--- ОБНОВЛЯЕМ ПОСЛЕ ЗАГРУЗКИ ФАЙЛА
+                update3DButtonState(); 
             };
             reader.readAsDataURL(file);
         }
@@ -252,77 +249,92 @@ document.addEventListener('DOMContentLoaded', () => {
         const frontDiv = document.getElementById('3d-front');
         const backDiv = document.getElementById('3d-back');
 
-        // Наполняем контентом (всегда лицевая сторона на фронт)
         frontDiv.innerHTML = `<img src="${postcardData.frontImage}" style="width:100%; height:100%; object-fit:cover;">`;
         
-        // Рендерим оборот для 3D
-        postcardData.currentSide = 'back'; // Временно переключаем для генерации контента
+        postcardData.currentSide = 'back'; 
         updateDisplay(); 
         const previewClone = previewContent.cloneNode(true);
         backDiv.innerHTML = '';
         backDiv.appendChild(previewClone);
         
-        // Возвращаем как было в превью
         postcardData.currentSide = 'front'; 
         updateDisplay();
 
         modal.style.display = 'flex';
     };
 
-// === ЛОГИКА 3D PARALLAX ЭФФЕКТА ===
-const wrapper = document.querySelector('.card-3d-wrapper');
-const inner = document.getElementById('card-3d-inner');
-
-// 1. Следим за движением мыши
-wrapper.addEventListener('mousemove', (e) => {
-    // Высчитываем, где находится курсор относительно карточки
-    const rect = wrapper.getBoundingClientRect();
-    const x = e.clientX - rect.left; 
-    const y = e.clientY - rect.top;  
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    // Считаем угол наклона (максимум 15 градусов)
-    const rotateX = ((y - centerY) / centerY) * -15; 
-    const rotateY = ((x - centerX) / centerX) * 15;
-
-    // Проверяем, перевернута ли сейчас открытка
-    const isFlipped = inner.classList.contains('flipped');
-    const baseRotateY = isFlipped ? 180 : 0;
-    
-    // Умножаем на -1 для обратной стороны, чтобы она не "зеркалила" движения
-    const finalRotateY = baseRotateY + (isFlipped ? -rotateY : rotateY);
-
-    // Отключаем плавную анимацию на время движения, чтобы наклон был мгновенным
-    inner.style.transition = 'none'; 
-    inner.style.transform = `rotateX(${rotateX}deg) rotateY(${finalRotateY}deg)`;
-});
-
-// 2. Возвращаем карточку на место, когда мышка уходит
-wrapper.addEventListener('mouseleave', () => {
-    const isFlipped = inner.classList.contains('flipped');
-    // Включаем плавную анимацию обратно
-    inner.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease';
-    // Сбрасываем углы наклона, оставляя только нужную сторону (0 или 180 градусов)
-    inner.style.transform = `rotateX(0deg) rotateY(${isFlipped ? 180 : 0}deg)`;
-});
-
-// 3. Переворот карточки по клику
-inner.onclick = function() {
-    this.classList.toggle('flipped');
-    const isFlipped = this.classList.contains('flipped');
-    
-    // В момент клика возвращаем плавность и переворачиваем
-    this.style.transition = 'transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.5s ease';
-    this.style.transform = `rotateX(0deg) rotateY(${isFlipped ? 180 : 0}deg)`;
-};
-
+    // Закрытие 3D вида
     document.getElementById('close-3d-btn').onclick = () => {
         document.getElementById('modal-3d').style.display = 'none';
     };
 
-    // Инициализация
+    // === ЛОГИКА ИНТЕРАКТИВНОГО ВРАЩЕНИЯ (МЫШЬ + ПАЛЕЦ) ===
+    const wrapper = document.querySelector('.card-3d-wrapper');
+    const inner = document.getElementById('card-3d-inner');
+
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentRotateX = 0;
+    let currentRotateY = 0;
+
+    function getCoords(e) {
+        if (e.touches && e.touches.length > 0) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+    }
+
+    function dragStart(e) {
+        isDragging = true;
+        const coords = getCoords(e);
+        startX = coords.x;
+        startY = coords.y;
+        
+        inner.style.transition = 'none';
+    }
+
+    function dragMove(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const coords = getCoords(e);
+        const deltaX = coords.x - startX;
+        const deltaY = coords.y - startY;
+
+        currentRotateY += deltaX * 0.5; 
+        
+        currentRotateX -= deltaY * 0.5;
+        if (currentRotateX > 20) currentRotateX = 20;
+        if (currentRotateX < -20) currentRotateX = -20;
+
+        inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+
+        startX = coords.x;
+        startY = coords.y;
+    }
+
+    function dragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        inner.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s ease';
+
+        currentRotateY = Math.round(currentRotateY / 180) * 180;
+        currentRotateX = 0; 
+
+        inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+    }
+
+    wrapper.addEventListener('mousedown', dragStart);
+    window.addEventListener('mousemove', dragMove); 
+    window.addEventListener('mouseup', dragEnd);
+
+    wrapper.addEventListener('touchstart', dragStart, { passive: false });
+    window.addEventListener('touchmove', dragMove, { passive: false });
+    window.addEventListener('touchend', dragEnd);
+
+    // Инициализация при старте
     updateDisplay();
-    update3DButtonState(); // <--- ПРОВЕРКА ПРИ ЗАГРУЗКЕ
+    update3DButtonState();
 });
