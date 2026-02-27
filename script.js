@@ -16,6 +16,8 @@ const AVAILABLE_INTERESTS = [
         city: "Paris",
         bio: "Detailed statistics and recent achievements...",
         avatar: null,
+        avatarPosX: 50, // НОВОЕ: Позиция по горизонтали
+        avatarPosY: 50, // НОВОЕ: Позиция по вертикали
         interests: ["Art", "Travel"]
     },
     postcards: 5,
@@ -53,6 +55,8 @@ const AVAILABLE_INTERESTS = [
   let tempSelectedInterests = [];
   let tempSelectedCountry = "";
   let tempAvatar = null;
+  let tempAvatarPosX = 50; // НОВОЕ
+  let tempAvatarPosY = 50; // НОВОЕ
   
   // ==========================================================================
   // 2. UI UPDATERS
@@ -84,10 +88,16 @@ const AVAILABLE_INTERESTS = [
   
     const avatarEl = document.getElementById("profile-avatar");
     const currentAvatar = isEditingNow ? tempAvatar : avatar;
+    // Берем временные координаты, если редактируем, или сохраненные, если просто смотрим
+    const currentPosX = isEditingNow ? tempAvatarPosX : state.profile.avatarPosX;
+    const currentPosY = isEditingNow ? tempAvatarPosY : state.profile.avatarPosY;
   
     if (currentAvatar) {
         avatarEl.style.backgroundImage = `url(${currentAvatar})`;
+        avatarEl.style.backgroundPosition = `${currentPosX}% ${currentPosY}%`; // Применяем координаты
+        avatarEl.style.backgroundSize = "cover";
         avatarEl.textContent = "";
+        avatarEl.style.cursor = isEditingNow ? "move" : "default"; // Меняем курсор
     } else {
         avatarEl.style.backgroundImage = "none";
         avatarEl.textContent = (name.replace('@', '')[0] || 'A').toUpperCase();
@@ -175,16 +185,18 @@ const AVAILABLE_INTERESTS = [
     }
   
     if (avatarUpload) {
-      avatarUpload.onchange = (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-              tempAvatar = ev.target.result;
-              updateProfileUI(); 
-          };
-          reader.readAsDataURL(file);
-      };
+        avatarUpload.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                tempAvatar = ev.target.result;
+                tempAvatarPosX = 50; // Сбрасываем центр при загрузке нового фото
+                tempAvatarPosY = 50;
+                updateProfileUI(); 
+            };
+            reader.readAsDataURL(file);
+        };
     }
   
     if (flagGrid && flagGrid.children.length === 0) {
@@ -229,22 +241,28 @@ const AVAILABLE_INTERESTS = [
         tempSelectedCountry = state.profile.country;
         tempSelectedInterests = [...state.profile.interests];
         tempAvatar = state.profile.avatar;
+        
+        // НОВОЕ: Загружаем координаты для перетаскивания
+        tempAvatarPosX = state.profile.avatarPosX || 50; 
+        tempAvatarPosY = state.profile.avatarPosY || 50; 
   
         document.getElementById("input-name").value = state.profile.name;
         document.getElementById("input-country").value = state.profile.country;
-        // НОВОЕ: Подставляем текущий город в поле ввода
         document.getElementById("input-city").value = state.profile.city || ""; 
         document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
         
         ids.forEach(id => document.getElementById(id).style.display = "none");
-        editIds.forEach(id => document.getElementById(id).style.display = "flex"); // Исправил на flex, чтобы input'ы стояли в ряд
+        editIds.forEach(id => document.getElementById(id).style.display = "flex"); 
         renderEditTags();
     } else {
         // СОХРАНЕНИЕ
         state.profile.name = document.getElementById("input-name").value;
         state.profile.country = tempSelectedCountry;
-        // НОВОЕ: Записываем город из поля ввода в стейт
         state.profile.city = document.getElementById("input-city").value.trim(); 
+        
+        // НОВОЕ: Сохраняем сдвинутые координаты в память
+        state.profile.avatarPosX = tempAvatarPosX;
+        state.profile.avatarPosY = tempAvatarPosY;
         
         const newBio = document.getElementById("input-bio").value.trim();
         state.profile.bio = newBio === "" ? "Detailed statistics and recent achievements..." : newBio;
@@ -257,8 +275,7 @@ const AVAILABLE_INTERESTS = [
         ids.forEach(id => document.getElementById(id).style.display = "flex");
         editIds.forEach(id => document.getElementById(id).style.display = "none");
         document.getElementById("flag-picker-container").style.display = "none";
-
-        // НОВОЕ: ОБЯЗАТЕЛЬНО вызываем перерисовку, чтобы новые данные появились на экране!
+  
         updateProfileUI(); 
     }
   }
@@ -325,6 +342,7 @@ const AVAILABLE_INTERESTS = [
   document.addEventListener("DOMContentLoaded", () => {
     const navItems = document.querySelectorAll(".nav-item");
     const screens = document.querySelectorAll(".screen");
+    
     navItems.forEach(btn => {
         btn.onclick = () => {
             const target = btn.dataset.target;
@@ -332,7 +350,9 @@ const AVAILABLE_INTERESTS = [
             navItems.forEach(b => b.classList.toggle("nav-active", b === btn));
         };
     });
-  
+
+    
+
     document.querySelectorAll('.expand-trigger').forEach(trigger => {
       trigger.onclick = (e) => {
           e.stopPropagation();
@@ -367,4 +387,72 @@ const AVAILABLE_INTERESTS = [
         document.querySelectorAll('[id*="energy"]').forEach(el => el.textContent = state.energy);
     };
     syncAssets();
-  });
+
+  // ЛОГИКА ПЕРЕТАСКИВАНИЯ АВАТАРКИ
+  const avatarEl = document.getElementById("profile-avatar");
+  let isDraggingAvatar = false;
+  let startX = 0, startY = 0;
+
+  // === САМОЕ ВАЖНОЕ: Убиваем системный Drag-and-Drop ===
+  if(avatarEl) {
+      avatarEl.ondragstart = () => false;
+
+      function getEventCoords(e) {
+          if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          return { x: e.clientX, y: e.clientY };
+      }
+
+      function startDrag(e) {
+          const editBtn = document.getElementById("edit-profile-btn");
+          const isEditingNow = editBtn && editBtn.getAttribute('data-mode') === 'save';
+          if (!isEditingNow || !tempAvatar) return;
+          
+          isDraggingAvatar = true;
+          const coords = getEventCoords(e);
+          startX = coords.x;
+          startY = coords.y;
+          
+          // Блокируем стандартное выделение мышью
+          if(e.type === 'mousedown') e.preventDefault(); 
+      }
+
+      function moveDrag(e) {
+          if (!isDraggingAvatar) return;
+          
+          // Не даем экрану дергаться при перетаскивании
+          if(e.cancelable) e.preventDefault(); 
+          
+          const coords = getEventCoords(e);
+          const deltaX = coords.x - startX;
+          const deltaY = coords.y - startY;
+
+          tempAvatarPosX -= deltaX * 0.8; // Скорость сдвига
+          tempAvatarPosY -= deltaY * 0.8;
+
+          // Ограничиваем сдвиг от 0 до 100%
+          tempAvatarPosX = Math.max(0, Math.min(100, tempAvatarPosX));
+          tempAvatarPosY = Math.max(0, Math.min(100, tempAvatarPosY));
+
+          avatarEl.style.backgroundPosition = `${tempAvatarPosX}% ${tempAvatarPosY}%`;
+
+          startX = coords.x;
+          startY = coords.y;
+      }
+
+      function endDrag() {
+          isDraggingAvatar = false;
+      }
+
+      // Слушатели для мыши
+      avatarEl.addEventListener('mousedown', startDrag);
+      document.addEventListener('mousemove', moveDrag, { passive: false });
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('mouseleave', endDrag);
+
+      // Слушатели для тачскрина
+      avatarEl.addEventListener('touchstart', startDrag, { passive: true });
+      document.addEventListener('touchmove', moveDrag, { passive: false });
+      document.addEventListener('touchend', endDrag);
+      document.addEventListener('touchcancel', endDrag);
+  }
+});

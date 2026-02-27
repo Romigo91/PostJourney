@@ -168,10 +168,18 @@
     flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     font-weight: 700; color: var(--text-main);
-    overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat;
+    
+    /* === НОВЫЕ БРОНЕБОЙНЫЕ СТИЛИ ЗАЩИТЫ === */
+    overflow: hidden !important; /* Убиваем любые ползунки на 100% */
+    touch-action: none; /* Запрещаем скролл страницы при перетаскивании на мобилке */
+    user-select: none; /* Запрещаем выделение "невидимого" текста */
+    -webkit-user-drag: none; /* Запрещаем браузеру тянуть картинку как скачанный файл */
+    
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat;
     cursor: pointer;
   }
-  
   
   .profile-info { display: flex; flex-direction: column; justify-content: center; }
   .profile-name { font-weight: 600; color: var(--text-main); }
@@ -659,3 +667,17 @@
 .stamp-btn.active { border: 2px solid var(--primary); background: var(--bg-accent); }
 .stamp-btn.premium { border-color: #ffd700; position: relative; }
 .stamp-btn.premium::after { content: '💎'; position: absolute; top: -5px; right: -5px; font-size: 10px; }
+
+/* Новые стили для ИИ-марки на обороте */
+.stamp-place img.ai-stamp-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Картинка полностью заполняет марку, лишнее обрезается */
+  display: block;
+  border-radius: 1px; /* Легкое закругление углов самой картинки */
+}
+
+/* Скрываем эмодзи, если внутри есть картинка */
+.stamp-place img.ai-stamp-image + span {
+  display: none;
+}

@@ -23,17 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('ai-progress-bar');
     const progressPercent = document.getElementById('ai-progress-percent');
 
-    // 2. ХРАНИЛИЩЕ ДАННЫХ
-    let postcardData = {
-        frontImage: null,
-        message: '',
-        font: "'Caveat', cursive", 
-        color: '#1e3799', 
-        currentSide: 'front',
-        imagePosX: 50, 
-        imagePosY: 50,
-        stamp: '🌲'
-    };
+// 2. ХРАНИЛИЩЕ ДАННЫХ
+let postcardData = {
+    frontImage: null,
+    message: '',
+    font: "'Caveat', cursive", 
+    color: '#1e3799', 
+    currentSide: 'front',
+    imagePosX: 50, 
+    imagePosY: 50,
+    stamp: '🌲',        // <--- ДОБАВИЛИ ЗАПЯТУЮ
+    stampType: 'emoji', 
+    stampImage: null,   
+};
 
     // Функция обновления состояния иконки 3D
     function update3DButtonState() {
@@ -85,11 +87,14 @@ document.addEventListener('DOMContentLoaded', () => {
         stampArea.style.display = 'none';
         previewContent.style.cursor = 'default';
 
-        const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷', city: 'Paris', avatar: null };
-        const { name, country, city, avatar } = profile; // Забираем avatar
+        const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷', city: 'Paris', avatar: null, avatarPosX: 50, avatarPosY: 50 };
+        const { name, country, city, avatar, avatarPosX, avatarPosY } = profile; 
         const initial = (name.replace('@', '')[0] || 'A').toUpperCase();
 
-        const avatarStyle = avatar ? `background-image: url(${avatar}); background-size: cover; background-position: center;` : '';
+        const posX = avatarPosX !== undefined ? avatarPosX : 50;
+        const posY = avatarPosY !== undefined ? avatarPosY : 50;
+
+        const avatarStyle = avatar ? `background-image: url(${avatar}); background-size: cover; background-position: ${posX}% ${posY}%;` : '';
         const avatarContent = avatar ? '' : initial;
 
         if (!profile.userId) {
@@ -100,34 +105,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardID = profile.userId;
 
         innerHTML = `
-            <div class="postcard-back-layout" style="width: 100%; height: 100%;">
-                <div class="postcard-left-side">
-                    <div class="lines-container">
-                        <div id="postcard-text-area" style="font-family: ${postcardData.font}; color: ${postcardData.color};">${postcardData.message || "Write your message here..."}</div>
-                    </div>
-                </div>
-                <div class="postcard-divider"></div>
-                <div class="postcard-right-side">
-                    <div class="stamp-place">${postcardData.stamp}</div>
-                    <div class="sender-profile-block">
-                        <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-                            <span style="font-size:9px; color:var(--text-sub);">${country} ${city ? city : ''}</span>
-                        </div>
-                    </div>
-                    <div class="data-badge-block">
-                            <div>📍 FROM: ${country.toUpperCase()}${city ? ', ' + city.toUpperCase() : ''}</div>
-                            <div>📅 DATE: ${date}</div>
-                            <div>🔢 ID: ${cardID}</div>
-                            <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
-                        </div>
-                    <div class="postmark-circle">
-                        POSTJOURNEY<br>${new Date().getFullYear()}<br>OFFICIAL
-                    </div>
+        <div class="postcard-back-layout" style="width: 100%; height: 100%;">
+            <div class="postcard-left-side">
+                <div class="lines-container">
+                    <div id="postcard-text-area" style="font-family: ${postcardData.font}; color: ${postcardData.color};">${postcardData.message || "Write your message here..."}</div>
                 </div>
             </div>
-        `;
+            
+            <div class="postcard-divider"></div>
+            
+            <div class="postcard-right-side">
+                <div class="stamp-place">
+                    ${postcardData.stampType === 'ai' && postcardData.stampImage 
+                        ? `<img src="${postcardData.stampImage}" class="ai-stamp-image" alt="AI Stamp">`
+                        : `<span>${postcardData.stamp}</span>`
+                    }
+                </div>
+                
+                <div class="sender-profile-block">
+                    <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
+                        <span style="font-size:9px; color:var(--text-sub);">${country} ${city ? city : ''}</span>
+                    </div>
+                </div>
+                
+                <div class="data-badge-block">
+                    <div>📍 FROM: ${country.toUpperCase()}${city ? ', ' + city.toUpperCase() : ''}</div>
+                    <div>📅 DATE: ${date}</div>
+                    <div>🔢 ID: ${cardID}</div>
+                    <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
+                </div>
+                
+                <div class="postmark-circle">
+                    POSTJOURNEY<br>${new Date().getFullYear()}<br>OFFICIAL
+                </div>
+            </div>
+        </div>
+    `;
     }
 
     // ЖЕСТКАЯ ОБЕРТКА. Она гарантирует, что фон никуда не уедет при загрузке.
@@ -156,67 +171,153 @@ const resizeObserver = new ResizeObserver(() => {
 });
 resizeObserver.observe(previewContent);
 
-    btnGenerateAI.onclick = async () => {
-        const promptText = aiPrompt.value.trim();
-        if (!promptText) return alert("Введите описание!");
+// === 1. ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
+btnGenerateAI.onclick = async () => {
+    const promptText = aiPrompt.value.trim();
+    if (!promptText) return alert("Введите описание!");
+
+    const API_KEY = 'sk_Q94e3xilY3hHcZKbWZvLuIUosJXgSKMF'; 
     
-        const API_KEY = 'sk_Q94e3xilY3hHcZKbWZvLuIUosJXgSKMF'; 
+    const container = document.getElementById('ai-progress-container');
+    const bar = document.getElementById('ai-progress-bar');
+    const percentText = document.getElementById('ai-progress-percent');
+
+    btnGenerateAI.disabled = true;
+    container.style.display = 'block';
+    bar.style.width = '0%';
+    percentText.innerText = "0%";
+
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 3; 
+            const rounded = Math.floor(progress);
+            bar.style.width = rounded + '%';
+            percentText.innerText = rounded + '%';
+        }
+    }, 400);
+
+    try {
+        const encodedPrompt = encodeURIComponent(promptText);
         
-        const container = document.getElementById('ai-progress-container');
-        const bar = document.getElementById('ai-progress-bar');
-        const percentText = document.getElementById('ai-progress-percent');
-    
-        btnGenerateAI.disabled = true;
-        container.style.display = 'block';
-        bar.style.width = '0%';
-        percentText.innerText = "0%";
-    
+        // НОВОЕ: Создаем случайное число от 0 до 1 миллиона
+        const randomSeed = Math.floor(Math.random() * 1000000);
+        
+        // ОБНОВЛЕНО: Подставляем ${randomSeed} в конец ссылки вместо -1
+        const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=gptimage&width=1200&height=800&seed=${randomSeed}`;
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${API_KEY}` }
+        });
+
+        if (!response.ok) throw new Error("Ошибка API");
+
+        const imageBlob = await response.blob();
+        
+        clearInterval(progressInterval);
+        bar.style.width = '100%';
+        percentText.innerText = '100%';
+
+        const imageUrl = URL.createObjectURL(imageBlob);
+        postcardData.frontImage = imageUrl;
+        postcardData.imagePosX = 50;
+        postcardData.imagePosY = 50;
+        
+        updateDisplay();
+
+    } catch (e) {
+        clearInterval(progressInterval);
+        console.error(e);
+        alert("Ошибка генерации: " + e.message);
+    } finally {
+        btnGenerateAI.disabled = false;
+        setTimeout(() => {
+            container.style.display = 'none';
+        }, 1000);
+    }
+};
+
+// === ЛОГИКА ГЕНЕРАЦИИ ПРЕМИУМ-МАРКИ (ТЕПЕРЬ В ПРАВИЛЬНОМ ФАЙЛЕ) ===
+const stampGrid = document.getElementById('stamp-select-grid');
+const aiStampConstructor = document.getElementById('ai-stamp-constructor');
+const btnGenerateStamp = document.getElementById('btn-generate-stamp');
+
+if (stampGrid && aiStampConstructor && btnGenerateStamp) {
+    stampGrid.querySelectorAll('.stamp-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const isPremium = btn.classList.contains('premium');
+            aiStampConstructor.style.display = isPremium ? 'block' : 'none';
+        });
+    });
+
+    btnGenerateStamp.addEventListener('click', async () => {
+        const promptInput = document.getElementById('ai-stamp-prompt');
+        const userPrompt = promptInput.value.trim();
+        
+        if (!userPrompt) return alert("Please describe what you want on your stamp.");
+        if (state.energy < 10) return alert("Not enough energy (need 10)!");
+
+        const progressContainer = document.getElementById('stamp-progress-container');
+        const progressBar = document.getElementById('stamp-progress-bar');
+        const progressPercent = document.getElementById('stamp-progress-percent');
+
+        btnGenerateStamp.disabled = true;
+        btnGenerateStamp.querySelector('span').textContent = "⌛ Painting...";
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressPercent.innerText = "0%";
+
         let progress = 0;
         const progressInterval = setInterval(() => {
             if (progress < 90) {
                 progress += Math.random() * 3; 
-                const rounded = Math.floor(progress);
-                bar.style.width = rounded + '%';
-                percentText.innerText = rounded + '%';
+                progressBar.style.width = Math.floor(progress) + '%';
+                progressPercent.innerText = Math.floor(progress) + '%';
             }
         }, 400);
-    
-        try {
-            const encodedPrompt = encodeURIComponent(promptText);
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=gptimage&width=1200&height=800&seed=-1`;
-    
-            const response = await fetch(url, {
-                method: "GET",
-                headers: { "Authorization": `Bearer ${API_KEY}` }
-            });
-    
-            if (!response.ok) throw new Error("Ошибка API");
-    
-            const imageBlob = await response.blob();
-            
-            clearInterval(progressInterval);
-            bar.style.width = '100%';
-            percentText.innerText = '100%';
-    
-            const imageUrl = URL.createObjectURL(imageBlob);
-            postcardData.frontImage = imageUrl;
-            
-            postcardData.imagePosX = 50;
-            postcardData.imagePosY = 50;
-            
-            updateDisplay();
 
+        try {
+            const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look`;
+            
+            // НОВОЕ: Создаем случайное число (сид) для уникальной марки
+            const randomSeed = Math.floor(Math.random() * 1000000);
+            
+            // ОБНОВЛЕНО: Подставляем ${randomSeed} в конец ссылки
+            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?model=gptimage&width=400&height=500&seed=${randomSeed}`;
+            const API_KEY = 'sk_Q94e3xilY3hHcZKbWZvLuIUosJXgSKMF';
+            
+            const response = await fetch(url, { method: "GET", headers: { "Authorization": `Bearer ${API_KEY}` } });
+            if (!response.ok) throw new Error("API Error");
+
+            const imageBlob = await response.blob();
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressPercent.innerText = '100%';
+
+            const imageUrl = URL.createObjectURL(imageBlob);
+            
+            // Списываем энергию
+            state.energy -= 10;
+            document.querySelectorAll('[id*="energy"]').forEach(el => el.textContent = state.energy);
+
+            // ТЕПЕРЬ ОНИ ВИДЯТ ДРУГ ДРУГА!
+            postcardData.stampImage = imageUrl;
+            postcardData.stampType = 'ai';
+            updateDisplay();
+            
+            promptInput.value = ""; 
         } catch (e) {
             clearInterval(progressInterval);
             console.error(e);
             alert("Ошибка генерации: " + e.message);
         } finally {
-            btnGenerateAI.disabled = false;
-            setTimeout(() => {
-                container.style.display = 'none';
-            }, 1000);
+            btnGenerateStamp.disabled = false;
+            btnGenerateStamp.querySelector('span').textContent = "🎨 Generate Stamp (10 Energy)";
+            setTimeout(() => progressContainer.style.display = 'none', 1000);
         }
-    };
+    });
+}
 
     cardMessage.addEventListener('input', (e) => {
         const text = e.target.value;
