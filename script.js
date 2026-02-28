@@ -156,13 +156,25 @@ renderListComponent("tracking-list", state.tracking, item => {
         </div>`;
 });
 
-    // 2. LEADERBOARD
+ // 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ)
+    // Считаем уникальные страны, в которые ты отправил открытки
+    const uniqueCountriesCount = new Set(state.sentPostcards.map(card => card.countryFlag || card.flag)).size;
+    
+    // Формируем актуальный список (пока только ты)
+    state.leaderboard = [
+        { 
+            name: `🏆 ${state.profile.name} (You)`, 
+            sent: state.sentPostcards.length, 
+            countries: uniqueCountriesCount 
+        }
+    ];
+
     if (state.leaderboard) {
         renderListComponent("leaderboard-list", state.leaderboard, player => {
             return `
-                <li class="leaderboard-item">
+                <li class="leaderboard-item" style="padding: 4px 0;">
                     <span class="leaderboard-name">${player.name}</span>
-                    <span class="leaderboard-stats">${player.sent} sent • ${player.countries} countries</span>
+                    <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold;">${player.sent} sent • ${player.countries} countries</span>
                 </li>`;
         });
     }
@@ -497,17 +509,67 @@ function renderMapSections() {
     refreshAllLists();
     renderMapSections();
   
+    // === ОБНОВЛЕННАЯ СИНХРОНИЗАЦИЯ БАЛАНСА ===
     const syncAssets = () => {
-        // Ищем блок баланса открыток строго по классам на главном экране (Home)
         const balanceElement = document.querySelector('.home-assets .asset-card:first-child .asset-value');
-        if (balanceElement) {
-            balanceElement.textContent = state.postcards;
-        }
+        if (balanceElement) balanceElement.textContent = state.postcards;
         
-        // Обновляем энергию (оставляем как было)
-        document.querySelectorAll('[id*="energy"]').forEach(el => el.textContent = state.energy);
+        // Используем универсальный поиск энергии (и по ID, и по классам, чтобы точно сработало)
+        const energyElement = document.getElementById('energy-display') || document.querySelector('.home-assets .asset-card:nth-child(2) .asset-value');
+        if (energyElement) energyElement.textContent = state.energy;
     };
     syncAssets();
+
+    // === СИСТЕМА ЕЖЕДНЕВНЫХ НАГРАД (00:00) ===
+    function checkDailyRefill() {
+        // Получаем строку с сегодняшней датой (например, "Sat Feb 28 2026")
+        const today = new Date().toDateString(); 
+        const lastRefill = localStorage.getItem('lastRefillDate');
+
+        // Если пользователь зашел в игру впервые — просто фиксируем дату и даем стартовый баланс
+        if (!lastRefill) {
+            localStorage.setItem('lastRefillDate', today);
+            return;
+        }
+
+        // Если сохраненная дата не совпадает с сегодняшней (наступил новый день!)
+        if (lastRefill !== today) {
+            state.postcards += 1;
+            state.energy += 150;
+            
+            // Запоминаем новую дату, чтобы не выдать награду дважды
+            localStorage.setItem('lastRefillDate', today);
+            
+            // Обновляем цифры на главном экране
+            syncAssets();
+
+            // Показываем красивое окно с подарком
+            const phoneFrame = document.querySelector('.phone-frame') || document.body;
+            const overlay = document.createElement('div');
+            overlay.className = 'custom-alert-overlay';
+            overlay.innerHTML = `
+                <div class="custom-alert-box">
+                    <div style="font-size: 45px; margin-bottom: -10px;">🎁</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #d35400;">Daily Reward!</div>
+                    <div class="custom-alert-text">
+                        Welcome back! It's a new day.<br>Here is your daily refill:<br><br>
+                        <b>+1 Postcard</b> ✉️<br>
+                        <b>+150 Energy</b> ⚡
+                    </div>
+                    <button class="primary-button custom-alert-btn">Awesome!</button>
+                </div>
+            `;
+            
+            overlay.querySelector('.custom-alert-btn').onclick = () => overlay.remove();
+            phoneFrame.appendChild(overlay);
+        }
+    }
+
+    // Проверяем награду сразу при запуске приложения
+    checkDailyRefill(); 
+    
+    // И проверяем каждую минуту (чтобы выдать награду ровно в 00:00, если приложение открыто)
+    setInterval(checkDailyRefill, 60000);
 
   // ЛОГИКА ПЕРЕТАСКИВАНИЯ АВАТАРКИ
   const avatarEl = document.getElementById("profile-avatar");

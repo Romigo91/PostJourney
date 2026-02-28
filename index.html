@@ -78,7 +78,7 @@
               </div>
               <div class="asset-card">
                 <div class="asset-label">Available energy</div>
-                <div class="asset-value">500</div>
+                <div class="asset-value" id="energy-display">500</div>
               </div>
             </div>
             <div class="extra-content">
@@ -120,11 +120,15 @@
               <div class="continent-list" id="received-by-continent"></div>
             </div>
           
-            <div class="section-block">
-              <div class="section-header">
+            <div class="section-block clickable-block">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <span>Leaderboard</span>
+                <span class="expand-trigger">⬇️</span>
               </div>
-              <ol class="leaderboard" id="leaderboard-list"></ol>
+              <div class="extra-content">
+                <p class="small-text" style="margin-bottom: 10px;">Top postcrossers around the world. Send more postcards to climb the ranks!</p>
+                <ol class="leaderboard" id="leaderboard-list"></ol>
+              </div>
             </div>
         </section>
 
