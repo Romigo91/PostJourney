@@ -22,25 +22,10 @@ const AVAILABLE_INTERESTS = [
     },
     postcards: 5,
     energy: 500,
-    tracking: [
-        { to: "Japan", status: "In transit" },
-        { to: "Brazil", status: "Delivered" },
-        { to: "Germany", status: "Preparing" }
-    ],
-    leaderboard: [
-        { name: "@Alex_Travels", sent: 110, countries: 45 },
-        { name: "@PostcardLover", sent: 80, countries: 30 },
-        { name: "@WorldWalker", sent: 60, countries: 25 }
-    ],
-    sentPostcards: [
-        { countryFlag: "🇯🇵", to: "Japan, Tokyo", status: "In transit" },
-        { countryFlag: "🇧🇷", to: "Brazil, Rio", status: "Delivered" },
-        { countryFlag: "🇩🇪", to: "Germany, Berlin", status: "In transit" }
-    ],
-    receivedPostcards: [
-        { countryFlag: "🇫🇮", to: "Finland, Helsinki", status: "Received" },
-        { countryFlag: "🇵🇹", to: "Portugal, Porto", status: "Registered" }
-    ]
+    tracking: [],
+    leaderboard: [],
+    sentPostcards: [],       // Очистили!
+    receivedPostcards: []    // Очистили!
   };
   
   const COUNTRIES_BY_CONTINENT = {
@@ -61,6 +46,13 @@ const AVAILABLE_INTERESTS = [
   // ==========================================================================
   // 2. UI UPDATERS
   // ==========================================================================
+
+  // Базовая функция отрисовки списков (КОТОРУЮ МЫ ПОТЕРЯЛИ)
+  function renderListComponent(containerId, items, templateFn) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = items.map((item, index) => templateFn(item, index)).join('');
+}
   
   function updateProfileUI() {
     const { name, country, city, bio, avatar, interests } = state.profile; 
@@ -105,62 +97,185 @@ const AVAILABLE_INTERESTS = [
   }
   
   function refreshAllLists() {
-    renderListComponent("tracking-list", state.tracking, item => {
-        return `
-            <div class="tracking-card">
-                <div class="tracking-info">
-                    <div class="tracking-title">To ${item.to}</div>
-                    <div class="tracking-subtitle">${item.status}</div>
-                </div>
-                <div class="tracking-status">${item.status}</div>
-            </div>`;
-    });
-  
-    renderListComponent("leaderboard-list", state.leaderboard, player => {
-      return `
-          <li class="leaderboard-item">
-              <span class="leaderboard-name">${player.name}</span>
-              <span class="leaderboard-stats">${player.sent} sent • ${player.countries} countries</span>
-          </li>`;
-    });
-  
-    const cardTemplate = card => `
-        <div class="postcard-card">
-            <div class="postcard-card-header">
-                <span class="postcard-flag">${card.countryFlag}</span>
-                <span class="postcard-destination">${card.to}</span>
-            </div>
-            <div class="postcard-meta">${card.status}</div>
-        </div>`;
+// 1. УМНЫЙ ТРЕКИНГ С ТАЙМЕРАМИ (В 3 строчки: Страна, Город, Статус)
+renderListComponent("tracking-list", state.tracking, item => {
+    // Умное разделение на Страну и Город
+    let countryName = item.toCountry || "Unknown";
+    let cityName = item.toCity || "";
+    let flag = item.flag || item.countryFlag || "";
     
-    renderListComponent("sent-postcards-grid", state.sentPostcards, cardTemplate);
-    renderListComponent("received-postcards-grid", state.receivedPostcards, cardTemplate);
-  }
-  
-  function renderListComponent(containerId, data, templateFn) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = data.map(templateFn).join("");
-  }
-  
-  function renderMapSections() {
-    const mapTemplate = (containerId) => {
+    // Поддержка старых записей
+    if (item.to && !item.toCountry) {
+        const parts = item.to.split(", ");
+        countryName = parts[0];
+        cityName = parts.length > 1 ? parts[1] : "";
+    }
+
+    let displayStatus = item.status;
+    let timeHtml = "";
+
+    // Логика таймера (с адаптированными цветами под фон #ffd49b)
+    if (item.arrivalAt) {
+        const now = new Date().getTime();
+        const diffMs = item.arrivalAt - now;
+
+        if (diffMs > 0) {
+            const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+            const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            displayStatus = "In transit ✈️";
+            // Белая плашка с темно-оранжевым текстом для контраста
+            timeHtml = `<div style="font-size:11px; font-weight:bold; color:#d35400; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
+        } else {
+            displayStatus = "Delivered ✅";
+            item.status = "Delivered";
+            // Белая плашка с зеленым текстом
+            timeHtml = `<div style="font-size:11px; font-weight:bold; color:#27ae60; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Done</div>`;
+        }
+    } else {
+        timeHtml = `<div class="tracking-status" style="color:#d35400; font-weight:bold; background:#fff; padding:4px 8px; border-radius:12px; font-size:11px;">${displayStatus}</div>`;
+    }
+
+    // Обновленный HTML-шаблон с фоном #ffd49b и правильными цветами текста
+    return `
+        <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #ffd49b; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div class="tracking-info" style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-weight: bold; font-size: 14px; color: #333; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 16px;">${flag}</span> ${countryName}
+                </div>
+                
+                ${cityName ? `<div style="font-size: 12px; color: #555;">${cityName}</div>` : ''}
+                
+                <div style="font-size: 11px; font-weight: 600; color: #d35400; margin-top: 2px;">
+                    ${displayStatus}
+                </div>
+            </div>
+            
+            <div>
+                ${timeHtml}
+            </div>
+        </div>`;
+});
+
+    // 2. LEADERBOARD
+    if (state.leaderboard) {
+        renderListComponent("leaderboard-list", state.leaderboard, player => {
+            return `
+                <li class="leaderboard-item">
+                    <span class="leaderboard-name">${player.name}</span>
+                    <span class="leaderboard-stats">${player.sent} sent • ${player.countries} countries</span>
+                </li>`;
+        });
+    }
+
+// 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (3 СТРОКИ ТЕКСТА)
+const cardTemplate = (card, index) => {
+    // Разделяем строку "Japan, Tokyo" на Страну и Город
+    const toParts = (card.to || "Unknown, Unknown").split(", ");
+    const countryName = toParts[0];
+    const cityName = toParts.length > 1 ? toParts[1] : "";
+    const flag = card.countryFlag || card.flag || '';
+
+    return `
+    <div class="postcard-card archive-card" data-index="${index}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 3/2; height: auto; position: relative; cursor: pointer; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        ${card.frontImage 
+            ? `<img src="${card.frontImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">` 
+            : `<div style="width: 100%; height: 100%; background: #eee; position: absolute; top: 0; left: 0; z-index: 1; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:10px;">No Image</div>`
+        }
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85) 70%); padding: 30px 10px 10px 10px; z-index: 2; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
+            
+            <span style="color: white; font-weight: bold; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1;">
+                ${flag} ${countryName}
+            </span>
+            
+            ${cityName ? `<span style="color: #e0e0e0; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1;">${cityName}</span>` : ''}
+            
+            <span style="color: #f39c12; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 2px;">
+                ${card.status}
+            </span>
+            
+        </div>
+    </div>`;
+};
+    
+    // Специальная функция для рендера с индексами (чтобы знать, на какую нажали)
+    const renderArchiveList = (containerId, dataArray) => {
         const container = document.getElementById(containerId);
         if (!container) return;
+        container.innerHTML = dataArray.map((item, i) => cardTemplate(item, i)).join('');
+    };
+
+    renderArchiveList("sent-postcards-grid", state.sentPostcards);
+    renderArchiveList("received-postcards-grid", state.receivedPostcards);
+
+    // 4. СЧЕТЧИКИ АРХИВОВ
+    const sentCountEl = document.getElementById("sent-count");
+    if (sentCountEl) sentCountEl.textContent = state.sentPostcards ? state.sentPostcards.length : 0;
+
+    const receivedCountEl = document.getElementById("received-count");
+    if (receivedCountEl) receivedCountEl.textContent = state.receivedPostcards ? state.receivedPostcards.length : 0;
+
+    // === 5. СЧЕТЧИК ДЛЯ TRACKING BOARD (Только активные таймеры) ===
+    const trackingCountEl = document.getElementById("tracking-count");
+    if (trackingCountEl) {
+        const now = new Date().getTime();
+        // Считаем только те открытки, у которых время прибытия еще в будущем
+        const activeDeliveries = state.tracking.filter(item => {
+            return item.arrivalAt && (item.arrivalAt - now > 0);
+        });
+        
+        trackingCountEl.textContent = activeDeliveries.length;
+        
+        // Если активных доставок нет, можно сделать бейджик серым, а если есть - оранжевым
+        if (activeDeliveries.length > 0) {
+            trackingCountEl.style.background = '#e67e22'; // Оранжевый
+        } else {
+            trackingCountEl.style.background = '#ccc'; // Серый
+        }
+    }
+// === 6. ОБНОВЛЯЕМ КАРТУ МИРА ===
+if (typeof renderMapSections === 'function') {
+    renderMapSections();
+}
+}
+  
+function renderMapSections() {
+    // 1. Собираем уникальные флаги, которые мы уже отправили или получили
+    const sentFlags = [...new Set(state.sentPostcards.map(card => card.countryFlag || card.flag))];
+    const receivedFlags = [...new Set(state.receivedPostcards.map(card => card.countryFlag || card.flag))];
+
+    const mapTemplate = (containerId, collectedFlags) => {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
         container.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
+            // Считаем, сколько флагов из этого континента мы уже собрали
+            const collectedInContinent = flags.filter(f => collectedFlags.includes(f)).length;
+            
             return `
-                <div class="continent-row">
-                    <div class="continent-header">
-                        <span class="continent-name">${continent}</span>
-                        <span class="continent-progress">${flags.length} countries</span>
+                <div class="continent-row" style="margin-bottom: 20px;">
+                    <div class="continent-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
+                        <span class="continent-name" style="font-weight: bold; color: #333;">${continent}</span>
+                        <span class="continent-progress" style="font-size: 12px; color: ${collectedInContinent > 0 ? '#e67e22' : '#888'}; font-weight: ${collectedInContinent > 0 ? 'bold' : 'normal'};">
+                            ${collectedInContinent} / ${flags.length}
+                        </span>
                     </div>
-                    <div class="flag-grid">${flags.map(f => `<div class="flag-circle">${f}</div>`).join('')}</div>
+                    <div class="flag-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${flags.map(f => {
+                            // Проверяем, есть ли текущий флаг в нашем списке собранных
+                            const isCollected = collectedFlags.includes(f);
+                            const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
+                            
+                            return `<div class="${flagClass}" title="${f}" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 18px;">${f}</div>`;
+                        }).join('')}
+                    </div>
                 </div>`;
         }).join("");
     };
-    mapTemplate("sent-by-continent");
-    mapTemplate("received-by-continent");
-  }
+    
+    // Рисуем обе карты, передавая им соответствующие списки собранных флагов
+    mapTemplate("sent-by-continent", sentFlags);
+    mapTemplate("received-by-continent", receivedFlags);
+}
   
   
   // ==========================================================================
@@ -383,7 +498,13 @@ const AVAILABLE_INTERESTS = [
     renderMapSections();
   
     const syncAssets = () => {
-        document.querySelectorAll('[id*="postcards"]').forEach(el => el.textContent = state.postcards);
+        // Ищем блок баланса открыток строго по классам на главном экране (Home)
+        const balanceElement = document.querySelector('.home-assets .asset-card:first-child .asset-value');
+        if (balanceElement) {
+            balanceElement.textContent = state.postcards;
+        }
+        
+        // Обновляем энергию (оставляем как было)
         document.querySelectorAll('[id*="energy"]').forEach(el => el.textContent = state.energy);
     };
     syncAssets();

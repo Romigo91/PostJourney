@@ -347,16 +347,32 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         });
     });
 
-    // Обработка клика по выбору марок
-    const stampButtons = document.querySelectorAll('.stamp-btn');
-    stampButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            stampButtons.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            postcardData.stamp = e.target.getAttribute('data-stamp');
-            updateDisplay();
-        });
+// Обработка клика по выбору марок
+const stampButtons = document.querySelectorAll('.stamp-btn');
+stampButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        // Используем closest, чтобы точно поймать кнопку
+        const targetBtn = e.target.closest('.stamp-btn'); 
+        if (!targetBtn) return;
+
+        stampButtons.forEach(b => b.classList.remove('active'));
+        targetBtn.classList.add('active');
+        
+        // Сохраняем эмодзи марки
+        postcardData.stamp = targetBtn.getAttribute('data-stamp');
+        
+        // === ИСПРАВЛЕНИЕ: ПЕРЕКЛЮЧАТЕЛЬ РЕЖИМА ===
+        // Если кликнули на 💎 и ИИ-марка уже создана — показываем картинку.
+        // Во всех остальных случаях (🌲, 🌊, 🏛️) — возвращаем обычные эмодзи.
+        if (targetBtn.classList.contains('premium') && postcardData.stampImage) {
+            postcardData.stampType = 'ai';
+        } else {
+            postcardData.stampType = 'emoji';
+        }
+        
+        updateDisplay();
     });
+});
 
     btnFront.onclick = () => {
         postcardData.currentSide = 'front';
@@ -583,4 +599,287 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         updateDisplay();
         update3DButtonState();
     }, 50);
+
+ // === 4. УМНАЯ ЛОГИКА ОТПРАВКИ (12-72 ЧАСА) ===
+ const btnSendPostcard = document.getElementById('send-card-btn'); 
+    
+ if (btnSendPostcard) {
+     btnSendPostcard.addEventListener('click', () => {
+         // 1. Проверяем, всё ли заполнено
+         if (!postcardData.frontImage) {
+             alert("Please generate or upload an image for the Front Side!");
+             document.getElementById('btn-front-side').click(); 
+             return;
+         }
+         if (!postcardData.message || postcardData.message.trim().length < 5) {
+             alert("Please write a message on the Back Side!");
+             document.getElementById('btn-back-side').click(); 
+             return;
+         }
+         if (state.postcards <= 0) {
+             alert("You don't have any blank postcards left!");
+             return;
+         }
+
+         // 2. Блокируем кнопку, чтобы не нажали дважды
+         const originalText = btnSendPostcard.textContent;
+         btnSendPostcard.disabled = true;
+         btnSendPostcard.textContent = "🚀 Sending...";
+
+         // 3. Запускаем анимацию улетающей открытки
+         const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
+         if(canvasWrapper) canvasWrapper.classList.add('fly-away-active');
+
+         // Ждем 1.5 секунды (пока идет анимация)
+         setTimeout(() => {
+            // Списываем 1 марку (баланс)
+            state.postcards -= 1;
+            const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
+            if (balanceEl) balanceEl.textContent = state.postcards;
+
+            // === ВСЕ 195 СТРАН МИРА ===
+            const allDestinations = [
+                { flag: "🇦🇫", country: "Afghanistan", city: "Kabul" }, { flag: "🇦🇱", country: "Albania", city: "Tirana" }, { flag: "🇩🇿", country: "Algeria", city: "Algiers" }, { flag: "🇦🇩", country: "Andorra", city: "Andorra la Vella" }, { flag: "🇦🇴", country: "Angola", city: "Luanda" },
+                { flag: "🇦🇬", country: "Antigua and Barbuda", city: "St. John's" }, { flag: "🇦🇷", country: "Argentina", city: "Buenos Aires" }, { flag: "🇦🇲", country: "Armenia", city: "Yerevan" }, { flag: "🇦🇺", country: "Australia", city: "Canberra" }, { flag: "🇦🇹", country: "Austria", city: "Vienna" },
+                { flag: "🇦🇿", country: "Azerbaijan", city: "Baku" }, { flag: "🇧🇸", country: "Bahamas", city: "Nassau" }, { flag: "🇧🇭", country: "Bahrain", city: "Manama" }, { flag: "🇧🇩", country: "Bangladesh", city: "Dhaka" }, { flag: "🇧🇧", country: "Barbados", city: "Bridgetown" },
+                { flag: "🇧🇾", country: "Belarus", city: "Minsk" }, { flag: "🇧🇪", country: "Belgium", city: "Brussels" }, { flag: "🇧🇿", country: "Belize", city: "Belmopan" }, { flag: "🇧🇯", country: "Benin", city: "Porto-Novo" }, { flag: "🇧🇹", country: "Bhutan", city: "Thimphu" },
+                { flag: "🇧🇴", country: "Bolivia", city: "Sucre" }, { flag: "🇧🇦", country: "Bosnia and Herzegovina", city: "Sarajevo" }, { flag: "🇧🇼", country: "Botswana", city: "Gaborone" }, { flag: "🇧🇷", country: "Brazil", city: "Brasilia" }, { flag: "🇧🇳", country: "Brunei", city: "Bandar Seri Begawan" },
+                { flag: "🇧🇬", country: "Bulgaria", city: "Sofia" }, { flag: "🇧🇫", country: "Burkina Faso", city: "Ouagadougou" }, { flag: "🇧🇮", country: "Burundi", city: "Gitega" }, { flag: "🇨🇻", country: "Cabo Verde", city: "Praia" }, { flag: "🇰🇭", country: "Cambodia", city: "Phnom Penh" },
+                { flag: "🇨🇲", country: "Cameroon", city: "Yaounde" }, { flag: "🇨🇦", country: "Canada", city: "Ottawa" }, { flag: "🇨🇫", country: "Central African Republic", city: "Bangui" }, { flag: "🇹🇩", country: "Chad", city: "N'Djamena" }, { flag: "🇨🇱", country: "Chile", city: "Santiago" },
+                { flag: "🇨🇳", country: "China", city: "Beijing" }, { flag: "🇨🇴", country: "Colombia", city: "Bogota" }, { flag: "🇰🇲", country: "Comoros", city: "Moroni" }, { flag: "🇨🇬", country: "Congo", city: "Brazzaville" }, { flag: "🇨🇩", country: "DR Congo", city: "Kinshasa" },
+                { flag: "🇨🇷", country: "Costa Rica", city: "San Jose" }, { flag: "🇭🇷", country: "Croatia", city: "Zagreb" }, { flag: "🇨🇺", country: "Cuba", city: "Havana" }, { flag: "🇨🇾", country: "Cyprus", city: "Nicosia" }, { flag: "🇨🇿", country: "Czechia", city: "Prague" },
+                { flag: "🇩🇰", country: "Denmark", city: "Copenhagen" }, { flag: "🇩🇯", country: "Djibouti", city: "Djibouti" }, { flag: "🇩🇲", country: "Dominica", city: "Roseau" }, { flag: "🇩🇴", country: "Dominican Republic", city: "Santo Domingo" }, { flag: "🇪🇨", country: "Ecuador", city: "Quito" },
+                { flag: "🇪🇬", country: "Egypt", city: "Cairo" }, { flag: "🇸🇻", country: "El Salvador", city: "San Salvador" }, { flag: "🇬🇶", country: "Equatorial Guinea", city: "Malabo" }, { flag: "🇪🇷", country: "Eritrea", city: "Asmara" }, { flag: "🇪🇪", country: "Estonia", city: "Tallinn" },
+                { flag: "🇸🇿", country: "Eswatini", city: "Mbabane" }, { flag: "🇪🇹", country: "Ethiopia", city: "Addis Ababa" }, { flag: "🇫🇯", country: "Fiji", city: "Suva" }, { flag: "🇫🇮", country: "Finland", city: "Helsinki" }, { flag: "🇫🇷", country: "France", city: "Paris" },
+                { flag: "🇬🇦", country: "Gabon", city: "Libreville" }, { flag: "🇬🇲", country: "Gambia", city: "Banjul" }, { flag: "🇬🇪", country: "Georgia", city: "Tbilisi" }, { flag: "🇩🇪", country: "Germany", city: "Berlin" }, { flag: "🇬🇭", country: "Ghana", city: "Accra" },
+                { flag: "🇬🇷", country: "Greece", city: "Athens" }, { flag: "🇬🇩", country: "Grenada", city: "St. George's" }, { flag: "🇬🇹", country: "Guatemala", city: "Guatemala City" }, { flag: "🇬🇳", country: "Guinea", city: "Conakry" }, { flag: "🇬🇼", country: "Guinea-Bissau", city: "Bissau" },
+                { flag: "🇬🇾", country: "Guyana", city: "Georgetown" }, { flag: "🇭🇹", country: "Haiti", city: "Port-au-Prince" }, { flag: "🇭🇳", country: "Honduras", city: "Tegucigalpa" }, { flag: "🇭🇺", country: "Hungary", city: "Budapest" }, { flag: "🇮🇸", country: "Iceland", city: "Reykjavik" },
+                { flag: "🇮🇳", country: "India", city: "New Delhi" }, { flag: "🇮🇩", country: "Indonesia", city: "Jakarta" }, { flag: "🇮🇷", country: "Iran", city: "Tehran" }, { flag: "🇮🇶", country: "Iraq", city: "Baghdad" }, { flag: "🇮🇪", country: "Ireland", city: "Dublin" },
+                { flag: "🇮🇱", country: "Israel", city: "Jerusalem" }, { flag: "🇮🇹", country: "Italy", city: "Rome" }, { flag: "🇯🇲", country: "Jamaica", city: "Kingston" }, { flag: "🇯🇵", country: "Japan", city: "Tokyo" }, { flag: "🇯🇴", country: "Jordan", city: "Amman" },
+                { flag: "🇰🇿", country: "Kazakhstan", city: "Astana" }, { flag: "🇰🇪", country: "Kenya", city: "Nairobi" }, { flag: "🇰🇮", country: "Kiribati", city: "Tarawa" }, { flag: "🇰🇵", country: "North Korea", city: "Pyongyang" }, { flag: "🇰🇷", country: "South Korea", city: "Seoul" },
+                { flag: "🇰🇼", country: "Kuwait", city: "Kuwait City" }, { flag: "🇰🇬", country: "Kyrgyzstan", city: "Bishkek" }, { flag: "🇱🇦", country: "Laos", city: "Vientiane" }, { flag: "🇱🇻", country: "Latvia", city: "Riga" }, { flag: "🇱🇧", country: "Lebanon", city: "Beirut" },
+                { flag: "🇱🇸", country: "Lesotho", city: "Maseru" }, { flag: "🇱🇷", country: "Liberia", city: "Monrovia" }, { flag: "🇱🇾", country: "Libya", city: "Tripoli" }, { flag: "🇱🇮", country: "Liechtenstein", city: "Vaduz" }, { flag: "🇱🇹", country: "Lithuania", city: "Vilnius" },
+                { flag: "🇱🇺", country: "Luxembourg", city: "Luxembourg" }, { flag: "🇲🇬", country: "Madagascar", city: "Antananarivo" }, { flag: "🇲🇼", country: "Malawi", city: "Lilongwe" }, { flag: "🇲🇾", country: "Malaysia", city: "Kuala Lumpur" }, { flag: "🇲🇻", country: "Maldives", city: "Male" },
+                { flag: "🇲🇱", country: "Mali", city: "Bamako" }, { flag: "🇲🇹", country: "Malta", city: "Valletta" }, { flag: "🇲🇭", country: "Marshall Islands", city: "Majuro" }, { flag: "🇲🇷", country: "Mauritania", city: "Nouakchott" }, { flag: "🇲🇺", country: "Mauritius", city: "Port Louis" },
+                { flag: "🇲🇽", country: "Mexico", city: "Mexico City" }, { flag: "🇫🇲", country: "Micronesia", city: "Palikir" }, { flag: "🇲🇩", country: "Moldova", city: "Chisinau" }, { flag: "🇲🇨", country: "Monaco", city: "Monaco" }, { flag: "🇲🇳", country: "Mongolia", city: "Ulaanbaatar" },
+                { flag: "🇲🇪", country: "Montenegro", city: "Podgorica" }, { flag: "🇲🇦", country: "Morocco", city: "Rabat" }, { flag: "🇲🇿", country: "Mozambique", city: "Maputo" }, { flag: "🇲🇲", country: "Myanmar", city: "Naypyidaw" }, { flag: "🇳🇦", country: "Namibia", city: "Windhoek" },
+                { flag: "🇳🇷", country: "Nauru", city: "Yaren" }, { flag: "🇳🇵", country: "Nepal", city: "Kathmandu" }, { flag: "🇳🇱", country: "Netherlands", city: "Amsterdam" }, { flag: "🇳🇿", country: "New Zealand", city: "Wellington" }, { flag: "🇳🇮", country: "Nicaragua", city: "Managua" },
+                { flag: "🇳🇪", country: "Niger", city: "Niamey" }, { flag: "🇳🇬", country: "Nigeria", city: "Abuja" }, { flag: "🇲🇰", country: "North Macedonia", city: "Skopje" }, { flag: "🇳🇴", country: "Norway", city: "Oslo" }, { flag: "🇴🇲", country: "Oman", city: "Muscat" },
+                { flag: "🇵🇰", country: "Pakistan", city: "Islamabad" }, { flag: "🇵🇼", country: "Palau", city: "Ngerulmud" }, { flag: "🇵🇸", country: "Palestine", city: "Ramallah" }, { flag: "🇵🇦", country: "Panama", city: "Panama City" }, { flag: "🇵🇬", country: "Papua New Guinea", city: "Port Moresby" },
+                { flag: "🇵🇾", country: "Paraguay", city: "Asuncion" }, { flag: "🇵🇪", country: "Peru", city: "Lima" }, { flag: "🇵🇭", country: "Philippines", city: "Manila" }, { flag: "🇵🇱", country: "Poland", city: "Warsaw" }, { flag: "🇵🇹", country: "Portugal", city: "Lisbon" },
+                { flag: "🇶🇦", country: "Qatar", city: "Doha" }, { flag: "🇷🇴", country: "Romania", city: "Bucharest" }, { flag: "🇷🇺", country: "Russia", city: "Moscow" }, { flag: "🇷🇼", country: "Rwanda", city: "Kigali" }, { flag: "🇰🇳", country: "St. Kitts & Nevis", city: "Basseterre" },
+                { flag: "🇱🇨", country: "St. Lucia", city: "Castries" }, { flag: "🇻🇨", country: "St. Vincent & Grenadines", city: "Kingstown" }, { flag: "🇼🇸", country: "Samoa", city: "Apia" }, { flag: "🇸🇲", country: "San Marino", city: "San Marino" }, { flag: "🇸🇹", country: "Sao Tome & Principe", city: "Sao Tome" },
+                { flag: "🇸🇦", country: "Saudi Arabia", city: "Riyadh" }, { flag: "🇸🇳", country: "Senegal", city: "Dakar" }, { flag: "🇷🇸", country: "Serbia", city: "Belgrade" }, { flag: "🇸🇨", country: "Seychelles", city: "Victoria" }, { flag: "🇸🇱", country: "Sierra Leone", city: "Freetown" },
+                { flag: "🇸🇬", country: "Singapore", city: "Singapore" }, { flag: "🇸🇰", country: "Slovakia", city: "Bratislava" }, { flag: "🇸🇮", country: "Slovenia", city: "Ljubljana" }, { flag: "🇸🇧", country: "Solomon Islands", city: "Honiara" }, { flag: "🇸🇴", country: "Somalia", city: "Mogadishu" },
+                { flag: "🇿🇦", country: "South Africa", city: "Pretoria" }, { flag: "🇸🇸", country: "South Sudan", city: "Juba" }, { flag: "🇪🇸", country: "Spain", city: "Madrid" }, { flag: "🇱🇰", country: "Sri Lanka", city: "Colombo" }, { flag: "🇸🇩", country: "Sudan", city: "Khartoum" },
+                { flag: "🇸🇷", country: "Suriname", city: "Paramaribo" }, { flag: "🇸🇪", country: "Sweden", city: "Stockholm" }, { flag: "🇨🇭", country: "Switzerland", city: "Bern" }, { flag: "🇸🇾", country: "Syria", city: "Damascus" }, { flag: "🇹🇼", country: "Taiwan", city: "Taipei" },
+                { flag: "🇹🇯", country: "Tajikistan", city: "Dushanbe" }, { flag: "🇹🇿", country: "Tanzania", city: "Dodoma" }, { flag: "🇹🇭", country: "Thailand", city: "Bangkok" }, { flag: "🇹🇱", country: "Timor-Leste", city: "Dili" }, { flag: "🇹🇬", country: "Togo", city: "Lome" },
+                { flag: "🇹🇴", country: "Tonga", city: "Nukuʻalofa" }, { flag: "🇹🇹", country: "Trinidad and Tobago", city: "Port of Spain" }, { flag: "🇹🇳", country: "Tunisia", city: "Tunis" }, { flag: "🇹🇷", country: "Turkey", city: "Ankara" }, { flag: "🇹🇲", country: "Turkmenistan", city: "Ashgabat" },
+                { flag: "🇹🇻", country: "Tuvalu", city: "Funafuti" }, { flag: "🇺🇬", country: "Uganda", city: "Kampala" }, { flag: "🇺🇦", country: "Ukraine", city: "Kyiv" }, { flag: "🇦🇪", country: "UAE", city: "Abu Dhabi" }, { flag: "🇬🇧", country: "UK", city: "London" },
+                { flag: "🇺🇸", country: "USA", city: "Washington, D.C." }, { flag: "🇺🇾", country: "Uruguay", city: "Montevideo" }, { flag: "🇺🇿", country: "Uzbekistan", city: "Tashkent" }, { flag: "🇻🇺", country: "Vanuatu", city: "Port Vila" }, { flag: "🇻🇦", country: "Vatican City", city: "Vatican City" },
+                { flag: "🇻🇪", country: "Venezuela", city: "Caracas" }, { flag: "🇻🇳", country: "Vietnam", city: "Hanoi" }, { flag: "🇾🇪", country: "Yemen", city: "Sanaa" }, { flag: "🇿🇲", country: "Zambia", city: "Lusaka" }, { flag: "🇿🇼", country: "Zimbabwe", city: "Harare" }
+            ];
+
+            // Выбираем случайную страну
+            const dest = allDestinations[Math.floor(Math.random() * allDestinations.length)];
+
+            // === УМНАЯ ЛОГИКА ВРЕМЕНИ И РАССТОЯНИЙ ===
+            const FLAG_COORDS = {"🇦🇫":[33,65],"🇦🇱":[41,20],"🇩🇿":[28,3],"🇦🇩":[42,1],"🇦🇴":[-11,17],"🇦🇬":[17,-61],"🇦🇷":[-34,-64],"🇦🇲":[40,45],"🇦🇺":[-25,133],"🇦🇹":[47,13],"🇦🇿":[40,47],"🇧🇸":[25,-77],"🇧🇭":[26,50],"🇧🇩":[24,90],"🇧🇧":[13,-59],"🇧🇾":[53,27],"🇧🇪":[50,4],"🇧🇿":[17,-88],"🇧🇯":[9,2],"🇧🇹":[27,90],"🇧🇴":[-16,-63],"🇧🇦":[44,17],"🇧🇼":[-22,24],"🇧🇷":[-14,-51],"🇧🇳":[4,114],"🇧🇬":[42,25],"🇧🇫":[12,-1],"🇧🇮":[-3,29],"🇨🇻":[16,-24],"🇰🇭":[12,104],"🇨🇲":[3,11],"🇨🇦":[56,-106],"🇨🇫":[6,20],"🇹🇩":[15,19],"🇨🇱":[-35,-71],"🇨🇳":[35,104],"🇨🇴":[4,-74],"🇰🇲":[-11,43],"🇨🇬":[-1,15],"🇨🇩":[-4,21],"🇨🇷":[9,-83],"🇭🇷":[45,15],"🇨🇺":[21,-80],"🇨🇾":[35,33],"🇨🇿":[49,15],"🇩🇰":[56,10],"🇩🇯":[11,42],"🇩🇲":[15,-61],"🇩🇴":[19,-70],"🇪🇨":[-1,-78],"🇪🇬":[26,30],"🇸🇻":[13,-88],"🇬🇶":[1,10],"🇪🇷":[15,39],"🇪🇪":[58,25],"🇸🇿":[-26,31],"🇪🇹":[8,39],"🇫🇯":[-18,178],"🇫🇮":[64,26],"🇫🇷":[46,2],"🇬🇦":[-1,11],"🇬🇲":[13,-15],"🇬🇪":[42,43],"🇩🇪":[51,10],"🇬🇭":[7,-1],"🇬🇷":[39,22],"🇬🇩":[12,-61],"🇬🇹":[15,-90],"🇬🇳":[9,-9],"🇬🇼":[11,-15],"🇬🇾":[4,-58],"🇭🇹":[19,-72],"🇭🇳":[15,-86],"🇭🇺":[47,19],"🇮🇸":[65,-19],"🇮🇳":[20,78],"🇮🇩":[-0.5,113],"🇮🇷":[32,53],"🇮🇶":[33,43],"🇮🇪":[53,-8],"🇮🇱":[31,34],"🇮🇹":[42,12],"🇯🇲":[18,-77],"🇯🇵":[36,138],"🇯🇴":[31,36],"🇰🇿":[48,68],"🇰🇪":[1,38],"🇰🇮":[1,173],"🇰🇵":[40,127],"🇰🇷":[36,127],"🇰🇼":[29,47],"🇰🇬":[41,74],"🇱🇦":[18,105],"🇱🇻":[57,24],"🇱🇧":[33,35],"🇱🇸":[-29,28],"🇱🇷":[6,-9],"🇱🇾":[25,17],"🇱🇮":[47,9],"🇱🇹":[55,24],"🇱🇺":[49,6],"🇲🇬":[-20,47],"🇲🇼":[-13,34],"🇲🇾":[4,109],"🇲🇻":[3,73],"🇲🇱":[17,-4],"🇲🇹":[35,14],"🇲🇭":[7,171],"🇲🇷":[21,-10],"🇲🇺":[-20,57],"🇲🇽":[23,-102],"🇫🇲":[6,158],"🇲🇩":[47,28],"🇲🇨":[43,7],"🇲🇳":[46,105],"🇲🇪":[42,19],"🇲🇦":[31,-7],"🇲🇿":[-18,35],"🇲🇲":[21,96],"🇳🇦":[-22,17],"🇳🇷":[-0.5,166],"🇳🇵":[28,84],"🇳🇱":[52,5],"🇳🇿":[-40,174],"🇳🇮":[12,-86],"🇳🇪":[16,8],"🇳🇬":[10,8],"🇲🇰":[41,21],"🇳🇴":[62,10],"🇴🇲":[21,59],"🇵🇰":[30,69],"🇵🇼":[7,134],"🇵🇸":[31,35],"🇵🇦":[8,-80],"🇵🇬":[-6,147],"🇵🇾":[-23,-58],"🇵🇪":[-9,-75],"🇵🇭":[12,122],"🇵🇱":[52,19],"🇵🇹":[39,-8],"🇶🇦":[25,51],"🇷🇴":[46,25],"🇷🇺":[61,105],"🇷🇼":[-2,30],"🇰🇳":[17,-62],"🇱🇨":[13,-60],"🇻🇨":[13,-61],"🇼🇸":[-13,-172],"🇸🇲":[43,12],"🇸🇹":[0,6],"🇸🇦":[23,45],"🇸🇳":[14,-14],"🇷🇸":[44,21],"🇸🇨":[-4,55],"🇸🇱":[8,-11],"🇸🇬":[1,103],"🇸🇰":[48,19],"🇸🇮":[46,14],"🇸🇧":[-9,159],"🇸🇴":[5,46],"🇿🇦":[-30,22],"🇸🇸":[6,31],"🇪🇸":[40,-4],"🇱🇰":[7,81],"🇸🇩":[15,30],"🇸🇷":[4,-56],"🇸🇪":[60,18],"🇨🇭":[46,8],"🇸🇾":[35,38],"🇹🇼":[23,120],"🇹🇯":[38,71],"🇹🇿":[-6,35],"🇹🇭":[15,100],"🇹🇱":[-8,125],"🇹🇬":[8,1],"🇹🇴":[-21,-175],"🇹🇹":[11,-61],"🇹🇳":[34,9],"🇹🇷":[39,35],"🇹🇲":[40,58],"🇹🇻":[-8,179],"🇺🇬":[1,32],"🇺🇦":[48,31],"🇦🇪":[23,54],"🇬🇧":[55,-3],"🇺🇸":[38,-97],"🇺🇾":[-33,-56],"🇺🇿":[41,64],"🇻🇺":[-15,167],"🇻🇦":[41.9,12.4],"🇻🇪":[8,-66],"🇻🇳":[14,108],"🇾🇪":[15,48],"🇿🇲":[-13,27],"🇿🇼":[-19,29]};
+
+            function getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Радиус Земли в км
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLon/2) * Math.sin(dLon/2);
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            }
+
+            const senderFlag = state.profile.country; 
+            const destFlag = dest.flag; 
+
+            const getCoords = (flag) => {
+                if (FLAG_COORDS[flag]) return FLAG_COORDS[flag];
+                return [0, 0]; // Дефолт (Экватор), если флаг не найден
+            };
+
+            const senderCoords = getCoords(senderFlag);
+            const destCoords = getCoords(destFlag);
+            const distanceKm = getDistance(senderCoords[0], senderCoords[1], destCoords[0], destCoords[1]);
+
+            // Превращаем километры в часы (12ч - 72ч)
+            const minHours = 12;
+            const maxHours = 72;
+            const maxEarthDistance = 20000; 
+            
+            let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
+            if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
+            if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
+
+            const deliveryHours = Math.floor(baseDeliveryHours);
+            const randomMinutes = Math.floor(Math.random() * 60);
+
+            const now = new Date();
+            const arrivalTime = now.getTime() + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000); 
+
+            // 1. СОХРАНЯЕМ В ТРЕКИНГ (Для таймеров на Home)
+            state.tracking.unshift({
+                type: "outgoing",
+                toCountry: dest.country,
+                toCity: dest.city,
+                flag: dest.flag,
+                frontImage: postcardData.frontImage,
+                message: postcardData.message,
+                stampType: postcardData.stampType,
+                stampData: postcardData.stampType === 'ai' ? postcardData.stampImage : postcardData.stamp,
+                sentAt: now.getTime(),
+                arrivalAt: arrivalTime,
+                status: "In transit"
+            });
+
+            // 2. СОХРАНЯЕМ В АРХИВ "SENT POSTCARDS" (Для превью)
+            state.sentPostcards.unshift({
+                countryFlag: dest.flag,
+                to: dest.country + ", " + dest.city,
+                status: "In transit",
+                frontImage: postcardData.frontImage, 
+                message: postcardData.message,
+                stampType: postcardData.stampType,
+                stampImage: postcardData.stampImage
+            });
+
+            // Обновляем списки интерфейса
+            if (typeof refreshAllLists === 'function') refreshAllLists();
+
+// Очищаем конструктор
+postcardData.frontImage = null;
+postcardData.message = '';
+postcardData.stampImage = null;
+postcardData.stampType = 'emoji';
+
+if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
+if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
+if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
+
+// === НОВАЯ СТРОЧКА: Сбрасываем имя загруженного файла ===
+if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+
+if(canvasWrapper) canvasWrapper.classList.remove('fly-away-active');
+updateDisplay();
+
+            btnSendPostcard.disabled = false;
+            btnSendPostcard.textContent = originalText;
+            
+            // === КРАСИВОЕ УВЕДОМЛЕНИЕ ПРЯМО В ОКНО ПРЕВЬЮ ===
+            const previewContainer = document.getElementById('postcard-preview-container');
+            if (previewContainer) {
+                const successOverlay = document.createElement('div');
+                
+                successOverlay.style.position = 'absolute';
+                successOverlay.style.top = '0';
+                successOverlay.style.left = '0';
+                successOverlay.style.width = '100%';
+                successOverlay.style.height = '100%';
+                successOverlay.style.background = 'rgba(255, 255, 255, 0.95)'; 
+                successOverlay.style.zIndex = '200';
+                successOverlay.style.display = 'flex';
+                successOverlay.style.flexDirection = 'column';
+                successOverlay.style.alignItems = 'center';
+                successOverlay.style.justifyContent = 'center';
+                successOverlay.style.textAlign = 'center';
+                successOverlay.style.padding = '20px';
+                successOverlay.style.boxSizing = 'border-box';
+                successOverlay.style.opacity = '0'; 
+                successOverlay.style.transition = 'opacity 0.4s ease'; 
+
+                successOverlay.innerHTML = `
+                    <div style="font-size: 40px; margin-bottom: 8px;">✈️</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 6px;">Bon Voyage!</div>
+                    <div style="font-size: 13px; color: var(--text-main);">
+                        Your postcard is flying to <b>${dest.country}</b>!<br>
+                        It will arrive in <b>${deliveryHours} hours</b>.
+                    </div>
+                `;
+
+                previewContainer.appendChild(successOverlay);
+                setTimeout(() => successOverlay.style.opacity = '1', 10);
+                setTimeout(() => {
+                    successOverlay.style.opacity = '0';
+                    setTimeout(() => successOverlay.remove(), 400); 
+                }, 3500);
+            }
+         }, 1500);
+     });
+ }
+// === 5. ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА ИЗ АРХИВА ===
+document.addEventListener('click', (e) => {
+    const cardEl = e.target.closest('.archive-card');
+    if (!cardEl) return;
+
+    // Ищем, из какого архива кликнули
+    const isSent = cardEl.closest('#sent-postcards-grid') !== null;
+    const index = parseInt(cardEl.getAttribute('data-index'));
+    
+    // Достаем данные сохраненной открытки
+    const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
+    if (!cardData) return;
+
+    const modal = document.getElementById('modal-3d');
+    const frontDiv = document.getElementById('3d-front');
+    const backDiv = document.getElementById('3d-back');
+    const wrapper = document.querySelector('.card-3d-wrapper');
+
+    if (!modal || !frontDiv || !backDiv) return;
+
+    wrapper.style.width = '';
+    wrapper.style.height = '';
+
+    // Сохраняем то, что сейчас в конструкторе, чтобы не стереть
+    const backupData = JSON.parse(JSON.stringify(postcardData));
+    
+    // Подгружаем данные из архива в конструктор
+    postcardData.frontImage = cardData.frontImage;
+    postcardData.message = cardData.message;
+    postcardData.stampType = cardData.stampType;
+    postcardData.stampImage = cardData.stampImage;
+    postcardData.stamp = cardData.stampData || cardData.stamp || '🌲';
+    postcardData.imagePosX = 50; 
+    postcardData.imagePosY = 50;
+
+// Рисуем Лицевую сторону для 3D
+postcardData.currentSide = 'front';
+updateDisplay(true); 
+const frontCanvas = document.getElementById('postcard-canvas');
+frontDiv.innerHTML = '';
+frontDiv.appendChild(frontCanvas.cloneNode(true));
+
+// Рисуем Оборотную сторону для 3D
+postcardData.currentSide = 'back';
+updateDisplay(true);
+const backCanvas = document.getElementById('postcard-canvas'); // Заново ищем холст с оборотом!
+backDiv.innerHTML = '';
+backDiv.appendChild(backCanvas.cloneNode(true));
+
+    // Возвращаем данные конструктора на место
+    Object.assign(postcardData, backupData);
+    updateDisplay(false); 
+
+    // Открываем модальное окно
+    modal.style.display = 'flex';
+
+    setTimeout(() => {
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
+        const scale3D = w / 600;
+
+        const frontCanvas = frontDiv.querySelector('#postcard-canvas');
+        const backCanvas = backDiv.querySelector('#postcard-canvas');
+
+        if(frontCanvas) frontCanvas.style.transform = `scale(${scale3D})`;
+        if(backCanvas) backCanvas.style.transform = `scale(${scale3D})`;
+
+        wrapper.style.height = (w * (400 / 600)) + 'px'; 
+    }, 10);
+});
 });
