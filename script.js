@@ -25,7 +25,8 @@ const AVAILABLE_INTERESTS = [
     tracking: [],
     leaderboard: [],
     sentPostcards: [],       // Очистили!
-    receivedPostcards: []    // Очистили!
+    receivedPostcards: [],    // Очистили!
+    bots: [],
   };
   
   const COUNTRIES_BY_CONTINENT = {
@@ -97,15 +98,18 @@ const AVAILABLE_INTERESTS = [
   }
   
   function refreshAllLists() {
-// 1. УМНЫЙ ТРЕКИНГ С ТАЙМЕРАМИ (В 3 строчки: Страна, Город, Статус)
+// 1. УМНЫЙ ТРЕКИНГ С ТАЙМЕРАМИ (ВХОДЯЩИЕ И ИСХОДЯЩИЕ)
 renderListComponent("tracking-list", state.tracking, item => {
-    // Умное разделение на Страну и Город
-    let countryName = item.toCountry || "Unknown";
-    let cityName = item.toCity || "";
-    let flag = item.flag || item.countryFlag || "";
+    // Проверяем, летит ли открытка К НАМ или ОТ НАС
+    const isIncoming = item.type === "incoming";
+    
+    // Если входящая - прячем страну. Если исходящая - показываем куда летит.
+    let countryName = isIncoming ? "Mystery Postcard" : (item.toCountry || "Unknown");
+    let cityName = isIncoming ? "Destination: You" : (item.toCity || "");
+    let flag = isIncoming ? "🌍" : (item.flag || item.countryFlag || "");
     
     // Поддержка старых записей
-    if (item.to && !item.toCountry) {
+    if (!isIncoming && item.to && !item.toCountry) {
         const parts = item.to.split(", ");
         countryName = parts[0];
         cityName = parts.length > 1 ? parts[1] : "";
@@ -114,7 +118,7 @@ renderListComponent("tracking-list", state.tracking, item => {
     let displayStatus = item.status;
     let timeHtml = "";
 
-    // Логика таймера (с адаптированными цветами под фон #ffd49b)
+    // Логика таймера
     if (item.arrivalAt) {
         const now = new Date().getTime();
         const diffMs = item.arrivalAt - now;
@@ -122,22 +126,31 @@ renderListComponent("tracking-list", state.tracking, item => {
         if (diffMs > 0) {
             const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
             const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-            displayStatus = "In transit ✈️";
-            // Белая плашка с темно-оранжевым текстом для контраста
-            timeHtml = `<div style="font-size:11px; font-weight:bold; color:#d35400; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
+            
+            // Разные статусы для направлений
+            displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
+            
+            // Разные цвета текста на таймере: для входящих синий, для исходящих оранжевый
+            const timeColor = isIncoming ? "#2980b9" : "#d35400";
+            timeHtml = `<div style="font-size:11px; font-weight:bold; color:${timeColor}; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
         } else {
             displayStatus = "Delivered ✅";
             item.status = "Delivered";
-            // Белая плашка с зеленым текстом
             timeHtml = `<div style="font-size:11px; font-weight:bold; color:#27ae60; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Done</div>`;
         }
     } else {
-        timeHtml = `<div class="tracking-status" style="color:#d35400; font-weight:bold; background:#fff; padding:4px 8px; border-radius:12px; font-size:11px;">${displayStatus}</div>`;
+        displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
+        const fallbackColor = isIncoming ? "#2980b9" : "#d35400";
+        timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:4px 8px; border-radius:12px; font-size:11px;">${displayStatus}</div>`;
     }
 
-    // Обновленный HTML-шаблон с фоном #ffd49b и правильными цветами текста
+    // === ГЛАВНАЯ МАГИЯ ВИЗУАЛА ===
+    // Входящие карточки будут нежно-голубыми, а исходящие - теплыми оранжевыми
+    const bgStyle = isIncoming ? "background: #eaf2f8; border: 1px solid #c9e1f5;" : "background: #ffd49b; border: 1px solid #f8c27a;";
+    const statusColor = isIncoming ? "#2980b9" : "#d35400";
+
     return `
-        <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #ffd49b; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; ${bgStyle} border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
             <div class="tracking-info" style="display: flex; flex-direction: column; gap: 4px;">
                 <div style="font-weight: bold; font-size: 14px; color: #333; display: flex; align-items: center; gap: 6px;">
                     <span style="font-size: 16px;">${flag}</span> ${countryName}
@@ -145,7 +158,7 @@ renderListComponent("tracking-list", state.tracking, item => {
                 
                 ${cityName ? `<div style="font-size: 12px; color: #555;">${cityName}</div>` : ''}
                 
-                <div style="font-size: 11px; font-weight: 600; color: #d35400; margin-top: 2px;">
+                <div style="font-size: 11px; font-weight: 600; color: ${statusColor}; margin-top: 2px;">
                     ${displayStatus}
                 </div>
             </div>
@@ -156,28 +169,45 @@ renderListComponent("tracking-list", state.tracking, item => {
         </div>`;
 });
 
- // 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ)
-    // Считаем уникальные страны, в которые ты отправил открытки
-    const uniqueCountriesCount = new Set(state.sentPostcards.map(card => card.countryFlag || card.flag)).size;
+ // 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ С БОТАМИ)
+ const uniqueCountriesCount = new Set(state.sentPostcards.map(card => card.countryFlag || card.flag)).size;
     
-    // Формируем актуальный список (пока только ты)
-    state.leaderboard = [
-        { 
-            name: `🏆 ${state.profile.name} (You)`, 
-            sent: state.sentPostcards.length, 
-            countries: uniqueCountriesCount 
-        }
-    ];
+ // Твой профиль
+ const userLeaderboardEntry = { 
+     name: `${state.profile.name} (You)`, 
+     sent: state.sentPostcards.length, 
+     countries: uniqueCountriesCount,
+     isUser: true
+ };
 
-    if (state.leaderboard) {
-        renderListComponent("leaderboard-list", state.leaderboard, player => {
-            return `
-                <li class="leaderboard-item" style="padding: 4px 0;">
-                    <span class="leaderboard-name">${player.name}</span>
-                    <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold;">${player.sent} sent • ${player.countries} countries</span>
-                </li>`;
-        });
-    }
+ // Смешиваем тебя и ботов, затем сортируем по количеству отправленных (от большего к меньшему)
+ let combinedLeaderboard = [userLeaderboardEntry, ...state.bots];
+ combinedLeaderboard.sort((a, b) => b.sent - a.sent);
+
+ if (combinedLeaderboard.length > 0) {
+     renderListComponent("leaderboard-list", combinedLeaderboard, (player, index) => {
+         const rank = index + 1;
+         let rankBadge = `${rank}.`;
+         if (rank === 1) rankBadge = "🥇";
+         if (rank === 2) rankBadge = "🥈";
+         if (rank === 3) rankBadge = "🥉";
+
+         // Выделяем твой профиль цветом, чтобы ты не потерялся среди ботов
+         const bgStyle = player.isUser ? 'background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px solid #f39c12;' : 'padding: 8px 0; border-bottom: 1px solid #eee;';
+         const nameWeight = player.isUser ? 'font-weight: 900; color: #d35400;' : 'font-weight: 600; color: #333;';
+
+         return `
+             <li class="leaderboard-item" style="${bgStyle} display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                 <div style="display: flex; align-items: center; gap: 10px;">
+                     <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
+                     <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ''}</span>
+                 </div>
+                 <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
+                     ${player.sent} <span style="font-size: 10px; color: #aaa;">SENT</span>
+                 </span>
+             </li>`;
+     });
+ }
 
 // 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (3 СТРОКИ ТЕКСТА)
 const cardTemplate = (card, index) => {
@@ -571,6 +601,113 @@ function renderMapSections() {
     // И проверяем каждую минуту (чтобы выдать награду ровно в 00:00, если приложение открыто)
     setInterval(checkDailyRefill, 60000);
 
+    // === ВНУТРИИГРОВОЙ МАГАЗИН (TRAVEL SHOP) ===
+    const refillBtn = document.querySelector('.home-assets .primary-button');
+    if (refillBtn) {
+        refillBtn.onclick = (e) => {
+            e.stopPropagation(); // Чтобы блок не сворачивался при клике на кнопку
+            openStoreModal();
+        };
+    }
+
+    function openStoreModal() {
+        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-alert-overlay store-overlay';
+
+        overlay.innerHTML = `
+            <div class="custom-alert-box store-modal-box">
+                <div class="store-header">
+                    <span>Travel Shop 🎒</span>
+                    <button class="store-close" onclick="this.closest('.store-overlay').remove()">✕</button>
+                </div>
+
+                <div class="store-category">
+                    <div class="store-category-title">✉️ Blank Postcards</div>
+                    <div class="store-grid">
+                        <div class="store-item">
+                            <div class="store-item-icon">✉️</div>
+                            <div class="store-item-amount">1x</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('postcards', 1, '$0.99')">$0.99</button>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item-icon">✉️</div>
+                            <div class="store-item-amount">5x</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('postcards', 5, '$3.99')">$3.99</button>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item-icon">✉️</div>
+                            <div class="store-item-amount">10x</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('postcards', 10, '$5.99')">$5.99</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="store-category" style="margin-bottom: 0;">
+                    <div class="store-category-title">⚡ Energy Packs</div>
+                    <div class="store-grid">
+                        <div class="store-item">
+                            <div class="store-item-icon">⚡</div>
+                            <div class="store-item-amount">150</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('energy', 150, '$1.99')">$1.99</button>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item-icon">⚡</div>
+                            <div class="store-item-amount">750</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('energy', 750, '$5.99')">$5.99</button>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item-icon">⚡</div>
+                            <div class="store-item-amount">1500</div>
+                            <button class="store-item-btn" onclick="buyStoreItem('energy', 1500, '$9.99')">$9.99</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        phoneFrame.appendChild(overlay);
+    }
+
+    // Глобальная функция покупки (чтобы срабатывала по клику на кнопку в HTML)
+    window.buyStoreItem = function(type, amount, price) {
+        // 1. Закрываем окно магазина
+        const overlay = document.querySelector('.store-overlay');
+        if (overlay) overlay.remove();
+
+        // 2. Добавляем купленный товар в инвентарь (в стейт)
+        if (type === 'postcards') {
+            state.postcards += amount;
+        } else if (type === 'energy') {
+            state.energy += amount;
+        }
+
+        // 3. Мгновенно обновляем интерфейс (используем уже существующую функцию)
+        if (typeof syncAssets === 'function') {
+            syncAssets();
+        }
+
+        // 4. Показываем красивое окно об успешной покупке
+        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const successOverlay = document.createElement('div');
+        successOverlay.className = 'custom-alert-overlay';
+        
+        const typeName = type === 'postcards' ? 'Postcards ✉️' : 'Energy ⚡';
+
+        successOverlay.innerHTML = `
+            <div class="custom-alert-box">
+                <div style="font-size: 50px; margin-bottom: -15px;">🎉</div>
+                <div style="font-size: 20px; font-weight: 900; color: #27ae60; margin-bottom: 5px;">Payment Successful!</div>
+                <div class="custom-alert-text" style="font-size: 14px;">
+                    You have successfully purchased<br>
+                    <b style="font-size: 16px; color: #d35400;">${amount} ${typeName}</b><br>
+                    for ${price}.
+                </div>
+                <button class="primary-button custom-alert-btn" onclick="this.closest('.custom-alert-overlay').remove()">Awesome!</button>
+            </div>
+        `;
+        phoneFrame.appendChild(successOverlay);
+    };
+
   // ЛОГИКА ПЕРЕТАСКИВАНИЯ АВАТАРКИ
   const avatarEl = document.getElementById("profile-avatar");
   let isDraggingAvatar = false;
@@ -638,4 +775,4 @@ function renderMapSections() {
       document.addEventListener('touchend', endDrag);
       document.addEventListener('touchcancel', endDrag);
   }
-});
+})

@@ -309,8 +309,8 @@ function checkSorterBin(selectedContinent, btnElement) {
             letter.className = 'vintage-stamp-card success-out';
             setTimeout(() => {
                 nextSorterLetter(); // Сброс цветов теперь происходит внутри этой функции
-            }, 300);
-        }, 300);
+            }, 600);
+        }, 600);
         
     } else {
         // === НЕПРАВИЛЬНЫЙ ОТВЕТ ===
@@ -331,7 +331,7 @@ function checkSorterBin(selectedContinent, btnElement) {
         letter.style.borderColor = '#e74c3c';
         letter.className = 'vintage-stamp-card error-shake';
 
-        setTimeout(nextSorterLetter, 1000);
+        setTimeout(nextSorterLetter, 600);
     }
 }
 

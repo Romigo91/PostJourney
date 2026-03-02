@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         stampImage: null,   
     };
 
-    // Надежная функция обновления цифры энергии на главном экране
     const updateEnergyUI = () => {
         const assetCards = document.querySelectorAll('.home-assets .asset-card');
         if (assetCards && assetCards.length > 1) {
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Функция обновления состояния иконки 3D
     function update3DButtonState() {
         const btn3D = document.getElementById('btn-view-3d');
         if (!btn3D) return; 
@@ -87,13 +85,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === 1. ОБНОВЛЕННАЯ ФУНКЦИЯ ОТРИСОВКИ ===
-    const updateDisplay = (is3DMode = false) => { 
+    // === ВОССТАНОВЛЕННЫЕ ПЕРЕКЛЮЧАТЕЛИ (FRONT/BACK И AI/UPLOAD) ===
+
+    if (btnFront && btnBack) {
+        btnFront.addEventListener('click', () => {
+            postcardData.currentSide = 'front';
+            btnFront.classList.add('constructor-mode-active');
+            btnBack.classList.remove('constructor-mode-active');
+            panelFront.style.display = 'block';
+            panelBack.style.display = 'none';
+            updateDisplay();
+        });
+
+        btnBack.addEventListener('click', () => {
+            postcardData.currentSide = 'back';
+            btnBack.classList.add('constructor-mode-active');
+            btnFront.classList.remove('constructor-mode-active');
+            panelFront.style.display = 'none';
+            panelBack.style.display = 'block';
+            updateDisplay();
+        });
+    }
+
+    if (modeButtons.length > 0) {
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                modeButtons.forEach(b => b.classList.remove('constructor-mode-active'));
+                e.target.classList.add('constructor-mode-active');
+                const mode = e.target.getAttribute('data-mode');
+                panels.forEach(p => {
+                    p.style.display = p.getAttribute('data-panel') === mode ? 'block' : 'none';
+                });
+            });
+        });
+    }
+
+    // === ВОССТАНОВЛЕННАЯ ЗАГРУЗКА СВОЕГО ФОТО ===
+    if (frontUpload) {
+        frontUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                postcardData.frontImage = event.target.result;
+                postcardData.imagePosX = 50;
+                postcardData.imagePosY = 50;
+                updateDisplay();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // === ОБНОВЛЕННАЯ ФУНКЦИЯ ОТРИСОВКИ ===
+    const updateDisplay = (is3DMode = false, botSenderData = null) => { 
         let previewWidth = previewContent.clientWidth;
         if (previewWidth === 0) return; 
         
         const scale = previewWidth / 600;
-
         previewContent.style.height = (400 * scale) + 'px';
         previewContent.style.padding = '0';
         previewContent.style.display = 'block'; 
@@ -114,25 +163,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 innerHTML = `<div style="color: #ccc; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px;">Front Side Preview</div>`;
             }
         } else {
-            stampArea.style.display = 'none';
-            previewContent.style.cursor = 'default';
-
-            const profile = typeof state !== 'undefined' ? state.profile : { name: '@Alex', country: '🇫🇷', city: 'Paris', avatar: null, avatarPosX: 50, avatarPosY: 50 };
-            const { name, country, city, avatar, avatarPosX, avatarPosY } = profile; 
+            const sender = botSenderData || state.profile;
+            
+            const name = sender.name;
+            const country = sender.country || sender.countryFlag || '🌍';
+            const city = sender.city || '';
+            const avatar = sender.avatar || null;
+            const posX = sender.avatarPosX ?? 50;
+            const posY = sender.avatarPosY ?? 50;
             const initial = (name.replace('@', '')[0] || 'A').toUpperCase();
-
-            const posX = avatarPosX !== undefined ? avatarPosX : 50;
-            const posY = avatarPosY !== undefined ? avatarPosY : 50;
 
             const avatarStyle = avatar ? `background-image: url(${avatar}); background-size: cover; background-position: ${posX}% ${posY}%;` : '';
             const avatarContent = avatar ? '' : initial;
 
-            if (!profile.userId) {
-                profile.userId = 'PJ-' + Math.floor(1000 + Math.random() * 9000);
-            }
-
             const date = new Date().toLocaleDateString('en-GB');
-            const cardID = profile.userId;
+            const cardID = sender.userId || 'PJ-' + Math.floor(1000 + Math.random() * 9000);
 
             innerHTML = `
             <div class="postcard-back-layout" style="width: 100%; height: 100%;">
@@ -156,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
                         <div style="display:flex; flex-direction:column; gap:2px;">
                             <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-                            <span style="font-size:9px; color:var(--text-sub);">${country} ${city ? city : ''}</span>
+                            <span style="font-size:9px; color:var(--text-sub);">${country} ${city}</span>
                         </div>
                     </div>
                     
@@ -183,9 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const textArea = document.getElementById('postcard-text-area');
             let fontSize = 22;
             textArea.style.fontSize = fontSize + 'px';
-            while (textArea.scrollHeight > 170 && fontSize > 10) {
-                fontSize -= 0.5;
-                textArea.style.fontSize = fontSize + 'px';
+            if(textArea.scrollHeight > 170) {
+                 while (textArea.scrollHeight > 170 && fontSize > 10) {
+                    fontSize -= 0.5;
+                    textArea.style.fontSize = fontSize + 'px';
+                }
             }
         }
         update3DButtonState();
@@ -194,65 +241,144 @@ document.addEventListener('DOMContentLoaded', () => {
     const resizeObserver = new ResizeObserver(() => updateDisplay());
     resizeObserver.observe(previewContent);
 
-// === 1. ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
-btnGenerateAI.onclick = async () => {
-    const promptText = aiPrompt.value.trim();
-    if (!promptText) return showAppAlert("Please enter a description!");
+   // === ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
+   if (btnGenerateAI) {
+    btnGenerateAI.onclick = async () => {
+        const promptText = aiPrompt.value.trim();
+        if (!promptText) return showAppAlert("Please enter a description!");
 
-    if (state.energy < 100) {
-        return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
-    }
-
-    btnGenerateAI.disabled = true;
-    progressContainer.style.display = 'block';
-    progressBar.style.width = '0%';
-    progressPercent.innerText = "0%";
-
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        if (progress < 90) {
-            progress += Math.random() * 3; 
-            progressBar.style.width = Math.floor(progress) + '%';
-            progressPercent.innerText = Math.floor(progress) + '%';
+        if (state.energy < 100) {
+            return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
         }
-    }, 400);
 
-    try {
-        const randomSeed = Math.floor(Math.random() * 100000000);
-        // Трюк для уникальности каждой картинки
-        const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
-        const encodedPrompt = encodeURIComponent(uniquePrompt);
-        
-        // Новая стабильная ссылка (ключ не нужен, nologo убирает водяные знаки)
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=800&nologo=true`;
+        btnGenerateAI.disabled = true;
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressPercent.innerText = "0%";
 
-        const response = await fetch(url);
-        
-        if (!response.ok) throw new Error("API Error");
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 3; 
+                progressBar.style.width = Math.floor(progress) + '%';
+                progressPercent.innerText = Math.floor(progress) + '%';
+            }
+        }, 400);
 
-        const imageBlob = await response.blob();
-        clearInterval(progressInterval);
-        progressBar.style.width = '100%';
-        progressPercent.innerText = '100%';
+        try {
+            const apiKey = "sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN";
+            
+            const response = await fetch("https://api.openai.com/v1/images/generations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: "dall-e-3", 
+                    prompt: promptText + ", beautiful travel postcard style, high quality",
+                    n: 1,
+                    size: "1024x1024"
+                })
+            });
 
-        const imageUrl = URL.createObjectURL(imageBlob);
-        
-        state.energy -= 100;
-        updateEnergyUI();
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error?.message || "OpenAI API Error");
+            }
 
-        postcardData.frontImage = imageUrl;
-        postcardData.imagePosX = 50;
-        postcardData.imagePosY = 50;
-        updateDisplay();
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
 
-    } catch (e) {
-        clearInterval(progressInterval);
-        showAppAlert("Generation error: " + e.message);
-    } finally {
-        btnGenerateAI.disabled = false;
-        setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
-    }
-};
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressPercent.innerText = '100%';
+            
+            state.energy -= 100;
+            updateEnergyUI();
+
+            postcardData.frontImage = imageUrl;
+            postcardData.imagePosX = 50;
+            postcardData.imagePosY = 50;
+            updateDisplay();
+
+        } catch (e) {
+            clearInterval(progressInterval);
+            showAppAlert("Generation failed: " + e.message);
+        } finally {
+            btnGenerateAI.disabled = false;
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+        }
+    };
+}
+
+// === ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
+if (btnGenerateAI) {
+    btnGenerateAI.onclick = async () => {
+        const promptText = aiPrompt.value.trim();
+        if (!promptText) return showAppAlert("Please enter a description!");
+
+        if (state.energy < 100) {
+            return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
+        }
+
+        btnGenerateAI.disabled = true;
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressPercent.innerText = "0%";
+
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            if (progress < 90) {
+                progress += Math.random() * 3; 
+                progressBar.style.width = Math.floor(progress) + '%';
+                progressPercent.innerText = Math.floor(progress) + '%';
+            }
+        }, 400);
+
+        try {
+            const apiKey = "sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN";
+            const randomSeed = Math.floor(Math.random() * 100000000);
+            
+            const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
+            const encodedPrompt = encodeURIComponent(uniquePrompt);
+            
+            // ИСПРАВЛЕНИЕ: Прямая ссылка на Pollinations с принудительным указанием &model=gptimage
+            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=800&model=gptimage&seed=${randomSeed}`;
+
+            // Передаем твой ключ в заголовках, чтобы избежать API Error
+            const response = await fetch(url, {
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`
+                }
+            });
+
+            if (!response.ok) throw new Error("Pollinations API Error");
+
+            const imageBlob = await response.blob();
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+            progressPercent.innerText = '100%';
+
+            const imageUrl = URL.createObjectURL(imageBlob);
+            
+            state.energy -= 100;
+            updateEnergyUI();
+
+            postcardData.frontImage = imageUrl;
+            postcardData.imagePosX = 50;
+            postcardData.imagePosY = 50;
+            updateDisplay();
+
+        } catch (e) {
+            clearInterval(progressInterval);
+            showAppAlert("Generation error: " + e.message);
+        } finally {
+            btnGenerateAI.disabled = false;
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+        }
+    };
+}
 
 // === ЛОГИКА ГЕНЕРАЦИИ ПРЕМИУМ-МАРКИ ===
 const stampGrid = document.getElementById('stamp-select-grid');
@@ -294,15 +420,20 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         }, 400);
 
         try {
+            const apiKey = "sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN";
             const randomSeed = Math.floor(Math.random() * 100000000);
             const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&nologo=true`;
+            // ИСПРАВЛЕНИЕ: Также используем модель gptimage для марки
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=gptimage&seed=${randomSeed}`;
             
-            // Простой запрос без API ключей
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`
+                }
+            });
             
-            if (!response.ok) throw new Error("API Error");
+            if (!response.ok) throw new Error("Pollinations API Error");
 
             const imageBlob = await response.blob();
             clearInterval(progressInterval);
@@ -329,85 +460,95 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
     });
 }
 
-// === 3. ОБРАБОТКА ИНТЕРФЕЙСА (ТЕКСТ, ЦВЕТ, МАРКИ, КНОПКИ) ===
-cardMessage.addEventListener('input', (e) => {
-    postcardData.message = e.target.value;
-    const currentLen = e.target.value.length;
-    charCount.innerText = `${currentLen} / 150`;
-    charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
-    updateDisplay();
-});
+    // === ОБРАБОТКА ИНТЕРФЕЙСА (ТЕКСТ, ЦВЕТ, МАРКИ, КНОПКИ) ===
+    if (cardMessage) {
+        cardMessage.addEventListener('input', (e) => {
+            postcardData.message = e.target.value;
+            const currentLen = e.target.value.length;
+            charCount.innerText = `${currentLen} / 150`;
+            charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
+            updateDisplay();
+        });
+    }
 
-fontSelect.addEventListener('change', (e) => {
-    postcardData.font = e.target.value;
-    updateDisplay();
-});
+    if (fontSelect) {
+        fontSelect.addEventListener('change', (e) => {
+            postcardData.font = e.target.value;
+            updateDisplay();
+        });
+    }
 
-const inkButtons = document.querySelectorAll('.ink-btn');
-inkButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        inkButtons.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        postcardData.color = e.target.getAttribute('data-color');
-        updateDisplay();
+    const inkButtons = document.querySelectorAll('.ink-btn');
+    inkButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            inkButtons.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            postcardData.color = e.target.getAttribute('data-color');
+            updateDisplay();
+        });
     });
-});
 
-const stampButtons = document.querySelectorAll('.stamp-btn');
-stampButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const targetBtn = e.target.closest('.stamp-btn'); 
-        if (!targetBtn) return;
-        stampButtons.forEach(b => b.classList.remove('active'));
-        targetBtn.classList.add('active');
-        postcardData.stamp = targetBtn.getAttribute('data-stamp');
-        
-        if (targetBtn.classList.contains('premium') && postcardData.stampImage) {
-            postcardData.stampType = 'ai';
-        } else {
-            postcardData.stampType = 'emoji';
-        }
-        updateDisplay();
+    const stampButtons = document.querySelectorAll('.stamp-btn');
+    stampButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const targetBtn = e.target.closest('.stamp-btn'); 
+            if (!targetBtn) return;
+            stampButtons.forEach(b => b.classList.remove('active'));
+            targetBtn.classList.add('active');
+            postcardData.stamp = targetBtn.getAttribute('data-stamp');
+            
+            if (targetBtn.classList.contains('premium') && postcardData.stampImage) {
+                postcardData.stampType = 'ai';
+            } else {
+                postcardData.stampType = 'emoji';
+            }
+            updateDisplay();
+        });
     });
-});
 
     // === ЛОГИКА 3D ===
-    document.getElementById('btn-view-3d').onclick = function() {
-        if (this.classList.contains('disabled')) return;
-        const modal = document.getElementById('modal-3d');
-        const frontDiv = document.getElementById('3d-front');
-        const backDiv = document.getElementById('3d-back');
-        const wrapper = document.querySelector('.card-3d-wrapper');
+    const btnView3D = document.getElementById('btn-view-3d');
+    if (btnView3D) {
+        btnView3D.onclick = function() {
+            if (this.classList.contains('disabled')) return;
+            const modal = document.getElementById('modal-3d');
+            const frontDiv = document.getElementById('3d-front');
+            const backDiv = document.getElementById('3d-back');
+            const wrapper = document.querySelector('.card-3d-wrapper');
 
-        const originalSide = postcardData.currentSide;
+            const originalSide = postcardData.currentSide;
 
-        postcardData.currentSide = 'front';
-        updateDisplay(true); 
-        frontDiv.innerHTML = '';
-        frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+            postcardData.currentSide = 'front';
+            updateDisplay(true); 
+            frontDiv.innerHTML = '';
+            frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-        postcardData.currentSide = 'back';
-        updateDisplay(true);
-        backDiv.innerHTML = '';
-        backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+            postcardData.currentSide = 'back';
+            updateDisplay(true);
+            backDiv.innerHTML = '';
+            backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-        postcardData.currentSide = originalSide;
-        updateDisplay(false);
-        modal.style.display = 'flex';
+            postcardData.currentSide = originalSide;
+            updateDisplay(false);
+            modal.style.display = 'flex';
 
-        setTimeout(() => {
-            const rect = wrapper.getBoundingClientRect();
-            const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
-            const scale3D = w / 600;
-            if(frontDiv.querySelector('#postcard-canvas')) frontDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
-            if(backDiv.querySelector('#postcard-canvas')) backDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
-            wrapper.style.height = (w * (400 / 600)) + 'px'; 
-        }, 10);
-    };
+            setTimeout(() => {
+                const rect = wrapper.getBoundingClientRect();
+                const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
+                const scale3D = w / 600;
+                if(frontDiv.querySelector('#postcard-canvas')) frontDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
+                if(backDiv.querySelector('#postcard-canvas')) backDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
+                wrapper.style.height = (w * (400 / 600)) + 'px'; 
+            }, 10);
+        };
+    }
 
-    document.getElementById('close-3d-btn').onclick = () => {
-        document.getElementById('modal-3d').style.display = 'none';
-    };
+    const close3dBtn = document.getElementById('close-3d-btn');
+    if (close3dBtn) {
+        close3dBtn.onclick = () => {
+            document.getElementById('modal-3d').style.display = 'none';
+        };
+    }
 
     // === DRAG TO REPOSITION ===
     let isDraggingImg = false;
@@ -453,12 +594,14 @@ stampButtons.forEach(btn => {
         previewContent.style.cursor = 'grab';
     }
 
-    previewContent.addEventListener('mousedown', imgDragStart);
-    window.addEventListener('mousemove', imgDragMove);
-    window.addEventListener('mouseup', imgDragEnd);
-    previewContent.addEventListener('touchstart', imgDragStart, { passive: false });
-    window.addEventListener('touchmove', imgDragMove, { passive: false });
-    window.addEventListener('touchend', imgDragEnd);
+    if (previewContent) {
+        previewContent.addEventListener('mousedown', imgDragStart);
+        window.addEventListener('mousemove', imgDragMove);
+        window.addEventListener('mouseup', imgDragEnd);
+        previewContent.addEventListener('touchstart', imgDragStart, { passive: false });
+        window.addEventListener('touchmove', imgDragMove, { passive: false });
+        window.addEventListener('touchend', imgDragEnd);
+    }
 
     // === ИНТЕРАКТИВНОЕ ВРАЩЕНИЕ В 3D ===
     const wrapper = document.querySelector('.card-3d-wrapper');
@@ -470,7 +613,7 @@ stampButtons.forEach(btn => {
         isDragging = true;
         const coords = getImgCoords(e);
         startX = coords.x; startY = coords.y;
-        inner.style.transition = 'none';
+        if(inner) inner.style.transition = 'none';
     }
 
     function dragMove(e) {
@@ -481,25 +624,29 @@ stampButtons.forEach(btn => {
         currentRotateX -= (coords.y - startY) * 0.5;
         if (currentRotateX > 20) currentRotateX = 20;
         if (currentRotateX < -20) currentRotateX = -20;
-        inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+        if(inner) inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
         startX = coords.x; startY = coords.y;
     }
 
     function dragEnd() {
         if (!isDragging) return;
         isDragging = false;
-        inner.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s ease';
-        currentRotateY = Math.round(currentRotateY / 180) * 180;
-        currentRotateX = 0; 
-        inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+        if(inner) {
+            inner.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s ease';
+            currentRotateY = Math.round(currentRotateY / 180) * 180;
+            currentRotateX = 0; 
+            inner.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+        }
     }
 
-    wrapper.addEventListener('mousedown', dragStart);
-    window.addEventListener('mousemove', dragMove); 
-    window.addEventListener('mouseup', dragEnd);
-    wrapper.addEventListener('touchstart', dragStart, { passive: false });
-    window.addEventListener('touchmove', dragMove, { passive: false });
-    window.addEventListener('touchend', dragEnd);
+    if (wrapper) {
+        wrapper.addEventListener('mousedown', dragStart);
+        window.addEventListener('mousemove', dragMove); 
+        window.addEventListener('mouseup', dragEnd);
+        wrapper.addEventListener('touchstart', dragStart, { passive: false });
+        window.addEventListener('touchmove', dragMove, { passive: false });
+        window.addEventListener('touchend', dragEnd);
+    }
 
     setTimeout(() => { updateDisplay(); update3DButtonState(); }, 50);
 
@@ -565,27 +712,8 @@ stampButtons.forEach(btn => {
                     { flag: "🇻🇪", country: "Venezuela", city: "Caracas" }, { flag: "🇻🇳", country: "Vietnam", city: "Hanoi" }, { flag: "🇾🇪", country: "Yemen", city: "Sanaa" }, { flag: "🇿🇲", country: "Zambia", city: "Lusaka" }, { flag: "🇿🇼", country: "Zimbabwe", city: "Harare" }
                 ];
 
-                function getDistance(lat1, lon1, lat2, lon2) {
-                    const R = 6371; 
-                    const dLat = (lat2 - lat1) * Math.PI / 180;
-                    const dLon = (lon2 - lon1) * Math.PI / 180;
-                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                              Math.sin(dLon/2) * Math.sin(dLon/2);
-                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                }
-
-                const senderFlag = state.profile.country; 
-                const destFlag = dest.flag; 
-
-                const getCoords = (flag) => {
-                    if (FLAG_COORDS[flag]) return FLAG_COORDS[flag];
-                    return [0, 0]; 
-                };
-
-                const senderCoords = getCoords(senderFlag);
-                const destCoords = getCoords(destFlag);
-                const distanceKm = getDistance(senderCoords[0], senderCoords[1], destCoords[0], destCoords[1]);
+                const dest = allDestinations[Math.floor(Math.random() * allDestinations.length)];
+                const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
 
                 const minHours = 12;
                 const maxHours = 72;
@@ -700,49 +828,42 @@ stampButtons.forEach(btn => {
         const backDiv = document.getElementById('3d-back');
         const wrapper = document.querySelector('.card-3d-wrapper');
 
-        if (!modal || !frontDiv || !backDiv) return;
-
-        wrapper.style.width = '';
-        wrapper.style.height = '';
+        const senderInfo = isSent ? null : {
+            name: cardData.fromBot || cardData.senderName || "@Stranger",
+            country: cardData.countryFlag || "🌍",
+            city: cardData.senderCity || "Unknown"
+        };
 
         const backupData = JSON.parse(JSON.stringify(postcardData));
         
         postcardData.frontImage = cardData.frontImage;
         postcardData.message = cardData.message;
-        postcardData.stampType = cardData.stampType;
-        postcardData.stampImage = cardData.stampImage;
+        postcardData.stampType = cardData.stampType || 'emoji';
+        postcardData.stampImage = cardData.stampImage || null;
         postcardData.stamp = cardData.stampData || cardData.stamp || '🌲';
-        postcardData.imagePosX = 50; 
-        postcardData.imagePosY = 50;
 
         postcardData.currentSide = 'front';
-        updateDisplay(true); 
-        const frontCanvas = document.getElementById('postcard-canvas');
+        updateDisplay(true, senderInfo); 
         frontDiv.innerHTML = '';
-        frontDiv.appendChild(frontCanvas.cloneNode(true));
+        frontDiv.appendChild(document.getElementById('postcard-canvas').cloneNode(true));
 
         postcardData.currentSide = 'back';
-        updateDisplay(true);
-        const backCanvas = document.getElementById('postcard-canvas'); 
+        updateDisplay(true, senderInfo);
         backDiv.innerHTML = '';
-        backDiv.appendChild(backCanvas.cloneNode(true));
+        backDiv.appendChild(document.getElementById('postcard-canvas').cloneNode(true));
 
         Object.assign(postcardData, backupData);
         updateDisplay(false); 
 
         modal.style.display = 'flex';
-
         setTimeout(() => {
             const rect = wrapper.getBoundingClientRect();
             const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
             const scale3D = w / 600;
-
             const fCanvas = frontDiv.querySelector('#postcard-canvas');
             const bCanvas = backDiv.querySelector('#postcard-canvas');
-
             if(fCanvas) fCanvas.style.transform = `scale(${scale3D})`;
             if(bCanvas) bCanvas.style.transform = `scale(${scale3D})`;
-
             wrapper.style.height = (w * (400 / 600)) + 'px'; 
         }, 10);
     });
