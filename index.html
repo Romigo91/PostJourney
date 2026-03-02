@@ -316,46 +316,45 @@
         </section>
 
         <section class="screen" data-screen="games">
-            <h2 class="screen-title">Games</h2>
-        
-            <div id="games-menu-list">
-                <div class="section-block">
-                    <div class="section-header">
-                        <span>Guess the Flag</span>
-                    </div>
-                    <p class="small-text">
-                        You see a flag, you choose the correct country from several options.
-                    </p>
-                    <button class="secondary-button" onclick="startGame('flags')">Play</button>
+          <h2 class="screen-title">Games</h2>
+      
+          <div id="games-menu-list">
+              
+              <div class="section-block">
+                  <div class="section-header">
+                      <span>Geo Quiz 🌍</span>
+                  </div>
+                  <p class="small-text">
+                      Test your knowledge of flags and capitals! Correct answers earn you energy.
+                  </p>
+                  <button class="secondary-button" onclick="startQuizGame()">Play</button>
+              </div>
+      
+              <div class="section-block">
+                <div class="section-header">
+                    <span>Post Office Sorter 🗂️</span>
                 </div>
-        
-                <div class="section-block">
-                    <div class="section-header">
-                        <span>Guess the Capital</span>
-                    </div>
-                    <p class="small-text">
-                        You see a country name, you pick its capital from the list.
-                    </p>
-                    <button class="secondary-button" onclick="startGame('capitals')">Play</button>
-                </div>
-        
-                <div class="section-block">
-                    <div class="section-header">
-                        <span>Guess the Country by Fact</span>
-                    </div>
-                    <p class="small-text">
-                        You get a fun fact, you try to guess which country it is about.
-                    </p>
-                    <button class="secondary-button" onclick="startGame('facts')">Play</button>
-                </div>
-            </div>
-        
-            <div id="active-game-zone" class="section-block" style="display: none; text-align: center;">
-                <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:block;">← Back to Menu</button>
-                <div id="game-content"></div>
-            </div>
-        </section>
+                <p class="small-text">
+                    Sort incoming postcards by continent. Fast sorting earns you energy!
+                </p>
+                <button class="secondary-button" onclick="startSorterGame()">Play</button>
+              </div>
 
+              <div class="section-block">
+                <div class="section-header">
+                    <span>Customs Inspector 🛂</span>
+                </div>
+                <p class="small-text">
+                    True or False? Act as a customs officer and verify the facts quickly!
+                </p>
+                <button class="secondary-button" onclick="startCustomsGame()">Play</button>
+              </div>
+            
+          </div> <div id="active-game-zone" class="section-block" style="display: none; text-align: center; padding-top: 10px;">
+              <div id="game-content"></div>
+          </div>
+          
+      </section>
         <section class="screen" data-screen="settings">
             <h2 class="screen-title">Settings</h2>
           

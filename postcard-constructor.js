@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+
     // === КАСТОМНЫЕ ВСПЛЫВАЮЩИЕ ОКНА (АЛЕРТЫ) ===
     function showAppAlert(message) {
         const phoneFrame = document.querySelector('.phone-frame') || document.body;
@@ -193,16 +194,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const resizeObserver = new ResizeObserver(() => updateDisplay());
     resizeObserver.observe(previewContent);
 
-    // === 1. ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
-    btnGenerateAI.onclick = async () => {
-        const promptText = aiPrompt.value.trim();
-        if (!promptText) return showAppAlert("Please enter a description!");
+// === 1. ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
+btnGenerateAI.onclick = async () => {
+    const promptText = aiPrompt.value.trim();
+    if (!promptText) return showAppAlert("Please enter a description!");
 
-        if (state.energy < 100) {
-            return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
+    if (state.energy < 100) {
+        return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
+    }
+
+    btnGenerateAI.disabled = true;
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressPercent.innerText = "0%";
+
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        if (progress < 90) {
+            progress += Math.random() * 3; 
+            progressBar.style.width = Math.floor(progress) + '%';
+            progressPercent.innerText = Math.floor(progress) + '%';
         }
+    }, 400);
 
-        btnGenerateAI.disabled = true;
+    try {
+        const randomSeed = Math.floor(Math.random() * 100000000);
+        // Трюк для уникальности каждой картинки
+        const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
+        const encodedPrompt = encodeURIComponent(uniquePrompt);
+        
+        // Новая стабильная ссылка (ключ не нужен, nologo убирает водяные знаки)
+        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=800&nologo=true`;
+
+        const response = await fetch(url);
+        
+        if (!response.ok) throw new Error("API Error");
+
+        const imageBlob = await response.blob();
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressPercent.innerText = '100%';
+
+        const imageUrl = URL.createObjectURL(imageBlob);
+        
+        state.energy -= 100;
+        updateEnergyUI();
+
+        postcardData.frontImage = imageUrl;
+        postcardData.imagePosX = 50;
+        postcardData.imagePosY = 50;
+        updateDisplay();
+
+    } catch (e) {
+        clearInterval(progressInterval);
+        showAppAlert("Generation error: " + e.message);
+    } finally {
+        btnGenerateAI.disabled = false;
+        setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+    }
+};
+
+// === ЛОГИКА ГЕНЕРАЦИИ ПРЕМИУМ-МАРКИ ===
+const stampGrid = document.getElementById('stamp-select-grid');
+const aiStampConstructor = document.getElementById('ai-stamp-constructor');
+const btnGenerateStamp = document.getElementById('btn-generate-stamp');
+
+if (stampGrid && aiStampConstructor && btnGenerateStamp) {
+    stampGrid.querySelectorAll('.stamp-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const isPremium = btn.classList.contains('premium');
+            aiStampConstructor.style.display = isPremium ? 'block' : 'none';
+        });
+    });
+
+    btnGenerateStamp.addEventListener('click', async () => {
+        const promptInput = document.getElementById('ai-stamp-prompt');
+        const userPrompt = promptInput.value.trim();
+        
+        if (!userPrompt) return showAppAlert("Please describe what you want on your stamp.");
+        if (state.energy < 50) return showAppAlert("Not enough energy (need 50)!");
+
+        const progressContainer = document.getElementById('stamp-progress-container');
+        const progressBar = document.getElementById('stamp-progress-bar');
+        const progressPercent = document.getElementById('stamp-progress-percent');
+
+        btnGenerateStamp.disabled = true;
+        btnGenerateStamp.querySelector('span').textContent = "⌛ Painting...";
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
         progressPercent.innerText = "0%";
@@ -218,20 +295,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const randomSeed = Math.floor(Math.random() * 100000000);
-            const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
-            const encodedPrompt = encodeURIComponent(uniquePrompt);
+            const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?model=gptimage&width=1200&height=800&seed=${randomSeed}`;
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&nologo=true`;
             
-            const API_KEY = 'sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN';
-
-            const response = await fetch(url, { 
-                method: "GET",
-                headers: { "Authorization": `Bearer ${API_KEY}` },
-                cache: "no-store" 
-            });
-
-            if (!response.ok) throw new Error(`API Error (status ${response.status})`);
+            // Простой запрос без API ключей
+            const response = await fetch(url);
+            
+            if (!response.ok) throw new Error("API Error");
 
             const imageBlob = await response.blob();
             clearInterval(progressInterval);
@@ -240,189 +311,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const imageUrl = URL.createObjectURL(imageBlob);
             
-            state.energy -= 100;
+            state.energy -= 50;
             updateEnergyUI();
 
-            postcardData.frontImage = imageUrl;
-            postcardData.imagePosX = 50;
-            postcardData.imagePosY = 50;
+            postcardData.stampImage = imageUrl;
+            postcardData.stampType = 'ai';
             updateDisplay();
-
+            promptInput.value = ""; 
         } catch (e) {
             clearInterval(progressInterval);
             showAppAlert("Generation error: " + e.message);
         } finally {
-            btnGenerateAI.disabled = false;
-            setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+            btnGenerateStamp.disabled = false;
+            btnGenerateStamp.querySelector('span').textContent = "🎨 Generate Stamp (50 Energy)";
+            setTimeout(() => progressContainer.style.display = 'none', 1000);
         }
-    };
+    });
+}
 
-    // === 2. ЛОГИКА ГЕНЕРАЦИИ ПРЕМИУМ-МАРКИ ===
-    const stampGrid = document.getElementById('stamp-select-grid');
-    const aiStampConstructor = document.getElementById('ai-stamp-constructor');
-    const btnGenerateStamp = document.getElementById('btn-generate-stamp');
+// === 3. ОБРАБОТКА ИНТЕРФЕЙСА (ТЕКСТ, ЦВЕТ, МАРКИ, КНОПКИ) ===
+cardMessage.addEventListener('input', (e) => {
+    postcardData.message = e.target.value;
+    const currentLen = e.target.value.length;
+    charCount.innerText = `${currentLen} / 150`;
+    charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
+    updateDisplay();
+});
 
-    if (stampGrid && aiStampConstructor && btnGenerateStamp) {
-        stampGrid.querySelectorAll('.stamp-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const isPremium = btn.classList.contains('premium');
-                aiStampConstructor.style.display = isPremium ? 'block' : 'none';
-            });
-        });
+fontSelect.addEventListener('change', (e) => {
+    postcardData.font = e.target.value;
+    updateDisplay();
+});
 
-        btnGenerateStamp.addEventListener('click', async () => {
-            const promptInput = document.getElementById('ai-stamp-prompt');
-            const userPrompt = promptInput.value.trim();
-            
-            if (!userPrompt) return showAppAlert("Please describe what you want on your stamp.");
-            if (state.energy < 50) return showAppAlert("Not enough energy (need 50)!");
-
-            const progressContainer = document.getElementById('stamp-progress-container');
-            const progressBar = document.getElementById('stamp-progress-bar');
-            const progressPercent = document.getElementById('stamp-progress-percent');
-
-            btnGenerateStamp.disabled = true;
-            btnGenerateStamp.querySelector('span').textContent = "⌛ Painting...";
-            progressContainer.style.display = 'block';
-            progressBar.style.width = '0%';
-            progressPercent.innerText = "0%";
-
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += Math.random() * 3; 
-                    progressBar.style.width = Math.floor(progress) + '%';
-                    progressPercent.innerText = Math.floor(progress) + '%';
-                }
-            }, 400);
-
-            try {
-                const randomSeed = Math.floor(Math.random() * 100000000);
-                const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
-                
-                const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?model=gptimage&width=400&height=500&seed=${randomSeed}`;
-                
-                const API_KEY = 'sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN';
-                
-                const response = await fetch(url, { 
-                    method: "GET",
-                    headers: { "Authorization": `Bearer ${API_KEY}` },
-                    cache: "no-store"
-                });
-                
-                if (!response.ok) throw new Error(`API Error (status ${response.status})`);
-
-                const imageBlob = await response.blob();
-                clearInterval(progressInterval);
-                progressBar.style.width = '100%';
-                progressPercent.innerText = '100%';
-
-                const imageUrl = URL.createObjectURL(imageBlob);
-                
-                state.energy -= 50;
-                updateEnergyUI();
-
-                postcardData.stampImage = imageUrl;
-                postcardData.stampType = 'ai';
-                updateDisplay();
-                promptInput.value = ""; 
-            } catch (e) {
-                clearInterval(progressInterval);
-                showAppAlert("Generation error: " + e.message);
-            } finally {
-                btnGenerateStamp.disabled = false;
-                btnGenerateStamp.querySelector('span').textContent = "🎨 Generate Stamp (50 Energy)";
-                setTimeout(() => progressContainer.style.display = 'none', 1000);
-            }
-        });
-    }
-
-    // === 3. ОБРАБОТКА ИНТЕРФЕЙСА (ТЕКСТ, ЦВЕТ, МАРКИ, КНОПКИ) ===
-    cardMessage.addEventListener('input', (e) => {
-        postcardData.message = e.target.value;
-        const currentLen = e.target.value.length;
-        charCount.innerText = `${currentLen} / 150`;
-        charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
+const inkButtons = document.querySelectorAll('.ink-btn');
+inkButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        inkButtons.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        postcardData.color = e.target.getAttribute('data-color');
         updateDisplay();
     });
+});
 
-    fontSelect.addEventListener('change', (e) => {
-        postcardData.font = e.target.value;
-        updateDisplay();
-    });
-
-    const inkButtons = document.querySelectorAll('.ink-btn');
-    inkButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            inkButtons.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            postcardData.color = e.target.getAttribute('data-color');
-            updateDisplay();
-        });
-    });
-
-    const stampButtons = document.querySelectorAll('.stamp-btn');
-    stampButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const targetBtn = e.target.closest('.stamp-btn'); 
-            if (!targetBtn) return;
-            stampButtons.forEach(b => b.classList.remove('active'));
-            targetBtn.classList.add('active');
-            postcardData.stamp = targetBtn.getAttribute('data-stamp');
-            
-            if (targetBtn.classList.contains('premium') && postcardData.stampImage) {
-                postcardData.stampType = 'ai';
-            } else {
-                postcardData.stampType = 'emoji';
-            }
-            updateDisplay();
-        });
-    });
-
-    // === 4. ПЕРЕКЛЮЧЕНИЕ СТОРОН ОТКРЫТКИ ===
-    btnFront.onclick = () => {
-        postcardData.currentSide = 'front';
-        btnFront.classList.add('constructor-mode-active');
-        btnBack.classList.remove('constructor-mode-active');
-        panelFront.style.display = 'block';
-        panelBack.style.display = 'none';
-        updateDisplay();
-    };
-
-    btnBack.onclick = () => {
-        postcardData.currentSide = 'back';
-        btnBack.classList.add('constructor-mode-active');
-        btnFront.classList.remove('constructor-mode-active');
-        panelBack.style.display = 'block';
-        panelFront.style.display = 'none';
-        updateDisplay();
-    };
-
-    // === ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ (AI / UPLOAD) ===
-    modeButtons.forEach(btn => {
-        btn.onclick = () => {
-            const mode = btn.getAttribute('data-mode');
-            modeButtons.forEach(b => b.classList.remove('constructor-mode-active'));
-            btn.classList.add('constructor-mode-active');
-            panels.forEach(p => {
-                p.style.display = (p.getAttribute('data-panel') === mode) ? 'block' : 'none';
-            });
-        };
-    });
-
-    frontUpload.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                postcardData.frontImage = event.target.result;
-                postcardData.imagePosX = 50;
-                postcardData.imagePosY = 50;
-                updateDisplay();
-            };
-            reader.readAsDataURL(file);
+const stampButtons = document.querySelectorAll('.stamp-btn');
+stampButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const targetBtn = e.target.closest('.stamp-btn'); 
+        if (!targetBtn) return;
+        stampButtons.forEach(b => b.classList.remove('active'));
+        targetBtn.classList.add('active');
+        postcardData.stamp = targetBtn.getAttribute('data-stamp');
+        
+        if (targetBtn.classList.contains('premium') && postcardData.stampImage) {
+            postcardData.stampType = 'ai';
+        } else {
+            postcardData.stampType = 'emoji';
         }
-    };
+        updateDisplay();
+    });
+});
 
     // === ЛОГИКА 3D ===
     document.getElementById('btn-view-3d').onclick = function() {
@@ -561,17 +508,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnSendPostcard) {
         btnSendPostcard.addEventListener('click', () => {
             if (!postcardData.frontImage) return showAppAlert("Please generate or upload an image for the Front Side!");
-            
-            // ИСПРАВЛЕННАЯ СТРОЧКА: добавили уточнение про 5 символов
             if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
-            
             if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
 
             const originalText = btnSendPostcard.textContent;
             btnSendPostcard.disabled = true;
             btnSendPostcard.textContent = "🚀 Sending...";
-
-            // ... дальше весь остальной код без изменений
 
             const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
             if(canvasWrapper) canvasWrapper.classList.add('fly-away-active');
@@ -622,10 +564,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     { flag: "🇺🇸", country: "USA", city: "Washington, D.C." }, { flag: "🇺🇾", country: "Uruguay", city: "Montevideo" }, { flag: "🇺🇿", country: "Uzbekistan", city: "Tashkent" }, { flag: "🇻🇺", country: "Vanuatu", city: "Port Vila" }, { flag: "🇻🇦", country: "Vatican City", city: "Vatican City" },
                     { flag: "🇻🇪", country: "Venezuela", city: "Caracas" }, { flag: "🇻🇳", country: "Vietnam", city: "Hanoi" }, { flag: "🇾🇪", country: "Yemen", city: "Sanaa" }, { flag: "🇿🇲", country: "Zambia", city: "Lusaka" }, { flag: "🇿🇼", country: "Zimbabwe", city: "Harare" }
                 ];
-
-                const dest = allDestinations[Math.floor(Math.random() * allDestinations.length)];
-
-                const FLAG_COORDS = {"🇦🇫":[33,65],"🇦🇱":[41,20],"🇩🇿":[28,3],"🇦🇩":[42,1],"🇦🇴":[-11,17],"🇦🇬":[17,-61],"🇦🇷":[-34,-64],"🇦🇲":[40,45],"🇦🇺":[-25,133],"🇦🇹":[47,13],"🇦🇿":[40,47],"🇧🇸":[25,-77],"🇧🇭":[26,50],"🇧🇩":[24,90],"🇧🇧":[13,-59],"🇧🇾":[53,27],"🇧🇪":[50,4],"🇧🇿":[17,-88],"🇧🇯":[9,2],"🇧🇹":[27,90],"🇧🇴":[-16,-63],"🇧🇦":[44,17],"🇧🇼":[-22,24],"🇧🇷":[-14,-51],"🇧🇳":[4,114],"🇧🇬":[42,25],"🇧🇫":[12,-1],"🇧🇮":[-3,29],"🇨🇻":[16,-24],"🇰🇭":[12,104],"🇨🇲":[3,11],"🇨🇦":[56,-106],"🇨🇫":[6,20],"🇹🇩":[15,19],"🇨🇱":[-35,-71],"🇨🇳":[35,104],"🇨🇴":[4,-74],"🇰🇲":[-11,43],"🇨🇬":[-1,15],"🇨🇩":[-4,21],"🇨🇷":[9,-83],"🇭🇷":[45,15],"🇨🇺":[21,-80],"🇨🇾":[35,33],"🇨🇿":[49,15],"🇩🇰":[56,10],"🇩🇯":[11,42],"🇩🇲":[15,-61],"🇩🇴":[19,-70],"🇪🇨":[-1,-78],"🇪🇬":[26,30],"🇸🇻":[13,-88],"🇬🇶":[1,10],"🇪🇷":[15,39],"🇪🇪":[58,25],"🇸🇿":[-26,31],"🇪🇹":[8,39],"🇫🇯":[-18,178],"🇫🇮":[64,26],"🇫🇷":[46,2],"🇬🇦":[-1,11],"🇬🇲":[13,-15],"🇬🇪":[42,43],"🇩🇪":[51,10],"🇬🇭":[7,-1],"🇬🇷":[39,22],"🇬🇩":[12,-61],"🇬🇹":[15,-90],"🇬🇳":[9,-9],"🇬🇼":[11,-15],"🇬🇾":[4,-58],"🇭🇹":[19,-72],"🇭🇳":[15,-86],"🇭🇺":[47,19],"🇮🇸":[65,-19],"🇮🇳":[20,78],"🇮🇩":[-0.5,113],"🇮🇷":[32,53],"🇮🇶":[33,43],"🇮🇪":[53,-8],"🇮🇱":[31,34],"🇮🇹":[42,12],"🇯🇲":[18,-77],"🇯🇵":[36,138],"🇯🇴":[31,36],"🇰🇿":[48,68],"🇰🇪":[1,38],"🇰🇮":[1,173],"🇰🇵":[40,127],"🇰🇷":[36,127],"🇰🇼":[29,47],"🇰🇬":[41,74],"🇱🇦":[18,105],"🇱🇻":[57,24],"🇱🇧":[33,35],"🇱🇸":[-29,28],"🇱🇷":[6,-9],"🇱🇾":[25,17],"🇱🇮":[47,9],"🇱🇹":[55,24],"🇱🇺":[49,6],"🇲🇬":[-20,47],"🇲🇼":[-13,34],"🇲🇾":[4,109],"🇲🇻":[3,73],"🇲🇱":[17,-4],"🇲🇹":[35,14],"🇲🇭":[7,171],"🇲🇷":[21,-10],"🇲🇺":[-20,57],"🇲🇽":[23,-102],"🇫🇲":[6,158],"🇲🇩":[47,28],"🇲🇨":[43,7],"🇲🇳":[46,105],"🇲🇪":[42,19],"🇲🇦":[31,-7],"🇲🇿":[-18,35],"🇲🇲":[21,96],"🇳🇦":[-22,17],"🇳🇷":[-0.5,166],"🇳🇵":[28,84],"🇳🇱":[52,5],"🇳🇿":[-40,174],"🇳🇮":[12,-86],"🇳🇪":[16,8],"🇳🇬":[10,8],"🇲🇰":[41,21],"🇳🇴":[62,10],"🇴🇲":[21,59],"🇵🇰":[30,69],"🇵🇼":[7,134],"🇵🇸":[31,35],"🇵🇦":[8,-80],"🇵🇬":[-6,147],"🇵🇾":[-23,-58],"🇵🇪":[-9,-75],"🇵🇭":[12,122],"🇵🇱":[52,19],"🇵🇹":[39,-8],"🇶🇦":[25,51],"🇷🇴":[46,25],"🇷🇺":[61,105],"🇷🇼":[-2,30],"🇰🇳":[17,-62],"🇱🇨":[13,-60],"🇻🇨":[13,-61],"🇼🇸":[-13,-172],"🇸🇲":[43,12],"🇸🇹":[0,6],"🇸🇦":[23,45],"🇸🇳":[14,-14],"🇷🇸":[44,21],"🇸🇨":[-4,55],"🇸🇱":[8,-11],"🇸🇬":[1,103],"🇸🇰":[48,19],"🇸🇮":[46,14],"🇸🇧":[-9,159],"🇸🇴":[5,46],"🇿🇦":[-30,22],"🇸🇸":[6,31],"🇪🇸":[40,-4],"🇱🇰":[7,81],"🇸🇩":[15,30],"🇸🇷":[4,-56],"🇸🇪":[60,18],"🇨🇭":[46,8],"🇸🇾":[35,38],"🇹🇼":[23,120],"🇹🇯":[38,71],"🇹🇿":[-6,35],"🇹🇭":[15,100],"🇹🇱":[-8,125],"🇹🇬":[8,1],"🇹🇴":[-21,-175],"🇹🇹":[11,-61],"🇹🇳":[34,9],"🇹🇷":[39,35],"🇹🇲":[40,58],"🇹🇻":[-8,179],"🇺🇬":[1,32],"🇺🇦":[48,31],"🇦🇪":[23,54],"🇬🇧":[55,-3],"🇺🇸":[38,-97],"🇺🇾":[-33,-56],"🇺🇿":[41,64],"🇻🇺":[-15,167],"🇻🇦":[41.9,12.4],"🇻🇪":[8,-66],"🇻🇳":[14,108],"🇾🇪":[15,48],"🇿🇲":[-13,27],"🇿🇼":[-19,29]};
 
                 function getDistance(lat1, lon1, lat2, lon2) {
                     const R = 6371; 

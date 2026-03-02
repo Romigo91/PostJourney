@@ -43,121 +43,429 @@ const countryList = [
     { name: "Zambia", flag: "🇿🇲", capital: "Lusaka" }, { name: "Zimbabwe", flag: "🇿🇼", capital: "Harare" }
 ];
 
+// УНИКАЛЬНОЕ ИМЯ для Сортировщика Почты (чтобы не конфликтовать со script.js)
+const SORTER_COUNTRIES = {
+    "Europe": ["🇫🇷 France", "🇩🇪 Germany", "🇮🇹 Italy", "🇪🇸 Spain", "🇬🇧 UK", "🇵🇱 Poland", "🇸🇪 Sweden", "🇨🇭 Switzerland", "🇳🇱 Netherlands"],
+    "Asia": ["🇯🇵 Japan", "🇨🇳 China", "🇮🇳 India", "🇰🇷 South Korea", "🇹🇭 Thailand", "🇻🇳 Vietnam", "🇹🇷 Turkey", "🇮🇩 Indonesia"],
+    "Africa": ["🇪🇬 Egypt", "🇿🇦 South Africa", "🇳🇬 Nigeria", "🇰🇪 Kenya", "🇲🇦 Morocco", "🇩🇿 Algeria"],
+    "North America": ["🇺🇸 USA", "🇨🇦 Canada", "🇲🇽 Mexico", "🇨🇺 Cuba", "🇯🇲 Jamaica"],
+    "South America": ["🇧🇷 Brazil", "🇦🇷 Argentina", "🇨🇴 Colombia", "🇨🇱 Chile", "🇵🇪 Peru"],
+    "Oceania": ["🇦🇺 Australia", "🇳🇿 New Zealand", "🇫🇯 Fiji"]
+};
+
+
 // ==========================================
 // 2. УПРАВЛЕНИЕ ЭКРАНАМИ
 // ==========================================
-function startGame(type) {
-    document.getElementById('games-menu-list').style.display = 'none';
-    document.getElementById('active-game-zone').style.display = 'block';
-    document.getElementById('game-content').innerHTML = '';
-
-    if (type === 'flags') {
-        runFlagGame();
-    } else if (type === 'capitals') {
-        runCapitalGame();
-    }
-}
-
 function backToGames() {
     document.getElementById('games-menu-list').style.display = 'block';
     document.getElementById('active-game-zone').style.display = 'none';
+    document.getElementById('game-content').innerHTML = '';
 }
 
 // ==========================================
-// 3. ИГРА 1: GUESS THE FLAG (ОТДЕЛЬНЫЙ КОД)
+// 3. ИГРА 1: GEO QUIZ (ФЛАГИ + СТОЛИЦЫ)
 // ==========================================
-function runFlagGame() {
+let quizScore = 0;
+let quizCombo = 0;
+
+function startQuizGame() {
+    document.getElementById('games-menu-list').style.display = 'none';
+    document.getElementById('active-game-zone').style.display = 'block';
+    
     const container = document.getElementById('game-content');
-    const correct = countryList[Math.floor(Math.random() * countryList.length)];
-    const alternates = countryList.filter(c => c.name !== correct.name).sort(() => 0.5 - Math.random()).slice(0, 3);
-    const options = [correct, ...alternates].sort(() => 0.5 - Math.random());
-
+    
+    // Рисуем общий интерфейс с табло
     container.innerHTML = `
-        <div style="font-size: 100px; margin: 20px 0; line-height: 1;">${correct.flag}</div>
-        <p style="margin-bottom: 20px; font-weight: bold;">Which country is this?</p>
-        <div id="flag-options-grid" style="display: grid; gap: 10px;"></div>
+        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:block; font-weight:bold; font-size:14px;">← Quit to Menu</button>
+        
+        <div class="sorter-header">
+            <div class="sorter-score-board">Score: <span id="quiz-score">0</span></div>
+            <div class="sorter-combo-board">Combo: <span id="quiz-combo">0</span>🔥</div>
+        </div>
+
+        <div id="quiz-game-container" style="position: relative; padding-bottom: 10px;">
+            <div id="quiz-question-area" style="text-align: center; min-height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            </div>
+            
+            <div id="quiz-options-grid" style="display: grid; gap: 10px; margin-top: 15px;"></div>
+        </div>
     `;
+    
+    quizScore = 0;
+    quizCombo = 0;
+    nextQuizRound();
+}
 
-    const grid = document.getElementById('flag-options-grid');
-
+function nextQuizRound() {
+    const correct = countryList[Math.floor(Math.random() * countryList.length)];
+    
+    // Бросаем монетку: 50% шанс на флаг, 50% шанс на столицу
+    const isFlagQuestion = Math.random() > 0.5; 
+    
+    let alternates;
+    if (isFlagQuestion) {
+        alternates = countryList.filter(c => c.name !== correct.name).sort(() => 0.5 - Math.random()).slice(0, 3);
+    } else {
+        alternates = countryList.filter(c => c.capital !== correct.capital).sort(() => 0.5 - Math.random()).slice(0, 3);
+    }
+    
+    const options = [correct, ...alternates].sort(() => 0.5 - Math.random());
+    
+    const questionArea = document.getElementById('quiz-question-area');
+    const grid = document.getElementById('quiz-options-grid');
+    
+    // Перезапускаем анимацию вылета вопроса
+    questionArea.className = '';
+    void questionArea.offsetWidth;
+    questionArea.className = 'slide-in';
+    
+    // Рисуем вопрос в зависимости от режима
+    if (isFlagQuestion) {
+        questionArea.innerHTML = `
+            <div style="font-size: 100px; line-height: 1;">${correct.flag}</div>
+            <p style="margin-top: 10px; font-weight: bold; color: var(--text-main);">Which country is this?</p>
+        `;
+    } else {
+        questionArea.innerHTML = `
+            <div style="font-size: 50px; line-height: 1;">🏙️</div>
+            <h2 style="margin: 10px 0 5px 0;">${correct.name}</h2>
+            <p style="color: var(--text-sub); margin:0; font-weight: bold;">What is the capital?</p>
+        `;
+    }
+    
+    grid.innerHTML = '';
+    
+    // Генерируем кнопки с ответами
     options.forEach(opt => {
         const btn = document.createElement('button');
         btn.className = 'secondary-button';
         btn.style.width = '100%';
-        btn.innerText = opt.name;
+        
+        // В зависимости от режима, на кнопках пишем либо названия стран, либо названия столиц
+        const answerText = isFlagQuestion ? opt.name : opt.capital;
+        const correctAnswerText = isFlagQuestion ? correct.name : correct.capital;
+        
+        btn.innerText = answerText;
         
         btn.onclick = () => {
             const btns = grid.querySelectorAll('button');
-            btns.forEach(b => b.style.pointerEvents = 'none');
-
-            if (opt.name === correct.name) {
-                btn.style.background = '#4CAF50';
+            btns.forEach(b => b.style.pointerEvents = 'none'); // Блокируем клики
+            
+            if (answerText === correctAnswerText) {
+                // ПРАВИЛЬНО
+                btn.style.background = '#27ae60';
                 btn.style.color = 'white';
+                btn.style.borderColor = '#27ae60';
+                
+                quizScore += 1;
+                quizCombo += 1;
+                
+                let earnedEnergy = 5;
+                if (quizCombo > 0 && quizCombo % 5 === 0) {
+                    earnedEnergy += 15;
+                    showFloatingText("COMBO! +" + earnedEnergy + "⚡", "#e67e22", "quiz-game-container");
+                } else {
+                    showFloatingText("+" + earnedEnergy + "⚡", "#27ae60", "quiz-game-container");
+                }
+                
+                state.energy += earnedEnergy;
+                const energyEl = document.getElementById('energy-display');
+                if(energyEl) energyEl.textContent = state.energy;
+                
+                document.getElementById('quiz-score').innerText = quizScore;
+                document.getElementById('quiz-combo').innerText = quizCombo;
             } else {
-                btn.style.background = '#F44336';
+                // ОШИБКА
+                btn.style.background = '#e74c3c';
                 btn.style.color = 'white';
+                btn.style.borderColor = '#e74c3c';
+                
+                quizCombo = 0;
+                document.getElementById('quiz-combo').innerText = "0";
+                questionArea.className = 'error-shake';
+                
                 btns.forEach(b => {
-                    if (b.innerText === correct.name) {
-                        b.style.background = '#4CAF50';
+                    if (b.innerText === correctAnswerText) {
+                        b.style.background = '#27ae60';
                         b.style.color = 'white';
+                        b.style.borderColor = '#27ae60';
                     }
                 });
             }
-            setTimeout(runFlagGame, 1100);
+            setTimeout(nextQuizRound, 1200);
         };
         grid.appendChild(btn);
     });
 }
 
 // ==========================================
-// 4. ИГРА 2: GUESS THE CAPITAL (ОТДЕЛЬНЫЙ КОД)
+// 5. ИГРА 3: POST OFFICE SORTER
 // ==========================================
-function runCapitalGame() {
+let currentSorterContinent = "";
+let sorterScore = 0;
+let sorterCombo = 0;
+
+function startSorterGame() {
+    document.getElementById('games-menu-list').style.display = 'none';
+    document.getElementById('active-game-zone').style.display = 'block';
+
     const container = document.getElementById('game-content');
-    const correct = countryList[Math.floor(Math.random() * countryList.length)];
     
-    // Берем 3 случайные страны для неправильных столиц
-    const alternates = countryList
-        .filter(c => c.capital !== correct.capital)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3);
-    
-    const options = [correct, ...alternates].sort(() => 0.5 - Math.random());
-
     container.innerHTML = `
-        <div style="font-size: 60px; margin: 20px 0;">🏙️</div>
-        <h2 style="margin-bottom: 10px;">${correct.name}</h2>
-        <p style="margin-bottom: 20px; color: var(--text-sub);">What is the capital?</p>
-        <div id="capital-options-grid" style="display: grid; gap: 10px;"></div>
-    `;
-
-    const grid = document.getElementById('capital-options-grid');
-
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'secondary-button';
-        btn.style.width = '100%';
-        btn.innerText = opt.capital;
+        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:block; font-weight:bold; font-size:14px;">← Quit to Menu</button>
         
-        btn.onclick = () => {
-            const btns = grid.querySelectorAll('button');
-            btns.forEach(b => b.style.pointerEvents = 'none');
+        <div class="sorter-header">
+            <div class="sorter-score-board">Score: <span id="sorter-score">0</span></div>
+            <div class="sorter-combo-board">Combo: <span id="sorter-combo">0</span>🔥</div>
+        </div>
 
-            if (opt.capital === correct.capital) {
-                btn.style.background = '#4CAF50';
-                btn.style.color = 'white';
-            } else {
-                btn.style.background = '#F44336';
-                btn.style.color = 'white';
-                btns.forEach(b => {
-                    if (b.innerText === correct.capital) {
-                        b.style.background = '#4CAF50';
-                        b.style.color = 'white';
-                    }
-                });
-            }
-            setTimeout(runCapitalGame, 1100);
-        };
-        grid.appendChild(btn);
-    });
+        <div class="sorter-letter-zone" id="sorter-zone">
+            <div id="sorter-letter" class="sorter-letter">
+                <div style="font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px;">Destination:</div>
+                <div id="sorter-destination" class="sorter-destination">Loading...</div>
+            </div>
+        </div>
+
+        <div class="sorter-bins">
+            <button class="sorter-bin" onclick="checkSorterBin('Europe')">Europe</button>
+            <button class="sorter-bin" onclick="checkSorterBin('Asia')">Asia</button>
+            <button class="sorter-bin" onclick="checkSorterBin('Africa')">Africa</button>
+            <button class="sorter-bin" onclick="checkSorterBin('North America')">N. America</button>
+            <button class="sorter-bin" onclick="checkSorterBin('South America')">S. America</button>
+            <button class="sorter-bin" onclick="checkSorterBin('Oceania')">Oceania</button>
+        </div>
+    `;
+    
+    sorterScore = 0;
+    sorterCombo = 0;
+    nextSorterLetter();
+}
+
+function nextSorterLetter() {
+    const continents = Object.keys(SORTER_COUNTRIES);
+    
+    currentSorterContinent = continents[Math.floor(Math.random() * continents.length)];
+    const countriesInContinent = SORTER_COUNTRIES[currentSorterContinent];
+    const randomCountryFlag = countriesInContinent[Math.floor(Math.random() * countriesInContinent.length)];
+    
+    const letter = document.getElementById('sorter-letter');
+    letter.className = 'sorter-letter'; 
+    void letter.offsetWidth; 
+    letter.className = 'sorter-letter slide-in'; 
+    
+    document.getElementById('sorter-destination').innerText = randomCountryFlag;
+
+    // ИСПРАВЛЕНИЕ: Разблокируем кнопки для нового письма
+    const btns = document.querySelectorAll('.sorter-bin');
+    btns.forEach(b => b.style.pointerEvents = 'auto');
+}
+
+function checkSorterBin(selectedContinent) {
+    const letter = document.getElementById('sorter-letter');
+    
+    // ИСПРАВЛЕНИЕ: Блокируем кнопки, пока идет анимация, чтобы избежать багов
+    const btns = document.querySelectorAll('.sorter-bin');
+    btns.forEach(b => b.style.pointerEvents = 'none');
+    
+    if (selectedContinent === currentSorterContinent) {
+        // === ПРАВИЛЬНЫЙ ОТВЕТ ===
+        sorterScore += 1;
+        sorterCombo += 1;
+        
+        let earnedEnergy = 5;
+        if (sorterCombo > 0 && sorterCombo % 5 === 0) {
+            earnedEnergy += 15;
+            showFloatingText("COMBO! +" + earnedEnergy + "⚡", "#e67e22", "sorter-zone");
+        } else {
+            showFloatingText("+" + earnedEnergy + "⚡", "#27ae60", "sorter-zone");
+        }
+        
+        state.energy += earnedEnergy;
+        
+        const energyEl = document.getElementById('energy-display');
+        if(energyEl) energyEl.textContent = state.energy;
+        
+        document.getElementById('sorter-score').innerText = sorterScore;
+        document.getElementById('sorter-combo').innerText = sorterCombo;
+        
+        letter.className = 'sorter-letter success-out';
+        
+        // Выдаем новое письмо быстро (300мс)
+        setTimeout(nextSorterLetter, 300);
+        
+    } else {
+        // === НЕПРАВИЛЬНЫЙ ОТВЕТ ===
+        sorterCombo = 0; 
+        document.getElementById('sorter-combo').innerText = "0";
+        letter.className = 'sorter-letter error-shake';
+
+        // ИСПРАВЛЕНИЕ: Ждем 600мс (пока пройдет тряска) и АВТОМАТИЧЕСКИ даем новое письмо!
+        setTimeout(nextSorterLetter, 600);
+    }
+}
+
+// Универсальный визуальный эффект добавления энергии
+function showFloatingText(text, color, targetContainerId = 'sorter-zone') {
+    const zone = document.getElementById(targetContainerId);
+    if (!zone) return;
+    
+    const floatEl = document.createElement('div');
+    floatEl.className = 'energy-float';
+    floatEl.innerText = text;
+    floatEl.style.color = color;
+    
+    // Позиционируем случайным образом ближе к центру
+    floatEl.style.left = (30 + Math.random() * 40) + '%';
+    floatEl.style.top = '30%';
+    
+    zone.appendChild(floatEl);
+    setTimeout(() => { floatEl.remove(); }, 800);
+}
+
+// ==========================================
+// 6. ИГРА 3: CUSTOMS INSPECTOR (ПРАВДА / ЛОЖЬ)
+// ==========================================
+let customsScore = 0;
+let customsCombo = 0;
+let currentCustomsAnswer = true; // Хранит правильный ответ (Правда или Ложь)
+
+function startCustomsGame() {
+    document.getElementById('games-menu-list').style.display = 'none';
+    document.getElementById('active-game-zone').style.display = 'block';
+
+    const container = document.getElementById('game-content');
+    
+    container.innerHTML = `
+        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:block; font-weight:bold; font-size:14px;">← Quit to Menu</button>
+        
+        <div class="sorter-header">
+            <div class="sorter-score-board">Score: <span id="customs-score">0</span></div>
+            <div class="sorter-combo-board">Combo: <span id="customs-combo">0</span>🔥</div>
+        </div>
+
+        <div id="customs-game-container" style="position: relative;">
+            <div id="customs-card" class="customs-card slide-in">
+                <div id="customs-content" style="text-align: center;"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button id="btn-customs-reject" class="secondary-button" style="flex: 1; border-color: #e74c3c; color: #e74c3c; font-weight: bold; font-size: 16px;" onclick="checkCustomsAnswer(false)">
+                    ❌ REJECT
+                </button>
+                <button id="btn-customs-approve" class="secondary-button" style="flex: 1; border-color: #27ae60; color: #27ae60; font-weight: bold; font-size: 16px;" onclick="checkCustomsAnswer(true)">
+                    ✅ APPROVE
+                </button>
+            </div>
+        </div>
+    `;
+    
+    customsScore = 0;
+    customsCombo = 0;
+    nextCustomsRound();
+}
+
+function nextCustomsRound() {
+    // Вероятность 50/50: сделать утверждение правдивым или ложным
+    currentCustomsAnswer = Math.random() > 0.5;
+    
+    const actualCountry = countryList[Math.floor(Math.random() * countryList.length)];
+    let displayCountry = actualCountry;
+
+    // Если ложь, берем случайную ДРУГУЮ страну
+    if (!currentCustomsAnswer) {
+        let wrongCountry;
+        do {
+            wrongCountry = countryList[Math.floor(Math.random() * countryList.length)];
+        } while (wrongCountry.name === actualCountry.name);
+        displayCountry = wrongCountry;
+    }
+
+    const content = document.getElementById('customs-content');
+    const card = document.getElementById('customs-card');
+    
+    // === ИСПРАВЛЕНИЕ БАГА: УДАЛЯЕМ СТАРЫЕ ПЕЧАТИ ===
+    const oldStamps = card.querySelectorAll('.stamp-effect');
+    oldStamps.forEach(stamp => stamp.remove());
+
+    // Сброс анимаций
+    card.className = 'customs-card';
+    void card.offsetWidth;
+    card.className = 'customs-card slide-in';
+
+
+    // 50% шанс спросить про флаг, 50% про столицу
+    const isFlagQuestion = Math.random() > 0.5;
+
+    if (isFlagQuestion) {
+        content.innerHTML = `
+            <div style="font-size: 80px; line-height: 1.2;">${actualCountry.flag}</div>
+            <div style="font-size: 14px; color: var(--text-sub); margin-top: 10px;">This is the flag of</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-top: 5px;">${displayCountry.name}</div>
+        `;
+    } else {
+        content.innerHTML = `
+            <div style="font-size: 24px; font-weight: 900; color: var(--text-main); margin-bottom: 10px;">${actualCountry.name}</div>
+            <div style="font-size: 14px; color: var(--text-sub);">Capital city is</div>
+            <div style="font-size: 30px; font-weight: bold; color: var(--primary); margin-top: 5px;">${displayCountry.capital}</div>
+        `;
+    }
+
+    // Разблокируем кнопки
+    document.getElementById('btn-customs-reject').disabled = false;
+    document.getElementById('btn-customs-approve').disabled = false;
+}
+
+function checkCustomsAnswer(playerAnswer) {
+    // Блокируем кнопки от двойного клика
+    document.getElementById('btn-customs-reject').disabled = true;
+    document.getElementById('btn-customs-approve').disabled = true;
+
+    const card = document.getElementById('customs-card');
+    const isCorrect = (playerAnswer === currentCustomsAnswer);
+
+    // Создаем элемент печати
+    const stamp = document.createElement('div');
+    stamp.className = 'stamp-effect';
+
+    if (isCorrect) {
+        // Успех
+        customsScore += 1;
+        customsCombo += 1;
+        
+        let earnedEnergy = 5;
+        if (customsCombo > 0 && customsCombo % 5 === 0) {
+            earnedEnergy += 15;
+            showFloatingText("COMBO! +" + earnedEnergy + "⚡", "#e67e22", "customs-game-container");
+        } else {
+            showFloatingText("+" + earnedEnergy + "⚡", "#27ae60", "customs-game-container");
+        }
+        
+        state.energy += earnedEnergy;
+        const energyEl = document.getElementById('energy-display');
+        if(energyEl) energyEl.textContent = state.energy;
+        
+        document.getElementById('customs-score').innerText = customsScore;
+        document.getElementById('customs-combo').innerText = customsCombo;
+
+        // Зеленая печать, если игрок правильно сказал APPROVE, или зеленая печать на REJECT
+        stamp.classList.add('stamp-approve');
+        stamp.innerText = playerAnswer ? "APPROVED" : "REJECTED";
+        
+    } else {
+        // Ошибка
+        customsCombo = 0;
+        document.getElementById('customs-combo').innerText = "0";
+        card.classList.add('error-shake'); // Трясем карточку
+
+        // Красная печать ОШИБКИ
+        stamp.classList.add('stamp-reject');
+        stamp.innerText = "WRONG!";
+    }
+
+    // Добавляем печать на карточку
+    card.appendChild(stamp);
+
+    // Ждем анимацию и запускаем следующий раунд
+    setTimeout(nextCustomsRound, 1000);
 }
