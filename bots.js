@@ -4,52 +4,62 @@
 
 const BOT_SETTINGS = {
     ACTIVITY_INTERVAL: 15000, // Боты "думают" каждые 15 секунд
-    CHANCE_TO_SEND: 0.15,     // 15% шанс, что бот отправит открытку тебе
-    MIN_DELIVERY_MINUTES: 1,  // Минимальное время доставки (1 минута для быстрого теста)
-    MAX_DELIVERY_MINUTES: 3   // Максимальное время доставки (3 минуты)
+    CHANCE_TO_SEND: 0.15,     // 15% шанс отправки
+    MAX_INCOMING: 3           // ВАЖНО: Максимальное количество открыток, которые могут лететь к тебе одновременно
 };
 
 // 1. ГЛАВНЫЙ ЦИКЛ ЖИЗНИ БОТОВ
 function simulateBotActivity() {
-    // Если боты выключены в настройках — ничего не делаем
     if (!state.bots || state.bots.length === 0) return;
 
     let uiNeedsUpdate = false;
 
-    // --- А. СИМУЛЯЦИЯ ИХ СОБСТВЕННОЙ ЖИЗНИ (Ежедневные бонусы) ---
-    // Каждый бот с вероятностью 10% отправляет кому-то (не тебе) открытку
+    // Симуляция активности для Leaderboard
     state.bots.forEach(bot => {
         if (Math.random() < 0.10) {
             bot.sent += 1;
-            uiNeedsUpdate = true; // Таблица лидеров изменилась
+            uiNeedsUpdate = true;
         }
     });
 
-    // --- Б. ОТПРАВКА ОТКРЫТКИ ТЕБЕ ---
-    if (Math.random() < BOT_SETTINGS.CHANCE_TO_SEND) {
-        // Выбираем случайного бота из списка
+    // Считаем, сколько открыток уже летит к тебе прямо сейчас
+    const activeIncoming = state.tracking ? state.tracking.filter(item => item.type === "incoming").length : 0;
+
+    // Отправка открытки ТЕБЕ (только если не превышен лимит)
+    if (activeIncoming < BOT_SETTINGS.MAX_INCOMING && Math.random() < BOT_SETTINGS.CHANCE_TO_SEND) {
         const randomBot = state.bots[Math.floor(Math.random() * state.bots.length)];
         
-        // Генерируем случайное время доставки
-        const deliveryMinutes = Math.floor(Math.random() * (BOT_SETTINGS.MAX_DELIVERY_MINUTES - BOT_SETTINGS.MIN_DELIVERY_MINUTES + 1)) + BOT_SETTINGS.MIN_DELIVERY_MINUTES;
-        const now = new Date().getTime();
-        const arrivalTime = now + (deliveryMinutes * 60 * 1000);
+        // === НОВАЯ ГЕОГРАФИЯ (12 - 72 часа) ===
+        const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
+        const minHours = 12;
+        const maxHours = 72;
+        const maxEarthDistance = 20000; 
+        
+        let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
+        if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
+        if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
 
-        // Добавляем открытку в твой ТРЕКИНГ
+        const deliveryHours = Math.floor(baseDeliveryHours);
+        const randomMinutes = Math.floor(Math.random() * 60);
+
+        const now = new Date().getTime();
+        // Переводим часы и минуты в миллисекунды
+        const arrivalTime = now + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000);
+
         state.tracking.unshift({
             type: "incoming",
             fromBot: randomBot.name,
             flag: randomBot.flag,
+            countryName: randomBot.countryName,
             sentAt: now,
             arrivalAt: arrivalTime,
             status: "In transit ✈️"
         });
 
-        randomBot.sent += 1; // Бот молодец, счетчик растет
+        randomBot.sent += 1;
         uiNeedsUpdate = true;
         
-        // Показываем красивое пуш-уведомление сверху экрана!
-        showBotNotification(`📬 ${randomBot.name} ${randomBot.flag} sent you a postcard!`);
+        showMysteryIncomingModal();
     }
 
     if (uiNeedsUpdate && typeof refreshAllLists === 'function') {
@@ -57,26 +67,23 @@ function simulateBotActivity() {
     }
 }
 
-// 2. ПРОВЕРКА ДОСТАВКИ (Прилетели ли открытки?)
+// 2. ПРОВЕРКА ДОСТАВКИ
 function checkBotDeliveries() {
     if (!state.tracking || state.tracking.length === 0) return;
     
     const now = new Date().getTime();
     let uiNeedsUpdate = false;
     
-    // Идем с конца массива, чтобы безопасно удалять элементы
     for (let i = state.tracking.length - 1; i >= 0; i--) {
         const item = state.tracking[i];
         
-        // Если это открытка от бота, и время пришло
         if (item.type === "incoming" && item.arrivalAt && now >= item.arrivalAt) {
             
-            // ПЕРЕНОСИМ В АРХИВ ПОЛУЧЕННЫХ!
             state.receivedPostcards.unshift({
                 countryFlag: item.flag,
-                fromBot: item.fromBot, // Сохраняем имя бота
+                fromBot: item.fromBot,
                 senderName: item.fromBot,
-                senderCity: "Travel Hub", 
+                senderCity: item.countryName || "Capital",
                 to: item.fromBot + ", " + item.flag, 
                 status: "Delivered",
                 frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${Math.random()}`,
@@ -85,12 +92,10 @@ function checkBotDeliveries() {
                 stampData: "💌"
             });
             
-            // Удаляем из трекинга
             state.tracking.splice(i, 1);
             uiNeedsUpdate = true;
             
-            // Уведомление о получении!
-            showBotNotification(`✅ You received a postcard from ${item.fromBot}! Check your Map.`);
+            showDeliveryModal(item.fromBot, item.flag);
         }
     }
     
@@ -99,67 +104,69 @@ function checkBotDeliveries() {
     }
 }
 
-// 3. СИСТЕМА КРАСИВЫХ ПУШ-УВЕДОМЛЕНИЙ
-function showBotNotification(message) {
+// ==========================================================================
+// 3. НОВЫЕ КРАСИВЫЕ МОДАЛЬНЫЕ ОКНА
+// ==========================================================================
+function showMysteryIncomingModal() {
     const phoneFrame = document.querySelector('.phone-frame') || document.body;
-    const toast = document.createElement('div');
-    
-    toast.style.position = 'absolute';
-    toast.style.top = '20px';
-    toast.style.left = '50%';
-    toast.style.transform = 'translateX(-50%)';
-    toast.style.background = 'rgba(46, 204, 113, 0.95)';
-    toast.style.color = 'white';
-    toast.style.padding = '10px 20px';
-    toast.style.borderRadius = '20px';
-    toast.style.fontWeight = 'bold';
-    toast.style.fontSize = '12px';
-    toast.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-    toast.style.zIndex = '1000';
-    toast.style.transition = 'opacity 0.4s ease, top 0.4s ease';
-    toast.style.opacity = '0';
-    toast.style.textAlign = 'center';
-    toast.style.width = '80%';
-    
-    toast.innerHTML = message;
-    
-    phoneFrame.appendChild(toast);
-    
-    // Анимация появления
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.top = '30px';
-    }, 10);
-    
-    // Анимация исчезновения
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.top = '20px';
-        setTimeout(() => toast.remove(), 400);
-    }, 4000);
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-alert-overlay';
+
+    overlay.innerHTML = `
+        <div class="custom-alert-box">
+            <div style="font-size: 50px; margin-bottom: -15px;">✈️</div>
+            <div style="font-size: 20px; font-weight: 900; color: #2980b9; margin-bottom: 5px;">Incoming Mail!</div>
+            <div class="custom-alert-text" style="font-size: 14px;">
+                Someone from across the world just sent you a mystery postcard!<br>
+                <br>
+                <span style="color: #7f8c8d; font-size: 12px;">Track it on your Home screen.</span>
+            </div>
+            <button class="primary-button custom-alert-btn" style="background: #2980b9; border-color: #2980b9;" onclick="this.closest('.custom-alert-overlay').remove()">Awesome!</button>
+        </div>
+    `;
+    phoneFrame.appendChild(overlay);
 }
 
-// Запускаем двигатель ИИ
+function showDeliveryModal(botName, flag) {
+    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-alert-overlay';
+
+    overlay.innerHTML = `
+        <div class="custom-alert-box">
+            <div style="font-size: 50px; margin-bottom: -15px;">📬</div>
+            <div style="font-size: 20px; font-weight: 900; color: #27ae60; margin-bottom: 5px;">Delivered!</div>
+            <div class="custom-alert-text" style="font-size: 14px;">
+                You just received a new postcard from<br>
+                <b style="font-size: 16px; color: #333;">${botName} <span style="font-size: 18px;">${flag}</span></b><br>
+                <br>
+                <span style="color: #7f8c8d; font-size: 12px;">Check your Received Postcards archive.</span>
+            </div>
+            <button class="primary-button custom-alert-btn" style="background: #27ae60; border-color: #27ae60;" onclick="this.closest('.custom-alert-overlay').remove()">Open Archive</button>
+        </div>
+    `;
+    phoneFrame.appendChild(overlay);
+}
+
 setInterval(simulateBotActivity, BOT_SETTINGS.ACTIVITY_INTERVAL); 
 setInterval(checkBotDeliveries, 3000);
 
 // ==========================================================================
-// 4. УПРАВЛЕНИЕ НАСТРОЙКАМИ БОТОВ (ИНТЕРФЕЙС ТУМБЛЕРА И ПОЛЗУНКА)
+// 4. УПРАВЛЕНИЕ НАСТРОЙКАМИ БОТОВ
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     const botToggle = document.getElementById('bot-toggle');
     const botSettingsRow = document.getElementById('bot-settings-row');
     const botSlider = document.getElementById('bot-count-slider');
     const botCountDisplay = document.getElementById('bot-count-display');
-    const btnApplyBots = document.getElementById('btn-apply-bots'); // Наша новая кнопка
+    const btnApplyBots = document.getElementById('btn-apply-bots'); 
 
-    // База имен для симуляции
     const botNames = ["Traveler", "PostX", "Nomad", "Wanderlust", "GlobeTrotter", "StampLover", "MailBird", "LetterFan", "PostcardKing", "PenPal", "OceanView", "MountainPeak"];
 
     function generateBots(count) {
-        state.bots = []; // Очищаем старых ботов
+        state.bots = []; 
         
-        const allCountries = typeof countryList !== 'undefined' ? countryList : [{flag: '🌍'}];
+        const allCountries = typeof countryList !== 'undefined' ? countryList : [{flag: '🌍', name: 'Unknown'}];
         
         for(let i = 0; i < count; i++) {
             const randomCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
@@ -170,6 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
             state.bots.push({
                 name: botName,
                 flag: randomCountry.flag,
+                countryName: randomCountry.name,
                 sent: sentCount
             });
         }
@@ -178,31 +186,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (botToggle && botSettingsRow && botSlider && btnApplyBots) {
-        
-        // Логика включения/выключения тумблера
         botToggle.onchange = (e) => {
             if (e.target.checked) {
                 botSettingsRow.style.display = 'block';
-                // При включении генерируем стартовое значение (например, 5)
                 generateBots(parseInt(botSlider.value));
             } else {
                 botSettingsRow.style.display = 'none';
-                state.bots = []; // Убиваем ботов
+                state.bots = []; 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
             }
         };
 
-        // ИСПРАВЛЕНИЕ: Теперь ползунок ТОЛЬКО меняет цифру на экране, но НЕ генерирует ботов!
         botSlider.oninput = (e) => {
             botCountDisplay.textContent = e.target.value;
         };
 
-        // НОВОЕ: Генерация происходит только по клику на кнопку!
         btnApplyBots.onclick = () => {
             const count = parseInt(botSlider.value);
             generateBots(count);
             
-            // Красивая анимация кнопки, чтобы показать, что всё сработало
             const originalText = btnApplyBots.textContent;
             btnApplyBots.textContent = "✅ Applied!";
             btnApplyBots.style.background = "#d35400";

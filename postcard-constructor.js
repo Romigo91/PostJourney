@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const text = document.createElement('div');
         text.className = 'custom-alert-text';
-        text.innerText = message;
+        text.innerHTML = message;
         
         const btn = document.createElement('button');
         btn.className = 'primary-button custom-alert-btn';
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // === ВОССТАНОВЛЕННЫЕ ПЕРЕКЛЮЧАТЕЛИ (FRONT/BACK И AI/UPLOAD) ===
+    // === ПЕРЕКЛЮЧАТЕЛИ (FRONT/BACK И AI/UPLOAD) ===
 
     if (btnFront && btnBack) {
         btnFront.addEventListener('click', () => {
@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === ВОССТАНОВЛЕННАЯ ЗАГРУЗКА СВОЕГО ФОТО ===
+    // === ЗАГРУЗКА СВОЕГО ФОТО ===
     if (frontUpload) {
         frontUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === ОБНОВЛЕННАЯ ФУНКЦИЯ ОТРИСОВКИ ===
+    // === ФУНКЦИЯ ОТРИСОВКИ ===
     const updateDisplay = (is3DMode = false, botSenderData = null) => { 
         let previewWidth = previewContent.clientWidth;
         if (previewWidth === 0) return; 
@@ -241,77 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resizeObserver = new ResizeObserver(() => updateDisplay());
     resizeObserver.observe(previewContent);
 
-   // === ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
-   if (btnGenerateAI) {
-    btnGenerateAI.onclick = async () => {
-        const promptText = aiPrompt.value.trim();
-        if (!promptText) return showAppAlert("Please enter a description!");
-
-        if (state.energy < 100) {
-            return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
-        }
-
-        btnGenerateAI.disabled = true;
-        progressContainer.style.display = 'block';
-        progressBar.style.width = '0%';
-        progressPercent.innerText = "0%";
-
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            if (progress < 90) {
-                progress += Math.random() * 3; 
-                progressBar.style.width = Math.floor(progress) + '%';
-                progressPercent.innerText = Math.floor(progress) + '%';
-            }
-        }, 400);
-
-        try {
-            const apiKey = "sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN";
-            
-            const response = await fetch("https://api.openai.com/v1/images/generations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "dall-e-3", 
-                    prompt: promptText + ", beautiful travel postcard style, high quality",
-                    n: 1,
-                    size: "1024x1024"
-                })
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error?.message || "OpenAI API Error");
-            }
-
-            const data = await response.json();
-            const imageUrl = data.data[0].url;
-
-            clearInterval(progressInterval);
-            progressBar.style.width = '100%';
-            progressPercent.innerText = '100%';
-            
-            state.energy -= 100;
-            updateEnergyUI();
-
-            postcardData.frontImage = imageUrl;
-            postcardData.imagePosX = 50;
-            postcardData.imagePosY = 50;
-            updateDisplay();
-
-        } catch (e) {
-            clearInterval(progressInterval);
-            showAppAlert("Generation failed: " + e.message);
-        } finally {
-            btnGenerateAI.disabled = false;
-            setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
-        }
-    };
-}
-
 // === ГЕНЕРАЦИЯ ЛИЦЕВОЙ ЧАСТИ (FRONT SIDE) ===
 if (btnGenerateAI) {
     btnGenerateAI.onclick = async () => {
@@ -343,17 +272,19 @@ if (btnGenerateAI) {
             const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
             const encodedPrompt = encodeURIComponent(uniquePrompt);
             
-            // ИСПРАВЛЕНИЕ: Прямая ссылка на Pollinations с принудительным указанием &model=gptimage
-            const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1200&height=800&model=gptimage&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=gptimage&nologo=true&seed=${randomSeed}`;
 
-            // Передаем твой ключ в заголовках, чтобы избежать API Error
             const response = await fetch(url, {
+                method: "GET",
                 headers: {
                     "Authorization": `Bearer ${apiKey}`
                 }
             });
 
-            if (!response.ok) throw new Error("Pollinations API Error");
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error("API Error " + response.status + ": " + errText);
+            }
 
             const imageBlob = await response.blob();
             clearInterval(progressInterval);
@@ -372,7 +303,7 @@ if (btnGenerateAI) {
 
         } catch (e) {
             clearInterval(progressInterval);
-            showAppAlert("Generation error: " + e.message);
+            showAppAlert("Generation failed: " + e.message);
         } finally {
             btnGenerateAI.disabled = false;
             setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
@@ -422,18 +353,22 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         try {
             const apiKey = "sk_aeA3gBEtOyjU1DgAQIZgrzfvXyqvk6cN";
             const randomSeed = Math.floor(Math.random() * 100000000);
+            
             const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            // ИСПРАВЛЕНИЕ: Также используем модель gptimage для марки
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=gptimage&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=gptimage&nologo=true&seed=${randomSeed}`;
             
             const response = await fetch(url, {
+                method: "GET",
                 headers: {
                     "Authorization": `Bearer ${apiKey}`
                 }
             });
             
-            if (!response.ok) throw new Error("Pollinations API Error");
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error("API Error " + response.status + ": " + errText);
+            }
 
             const imageBlob = await response.blob();
             clearInterval(progressInterval);
@@ -451,7 +386,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             promptInput.value = ""; 
         } catch (e) {
             clearInterval(progressInterval);
-            showAppAlert("Generation error: " + e.message);
+            showAppAlert("Generation failed: " + e.message);
         } finally {
             btnGenerateStamp.disabled = false;
             btnGenerateStamp.querySelector('span').textContent = "🎨 Generate Stamp (50 Energy)";
@@ -650,13 +585,18 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
     setTimeout(() => { updateDisplay(); update3DButtonState(); }, 50);
 
-    // === ОТПРАВКА ОТКРЫТКИ ===
+    // === ОТПРАВКА ОТКРЫТКИ (ИЗМЕНЕНО ПОД ОБЛАКО) ===
     const btnSendPostcard = document.getElementById('send-card-btn'); 
     if (btnSendPostcard) {
         btnSendPostcard.addEventListener('click', () => {
             if (!postcardData.frontImage) return showAppAlert("Please generate or upload an image for the Front Side!");
             if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
             if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
+            
+            // Проверяем, вытянули ли мы адрес из Облака
+            if (!state.currentTarget) {
+                return showAppAlert("Oops! You haven't pulled an address yet.");
+            }
 
             const originalText = btnSendPostcard.textContent;
             btnSendPostcard.disabled = true;
@@ -670,49 +610,14 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                 const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
                 if (balanceEl) balanceEl.textContent = state.postcards;
 
-                const allDestinations = [
-                    { flag: "🇦🇫", country: "Afghanistan", city: "Kabul" }, { flag: "🇦🇱", country: "Albania", city: "Tirana" }, { flag: "🇩🇿", country: "Algeria", city: "Algiers" }, { flag: "🇦🇩", country: "Andorra", city: "Andorra la Vella" }, { flag: "🇦🇴", country: "Angola", city: "Luanda" },
-                    { flag: "🇦🇬", country: "Antigua and Barbuda", city: "St. John's" }, { flag: "🇦🇷", country: "Argentina", city: "Buenos Aires" }, { flag: "🇦🇲", country: "Armenia", city: "Yerevan" }, { flag: "🇦🇺", country: "Australia", city: "Canberra" }, { flag: "🇦🇹", country: "Austria", city: "Vienna" },
-                    { flag: "🇦🇿", country: "Azerbaijan", city: "Baku" }, { flag: "🇧🇸", country: "Bahamas", city: "Nassau" }, { flag: "🇧🇭", country: "Bahrain", city: "Manama" }, { flag: "🇧🇩", country: "Bangladesh", city: "Dhaka" }, { flag: "🇧🇧", country: "Barbados", city: "Bridgetown" },
-                    { flag: "🇧🇾", country: "Belarus", city: "Minsk" }, { flag: "🇧🇪", country: "Belgium", city: "Brussels" }, { flag: "🇧🇿", country: "Belize", city: "Belmopan" }, { flag: "🇧🇯", country: "Benin", city: "Porto-Novo" }, { flag: "🇧🇹", country: "Bhutan", city: "Thimphu" },
-                    { flag: "🇧🇴", country: "Bolivia", city: "Sucre" }, { flag: "🇧🇦", country: "Bosnia and Herzegovina", city: "Sarajevo" }, { flag: "🇧🇼", country: "Botswana", city: "Gaborone" }, { flag: "🇧🇷", country: "Brazil", city: "Brasilia" }, { flag: "🇧🇳", country: "Brunei", city: "Bandar Seri Begawan" },
-                    { flag: "🇧🇬", country: "Bulgaria", city: "Sofia" }, { flag: "🇧🇫", country: "Burkina Faso", city: "Ouagadougou" }, { flag: "🇧🇮", country: "Burundi", city: "Gitega" }, { flag: "🇨🇻", country: "Cabo Verde", city: "Praia" }, { flag: "🇰🇭", country: "Cambodia", city: "Phnom Penh" },
-                    { flag: "🇨🇲", country: "Cameroon", city: "Yaounde" }, { flag: "🇨🇦", country: "Canada", city: "Ottawa" }, { flag: "🇨🇫", country: "Central African Republic", city: "Bangui" }, { flag: "🇹🇩", country: "Chad", city: "N'Djamena" }, { flag: "🇨🇱", country: "Chile", city: "Santiago" },
-                    { flag: "🇨🇳", country: "China", city: "Beijing" }, { flag: "🇨🇴", country: "Colombia", city: "Bogota" }, { flag: "🇰🇲", country: "Comoros", city: "Moroni" }, { flag: "🇨🇬", country: "Congo", city: "Brazzaville" }, { flag: "🇨🇩", country: "DR Congo", city: "Kinshasa" },
-                    { flag: "🇨🇷", country: "Costa Rica", city: "San Jose" }, { flag: "🇭🇷", country: "Croatia", city: "Zagreb" }, { flag: "🇨🇺", country: "Cuba", city: "Havana" }, { flag: "🇨🇾", country: "Cyprus", city: "Nicosia" }, { flag: "🇨🇿", country: "Czechia", city: "Prague" },
-                    { flag: "🇩🇰", country: "Denmark", city: "Copenhagen" }, { flag: "🇩🇯", country: "Djibouti", city: "Djibouti" }, { flag: "🇩🇲", country: "Dominica", city: "Roseau" }, { flag: "🇩🇴", country: "Dominican Republic", city: "Santo Domingo" }, { flag: "🇪🇨", country: "Ecuador", city: "Quito" },
-                    { flag: "🇪🇬", country: "Egypt", city: "Cairo" }, { flag: "🇸🇻", country: "El Salvador", city: "San Salvador" }, { flag: "🇬🇶", country: "Equatorial Guinea", city: "Malabo" }, { flag: "🇪🇷", country: "Eritrea", city: "Asmara" }, { flag: "🇪🇪", country: "Estonia", city: "Tallinn" },
-                    { flag: "🇸🇿", country: "Eswatini", city: "Mbabane" }, { flag: "🇪🇹", country: "Ethiopia", city: "Addis Ababa" }, { flag: "🇫🇯", country: "Fiji", city: "Suva" }, { flag: "🇫🇮", country: "Finland", city: "Helsinki" }, { flag: "🇫🇷", country: "France", city: "Paris" },
-                    { flag: "🇬🇦", country: "Gabon", city: "Libreville" }, { flag: "🇬🇲", country: "Gambia", city: "Banjul" }, { flag: "🇬🇪", country: "Georgia", city: "Tbilisi" }, { flag: "🇩🇪", country: "Germany", city: "Berlin" }, { flag: "🇬🇭", country: "Ghana", city: "Accra" },
-                    { flag: "🇬🇷", country: "Greece", city: "Athens" }, { flag: "🇬🇩", country: "Grenada", city: "St. George's" }, { flag: "🇬🇹", country: "Guatemala", city: "Guatemala City" }, { flag: "🇬🇳", country: "Guinea", city: "Conakry" }, { flag: "🇬🇼", country: "Guinea-Bissau", city: "Bissau" },
-                    { flag: "🇬🇾", country: "Guyana", city: "Georgetown" }, { flag: "🇭🇹", country: "Haiti", city: "Port-au-Prince" }, { flag: "🇭🇳", country: "Honduras", city: "Tegucigalpa" }, { flag: "🇭🇺", country: "Hungary", city: "Budapest" }, { flag: "🇮🇸", country: "Iceland", city: "Reykjavik" },
-                    { flag: "🇮🇳", country: "India", city: "New Delhi" }, { flag: "🇮🇩", country: "Indonesia", city: "Jakarta" }, { flag: "🇮🇷", country: "Iran", city: "Tehran" }, { flag: "🇮🇶", country: "Iraq", city: "Baghdad" }, { flag: "🇮🇪", country: "Ireland", city: "Dublin" },
-                    { flag: "🇮🇱", country: "Israel", city: "Jerusalem" }, { flag: "🇮🇹", country: "Italy", city: "Rome" }, { flag: "🇯🇲", country: "Jamaica", city: "Kingston" }, { flag: "🇯🇵", country: "Japan", city: "Tokyo" }, { flag: "🇯🇴", country: "Jordan", city: "Amman" },
-                    { flag: "🇰🇿", country: "Kazakhstan", city: "Astana" }, { flag: "🇰🇪", country: "Kenya", city: "Nairobi" }, { flag: "🇰🇮", country: "Kiribati", city: "Tarawa" }, { flag: "🇰🇵", country: "North Korea", city: "Pyongyang" }, { flag: "🇰🇷", country: "South Korea", city: "Seoul" },
-                    { flag: "🇰🇼", country: "Kuwait", city: "Kuwait City" }, { flag: "🇰🇬", country: "Kyrgyzstan", city: "Bishkek" }, { flag: "🇱🇦", country: "Laos", city: "Vientiane" }, { flag: "🇱🇻", country: "Latvia", city: "Riga" }, { flag: "🇱🇧", country: "Lebanon", city: "Beirut" },
-                    { flag: "🇱🇸", country: "Lesotho", city: "Maseru" }, { flag: "🇱🇷", country: "Liberia", city: "Monrovia" }, { flag: "🇱🇾", country: "Libya", city: "Tripoli" }, { flag: "🇱🇮", country: "Liechtenstein", city: "Vaduz" }, { flag: "🇱🇹", country: "Lithuania", city: "Vilnius" },
-                    { flag: "🇱🇺", country: "Luxembourg", city: "Luxembourg" }, { flag: "🇲🇬", country: "Madagascar", city: "Antananarivo" }, { flag: "🇲🇼", country: "Malawi", city: "Lilongwe" }, { flag: "🇲🇾", country: "Malaysia", city: "Kuala Lumpur" }, { flag: "🇲🇻", country: "Maldives", city: "Male" },
-                    { flag: "🇲🇱", country: "Mali", city: "Bamako" }, { flag: "🇲🇹", country: "Malta", city: "Valletta" }, { flag: "🇲🇭", country: "Marshall Islands", city: "Majuro" }, { flag: "🇲🇷", country: "Mauritania", city: "Nouakchott" }, { flag: "🇲🇺", country: "Mauritius", city: "Port Louis" },
-                    { flag: "🇲🇽", country: "Mexico", city: "Mexico City" }, { flag: "🇫🇲", country: "Micronesia", city: "Palikir" }, { flag: "🇲🇩", country: "Moldova", city: "Chisinau" }, { flag: "🇲🇨", country: "Monaco", city: "Monaco" }, { flag: "🇲🇳", country: "Mongolia", city: "Ulaanbaatar" },
-                    { flag: "🇲🇪", country: "Montenegro", city: "Podgorica" }, { flag: "🇲🇦", country: "Morocco", city: "Rabat" }, { flag: "🇲🇿", country: "Mozambique", city: "Maputo" }, { flag: "🇲🇲", country: "Myanmar", city: "Naypyidaw" }, { flag: "🇳🇦", country: "Namibia", city: "Windhoek" },
-                    { flag: "🇳🇷", country: "Nauru", city: "Yaren" }, { flag: "🇳🇵", country: "Nepal", city: "Kathmandu" }, { flag: "🇳🇱", country: "Netherlands", city: "Amsterdam" }, { flag: "🇳🇿", country: "New Zealand", city: "Wellington" }, { flag: "🇳🇮", country: "Nicaragua", city: "Managua" },
-                    { flag: "🇳🇪", country: "Niger", city: "Niamey" }, { flag: "🇳🇬", country: "Nigeria", city: "Abuja" }, { flag: "🇲🇰", country: "North Macedonia", city: "Skopje" }, { flag: "🇳🇴", country: "Norway", city: "Oslo" }, { flag: "🇴🇲", country: "Oman", city: "Muscat" },
-                    { flag: "🇵🇰", country: "Pakistan", city: "Islamabad" }, { flag: "🇵🇼", country: "Palau", city: "Ngerulmud" }, { flag: "🇵🇸", country: "Palestine", city: "Ramallah" }, { flag: "🇵🇦", country: "Panama", city: "Panama City" }, { flag: "🇵🇬", country: "Papua New Guinea", city: "Port Moresby" },
-                    { flag: "🇵🇾", country: "Paraguay", city: "Asuncion" }, { flag: "🇵🇪", country: "Peru", city: "Lima" }, { flag: "🇵🇭", country: "Philippines", city: "Manila" }, { flag: "🇵🇱", country: "Poland", city: "Warsaw" }, { flag: "🇵🇹", country: "Portugal", city: "Lisbon" },
-                    { flag: "🇶🇦", country: "Qatar", city: "Doha" }, { flag: "🇷🇴", country: "Romania", city: "Bucharest" }, { flag: "🇷🇺", country: "Russia", city: "Moscow" }, { flag: "🇷🇼", country: "Rwanda", city: "Kigali" }, { flag: "🇰🇳", country: "St. Kitts & Nevis", city: "Basseterre" },
-                    { flag: "🇱🇨", country: "St. Lucia", city: "Castries" }, { flag: "🇻🇨", country: "St. Vincent & Grenadines", city: "Kingstown" }, { flag: "🇼🇸", country: "Samoa", city: "Apia" }, { flag: "🇸🇲", country: "San Marino", city: "San Marino" }, { flag: "🇸🇹", country: "Sao Tome & Principe", city: "Sao Tome" },
-                    { flag: "🇸🇦", country: "Saudi Arabia", city: "Riyadh" }, { flag: "🇸🇳", country: "Senegal", city: "Dakar" }, { flag: "🇷🇸", country: "Serbia", city: "Belgrade" }, { flag: "🇸🇨", country: "Seychelles", city: "Victoria" }, { flag: "🇸🇱", country: "Sierra Leone", city: "Freetown" },
-                    { flag: "🇸🇬", country: "Singapore", city: "Singapore" }, { flag: "🇸🇰", country: "Slovakia", city: "Bratislava" }, { flag: "🇸🇮", country: "Slovenia", city: "Ljubljana" }, { flag: "🇸🇧", country: "Solomon Islands", city: "Honiara" }, { flag: "🇸🇴", country: "Somalia", city: "Mogadishu" },
-                    { flag: "🇿🇦", country: "South Africa", city: "Pretoria" }, { flag: "🇸🇸", country: "South Sudan", city: "Juba" }, { flag: "🇪🇸", country: "Spain", city: "Madrid" }, { flag: "🇱🇰", country: "Sri Lanka", city: "Colombo" }, { flag: "🇸🇩", country: "Sudan", city: "Khartoum" },
-                    { flag: "🇸🇷", country: "Suriname", city: "Paramaribo" }, { flag: "🇸🇪", country: "Sweden", city: "Stockholm" }, { flag: "🇨🇭", country: "Switzerland", city: "Bern" }, { flag: "🇸🇾", country: "Syria", city: "Damascus" }, { flag: "🇹🇼", country: "Taiwan", city: "Taipei" },
-                    { flag: "🇹🇯", country: "Tajikistan", city: "Dushanbe" }, { flag: "🇹🇿", country: "Tanzania", city: "Dodoma" }, { flag: "🇹🇭", country: "Thailand", city: "Bangkok" }, { flag: "🇹🇱", country: "Timor-Leste", city: "Dili" }, { flag: "🇹🇬", country: "Togo", city: "Lome" },
-                    { flag: "🇹🇴", country: "Tonga", city: "Nukuʻalofa" }, { flag: "🇹🇹", country: "Trinidad and Tobago", city: "Port of Spain" }, { flag: "🇹🇳", country: "Tunisia", city: "Tunis" }, { flag: "🇹🇷", country: "Turkey", city: "Ankara" }, { flag: "🇹🇲", country: "Turkmenistan", city: "Ashgabat" },
-                    { flag: "🇹🇻", country: "Tuvalu", city: "Funafuti" }, { flag: "🇺🇬", country: "Uganda", city: "Kampala" }, { flag: "🇺🇦", country: "Ukraine", city: "Kyiv" }, { flag: "🇦🇪", country: "UAE", city: "Abu Dhabi" }, { flag: "🇬🇧", country: "UK", city: "London" },
-                    { flag: "🇺🇸", country: "USA", city: "Washington, D.C." }, { flag: "🇺🇾", country: "Uruguay", city: "Montevideo" }, { flag: "🇺🇿", country: "Uzbekistan", city: "Tashkent" }, { flag: "🇻🇺", country: "Vanuatu", city: "Port Vila" }, { flag: "🇻🇦", country: "Vatican City", city: "Vatican City" },
-                    { flag: "🇻🇪", country: "Venezuela", city: "Caracas" }, { flag: "🇻🇳", country: "Vietnam", city: "Hanoi" }, { flag: "🇾🇪", country: "Yemen", city: "Sanaa" }, { flag: "🇿🇲", country: "Zambia", city: "Lusaka" }, { flag: "🇿🇼", country: "Zimbabwe", city: "Harare" }
-                ];
+                // БЕРЕМ ЦЕЛЬ ИЗ ОБЛАКА!
+                const dest = {
+                    country: state.currentTarget.country,
+                    city: state.currentTarget.city,
+                    flag: state.currentTarget.flag,
+                    name: state.currentTarget.name
+                };
 
-                const dest = allDestinations[Math.floor(Math.random() * allDestinations.length)];
                 const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
 
                 const minHours = 12;
@@ -755,6 +660,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
 
+                // Очистка конструктора
                 postcardData.frontImage = null;
                 postcardData.message = '';
                 postcardData.stampImage = null;
@@ -805,14 +711,20 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                     setTimeout(() => successOverlay.style.opacity = '1', 10);
                     setTimeout(() => {
                         successOverlay.style.opacity = '0';
-                        setTimeout(() => successOverlay.remove(), 400); 
+                        setTimeout(() => {
+                            successOverlay.remove();
+                            // Сбрасываем экран Create обратно на кнопку Pull Address
+                            if (typeof window.resetCloudScreen === 'function') {
+                                window.resetCloudScreen();
+                            }
+                        }, 400); 
                     }, 3500);
                 }
             }, 1500);
         });
     }
 
-    // === 5. ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА ИЗ АРХИВА ===
+    // === ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА ИЗ АРХИВА ===
     document.addEventListener('click', (e) => {
         const cardEl = e.target.closest('.archive-card');
         if (!cardEl) return;

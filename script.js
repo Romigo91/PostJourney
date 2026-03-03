@@ -209,13 +209,26 @@ renderListComponent("tracking-list", state.tracking, item => {
      });
  }
 
-// 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (3 СТРОКИ ТЕКСТА)
-const cardTemplate = (card, index) => {
-    // Разделяем строку "Japan, Tokyo" на Страну и Город
-    const toParts = (card.to || "Unknown, Unknown").split(", ");
-    const countryName = toParts[0];
-    const cityName = toParts.length > 1 ? toParts[1] : "";
-    const flag = card.countryFlag || card.flag || '';
+// 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (УМНЫЙ ШАБЛОН)
+const cardTemplate = (card, index, isReceived) => {
+    const flag = card.countryFlag || card.flag || '🌍';
+    let mainText = "";
+    let subText = "";
+
+    // ЛОГИКА: Разделяем отображение для Входящих и Исходящих
+    if (isReceived) {
+        // Для полученных открыток показываем только Никнейм отправителя
+        mainText = card.fromBot || card.senderName || "Unknown Sender";
+        subText = ""; // Вторую строку (город/дубль флага) оставляем пустой
+    } else {
+        // Для отправленных открыток показываем Страну и Город
+        const toParts = (card.to || "Unknown, Unknown").split(", ");
+        mainText = toParts[0]; 
+        subText = toParts.length > 1 ? toParts[1] : ""; 
+    }
+
+    // Цвет статуса: зеленый для полученных, оранжевый для отправленных
+    const statusColor = isReceived ? '#2ecc71' : '#f39c12';
 
     return `
     <div class="postcard-card archive-card" data-index="${index}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 3/2; height: auto; position: relative; cursor: pointer; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
@@ -225,13 +238,13 @@ const cardTemplate = (card, index) => {
         }
         <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85) 70%); padding: 30px 10px 10px 10px; z-index: 2; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
             
-            <span style="color: white; font-weight: bold; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1;">
-                ${flag} ${countryName}
+            <span style="color: white; font-weight: bold; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                ${flag} ${mainText}
             </span>
             
-            ${cityName ? `<span style="color: #e0e0e0; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1;">${cityName}</span>` : ''}
+            ${subText ? `<span style="color: #e0e0e0; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1;">${subText}</span>` : ''}
             
-            <span style="color: #f39c12; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 2px;">
+            <span style="color: ${statusColor}; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 2px;">
                 ${card.status}
             </span>
             
@@ -239,15 +252,17 @@ const cardTemplate = (card, index) => {
     </div>`;
 };
     
-    // Специальная функция для рендера с индексами (чтобы знать, на какую нажали)
-    const renderArchiveList = (containerId, dataArray) => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        container.innerHTML = dataArray.map((item, i) => cardTemplate(item, i)).join('');
-    };
+// Специальная функция для рендера с указанием типа (Полученные или Отправленные)
+const renderArchiveList = (containerId, dataArray, isReceived = false) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    // Передаем параметр isReceived внутрь шаблона
+    container.innerHTML = dataArray.map((item, i) => cardTemplate(item, i, isReceived)).join('');
+};
 
-    renderArchiveList("sent-postcards-grid", state.sentPostcards);
-    renderArchiveList("received-postcards-grid", state.receivedPostcards);
+// Вызываем отрисовку списков. Для полученных передаем true!
+renderArchiveList("sent-postcards-grid", state.sentPostcards, false);
+renderArchiveList("received-postcards-grid", state.receivedPostcards, true);
 
     // 4. СЧЕТЧИКИ АРХИВОВ
     const sentCountEl = document.getElementById("sent-count");
