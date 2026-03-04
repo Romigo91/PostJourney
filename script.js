@@ -305,31 +305,46 @@ function renderMapSections() {
         if (!container) return;
         
         container.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
-            // Считаем, сколько флагов из этого континента мы уже собрали
+            // Считаем прогресс
             const collectedInContinent = flags.filter(f => collectedFlags.includes(f)).length;
+            const isCompleted = collectedInContinent === flags.length;
+            
+            // Если собрали все - зеленый, если начали - оранжевый, если пусто - серый
+            const color = collectedInContinent > 0 ? (isCompleted ? '#27ae60' : '#e67e22') : '#888';
             
             return `
-                <div class="continent-row" style="margin-bottom: 20px;">
-                    <div class="continent-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 4px;">
-                        <span class="continent-name" style="font-weight: bold; color: #333;">${continent}</span>
-                        <span class="continent-progress" style="font-size: 12px; color: ${collectedInContinent > 0 ? '#e67e22' : '#888'}; font-weight: ${collectedInContinent > 0 ? 'bold' : 'normal'};">
-                            ${collectedInContinent} / ${flags.length}
-                        </span>
+                <div class="continent-wrapper" style="margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-element);">
+                    
+                    <div class="continent-header" onclick="const body = this.nextElementSibling; const isHidden = body.style.display === 'none'; body.style.display = isHidden ? 'block' : 'none'; this.querySelector('.cont-arrow').textContent = isHidden ? '⬆️' : '⬇️';" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; cursor: pointer; transition: background 0.2s;">
+                        <span style="font-weight: bold; color: var(--text-main); font-size: 14px;">${continent}</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; color: ${color}; font-weight: bold;">
+                                ${collectedInContinent} / ${flags.length}
+                            </span>
+                            <span class="cont-arrow" style="font-size: 12px; color: var(--text-sub);">⬇️</span>
+                        </div>
                     </div>
-                    <div class="flag-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        ${flags.map(f => {
-                            // Проверяем, есть ли текущий флаг в нашем списке собранных
-                            const isCollected = collectedFlags.includes(f);
-                            const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
-                            
-                            return `<div class="${flagClass}" title="${f}" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 18px;">${f}</div>`;
-                        }).join('')}
+                    
+                    <div class="continent-body" style="display: none; padding: 15px; border-top: 1px dashed var(--border); background: var(--bg-card);">
+                        <div class="flag-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            ${flags.map(f => {
+                                const isCollected = collectedFlags.includes(f);
+                                const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
+                                
+                                // Визуально выделяем собранные флаги и обесцвечиваем несобранные
+                                const opacity = isCollected ? '1' : '0.2';
+                                const filter = isCollected ? 'none' : 'grayscale(100%)';
+                                
+                                return `<div class="${flagClass}" title="${f}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 20px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
+                            }).join('')}
+                        </div>
                     </div>
+                    
                 </div>`;
         }).join("");
     };
     
-    // Рисуем обе карты, передавая им соответствующие списки собранных флагов
+    // Рисуем обе карты
     mapTemplate("sent-by-continent", sentFlags);
     mapTemplate("received-by-continent", receivedFlags);
 }

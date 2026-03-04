@@ -93,7 +93,7 @@
                 <span>Tracking Board</span>
                 <span id="tracking-count" style="background: #e67e22; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">0</span>
               </div>
-              <span class="expand-trigger" style="font-size: 14px; cursor: pointer;">⬇️</span> 
+              <span class="expand-trigger">⬇️</span> 
             </div>
             
             <div class="extra-content">
@@ -107,7 +107,7 @@
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="color: #333; font-weight: 600;">Archive 🗃️</span>
               </div>
-              <span class="expand-trigger" style="font-size: 14px; cursor: pointer;">⬇️</span>
+              <span class="expand-trigger">⬇️</span>
             </div>
             
             <div class="extra-content" style="padding-top: 15px;">
@@ -127,33 +127,43 @@
         </section>
 
         <section class="screen" data-screen="map">
-            <h2 class="screen-title">World Map</h2>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span>Sent collection</span>
+          <h2 class="screen-title">World Map</h2>
+        
+          <div class="section-block clickable-block" style="margin-bottom: 15px;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #333; font-weight: 600;">Sent collection 📤</span>
               </div>
-              <div class="continent-list" id="sent-by-continent"></div>
+              <span class="expand-trigger">⬇️</span>
             </div>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span>Received postcards</span>
-              </div>
-              <div class="continent-list" id="received-by-continent"></div>
+            <div class="extra-content" style="padding-top: 15px;">
+              <div id="sent-by-continent"></div>
             </div>
-          
-            <div class="section-block clickable-block">
-              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Leaderboard</span>
-                <span class="expand-trigger">⬇️</span>
+          </div>
+        
+          <div class="section-block clickable-block" style="margin-bottom: 15px;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #333; font-weight: 600;">Received postcards 📥</span>
               </div>
-              <div class="extra-content">
-                <p class="small-text" style="margin-bottom: 10px;">Top postcrossers around the world. Send more postcards to climb the ranks!</p>
-                <ol class="leaderboard" id="leaderboard-list"></ol>
-              </div>
+              <span class="expand-trigger">⬇️</span>
             </div>
-        </section>
+            <div class="extra-content" style="padding-top: 15px;">
+              <div id="received-by-continent"></div>
+            </div>
+          </div>
+        
+          <div class="section-block clickable-block">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Leaderboard 🏆</span>
+              <span class="expand-trigger">⬇️</span>
+            </div>
+            <div class="extra-content">
+              <p class="small-text" style="margin-bottom: 10px;">Top postcrossers around the world. Send more postcards to climb the ranks!</p>
+              <ol class="leaderboard" id="leaderboard-list"></ol>
+            </div>
+          </div>
+      </section>
 
         <section class="screen" data-screen="create">
           <h2 class="screen-title">Postcards</h2>
@@ -312,19 +322,6 @@
                 
                   <button class="primary-button" id="send-card-btn" style="width: 100%;">Send postcard</button>
                 </div>
-                
-                <div id="modal-3d" class="modal-3d">
-                    <div class="modal-3d-overlay" id="modal-3d-overlay"></div>
-                    <div class="modal-3d-container">
-                        <div class="card-3d-wrapper">
-                            <div id="card-3d-inner" class="card-3d-inner">
-                                <div class="card-3d-front" id="3d-front"></div>
-                                <div class="card-3d-back" id="3d-back"></div>
-                            </div>
-                        </div>
-                        <button id="close-3d-btn" class="close-3d-btn">✕</button>
-                    </div>
-                </div>
               </div>
             </div>
           </div>
@@ -431,6 +428,20 @@
               </div>
             </div>
         </section>
+
+        <div id="modal-3d" class="modal-3d">
+            <div class="modal-3d-overlay" id="modal-3d-overlay"></div>
+            <div class="modal-3d-container">
+                <div class="card-3d-wrapper">
+                    <div id="card-3d-inner" class="card-3d-inner">
+                        <div class="card-3d-front" id="3d-front"></div>
+                        <div class="card-3d-back" id="3d-back"></div>
+                    </div>
+                </div>
+                <button id="close-3d-btn" class="close-3d-btn">✕</button>
+            </div>
+        </div>
+
       </main>
 
       <nav class="bottom-nav">

@@ -140,7 +140,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // === ФУНКЦИЯ ОТРИСОВКИ ===
     const updateDisplay = (is3DMode = false, botSenderData = null) => { 
         let previewWidth = previewContent.clientWidth;
-        if (previewWidth === 0) return; 
+        
+        // ИСПРАВЛЕНИЕ ГЛАВНОГО БАГА:
+        // Если вкладка Create скрыта (ширина 0), используем стандартные 600px для генерации 3D!
+        if (previewWidth === 0) {
+            previewWidth = 600; 
+        }
         
         const scale = previewWidth / 600;
         previewContent.style.height = (400 * scale) + 'px';
@@ -465,6 +470,14 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
             postcardData.currentSide = originalSide;
             updateDisplay(false);
+            
+            currentRotateX = 0;
+            currentRotateY = 0;
+            if(inner) {
+                inner.style.transition = 'none';
+                inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            }
+
             modal.style.display = 'flex';
 
             setTimeout(() => {
@@ -585,7 +598,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
     setTimeout(() => { updateDisplay(); update3DButtonState(); }, 50);
 
-    // === ОТПРАВКА ОТКРЫТКИ (ИЗМЕНЕНО ПОД ОБЛАКО) ===
+    // === ОТПРАВКА ОТКРЫТКИ ===
     const btnSendPostcard = document.getElementById('send-card-btn'); 
     if (btnSendPostcard) {
         btnSendPostcard.addEventListener('click', () => {
@@ -593,7 +606,6 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
             if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
             
-            // Проверяем, вытянули ли мы адрес из Облака
             if (!state.currentTarget) {
                 return showAppAlert("Oops! You haven't pulled an address yet.");
             }
@@ -610,7 +622,6 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                 const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
                 if (balanceEl) balanceEl.textContent = state.postcards;
 
-                // БЕРЕМ ЦЕЛЬ ИЗ ОБЛАКА!
                 const dest = {
                     country: state.currentTarget.country,
                     city: state.currentTarget.city,
@@ -660,11 +671,19 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
 
-                // Очистка конструктора
+                // === ИДЕАЛЬНЫЙ СБРОС КОНСТРУКТОРА ===
                 postcardData.frontImage = null;
                 postcardData.message = '';
                 postcardData.stampImage = null;
                 postcardData.stampType = 'emoji';
+                postcardData.currentSide = 'front';
+
+                if (btnFront && btnBack && panelFront && panelBack) {
+                    btnFront.classList.add('constructor-mode-active');
+                    btnBack.classList.remove('constructor-mode-active');
+                    panelFront.style.display = 'block';
+                    panelBack.style.display = 'none';
+                }
 
                 if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
                 if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
@@ -713,7 +732,6 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                         successOverlay.style.opacity = '0';
                         setTimeout(() => {
                             successOverlay.remove();
-                            // Сбрасываем экран Create обратно на кнопку Pull Address
                             if (typeof window.resetCloudScreen === 'function') {
                                 window.resetCloudScreen();
                             }
@@ -767,7 +785,16 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         Object.assign(postcardData, backupData);
         updateDisplay(false); 
 
+        // Сбрасываем углы вращения при открытии
+        currentRotateX = 0; 
+        currentRotateY = 0;
+        if(inner) {
+            inner.style.transition = 'none';
+            inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        }
+
         modal.style.display = 'flex';
+        
         setTimeout(() => {
             const rect = wrapper.getBoundingClientRect();
             const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
