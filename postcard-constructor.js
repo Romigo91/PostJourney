@@ -277,7 +277,7 @@ if (btnGenerateAI) {
             const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
             const encodedPrompt = encodeURIComponent(uniquePrompt);
             
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=gptimage&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=imagen-4&nologo=true&seed=${randomSeed}`;
 
             const response = await fetch(url, {
                 method: "GET",
@@ -361,7 +361,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             
             const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=gptimage&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=imagen-4&nologo=true&seed=${randomSeed}`;
             
             const response = await fetch(url, {
                 method: "GET",
@@ -742,68 +742,87 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         });
     }
 
-    // === ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА ИЗ АРХИВА ===
-    document.addEventListener('click', (e) => {
-        const cardEl = e.target.closest('.archive-card');
-        if (!cardEl) return;
+  // === УНИВЕРСАЛЬНАЯ ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА (ИСПРАВЛЕНО) ===
+document.addEventListener('click', (e) => {
+    // Ищем, был ли клик по карточке архива
+    const cardEl = e.target.closest('.archive-card');
+    if (!cardEl) return;
 
-        const isSent = cardEl.closest('#sent-postcards-grid') !== null;
-        const index = parseInt(cardEl.getAttribute('data-index'));
-        
-        const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
-        if (!cardData) return;
+    // Определяем, в какой секции лежит карточка (Sent или Received)
+    const isSent = cardEl.closest('#sent-postcards-grid') !== null;
+    const index = parseInt(cardEl.getAttribute('data-index'));
+    
+    // Берем данные из нужного массива в state
+    const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
+    if (!cardData) return;
 
-        const modal = document.getElementById('modal-3d');
-        const frontDiv = document.getElementById('3d-front');
-        const backDiv = document.getElementById('3d-back');
-        const wrapper = document.querySelector('.card-3d-wrapper');
+    const modal = document.getElementById('modal-3d');
+    const frontDiv = document.getElementById('3d-front');
+    const backDiv = document.getElementById('3d-back');
+    const wrapper = document.querySelector('.card-3d-wrapper');
+    const inner = document.getElementById('card-3d-inner');
 
-        const senderInfo = isSent ? null : {
-            name: cardData.fromBot || cardData.senderName || "@Stranger",
-            country: cardData.countryFlag || "🌍",
-            city: cardData.senderCity || "Unknown"
-        };
+    // Настраиваем данные для оборота (для полученных - это данные бота)
+    const senderInfo = isSent ? null : {
+        name: cardData.senderName || cardData.fromBot || "Stranger",
+        country: cardData.countryFlag || "🌍",
+        city: cardData.senderCity || "Unknown"
+    };
 
-        const backupData = JSON.parse(JSON.stringify(postcardData));
-        
-        postcardData.frontImage = cardData.frontImage;
-        postcardData.message = cardData.message;
-        postcardData.stampType = cardData.stampType || 'emoji';
-        postcardData.stampImage = cardData.stampImage || null;
-        postcardData.stamp = cardData.stampData || cardData.stamp || '🌲';
+    // 1. Сохраняем текущее состояние конструктора, чтобы не испортить недоделанную открытку
+    const backupData = JSON.parse(JSON.stringify(postcardData));
+    
+    // 2. Наполняем временные данные конструктора данными из архива
+    postcardData.frontImage = cardData.frontImage;
+    postcardData.message = cardData.message;
+    postcardData.stampType = cardData.stampType || (cardData.stampImage ? 'ai' : 'emoji');
+    postcardData.stampImage = cardData.stampImage || null;
+    postcardData.stamp = cardData.stampData || cardData.stamp || '🌲';
+    postcardData.font = cardData.font || "'Caveat', cursive";
+    postcardData.color = cardData.color || '#1e3799';
 
-        postcardData.currentSide = 'front';
-        updateDisplay(true, senderInfo); 
-        frontDiv.innerHTML = '';
-        frontDiv.appendChild(document.getElementById('postcard-canvas').cloneNode(true));
+    // Рендерим ЛИЦЕВУЮ сторону
+    postcardData.currentSide = 'front';
+    updateDisplay(true, senderInfo); 
+    frontDiv.innerHTML = '';
+    let fCanvas = document.getElementById('postcard-canvas');
+    if (fCanvas) frontDiv.appendChild(fCanvas.cloneNode(true));
 
-        postcardData.currentSide = 'back';
-        updateDisplay(true, senderInfo);
-        backDiv.innerHTML = '';
-        backDiv.appendChild(document.getElementById('postcard-canvas').cloneNode(true));
+    // Рендерим ОБОРОТНУЮ сторону
+    postcardData.currentSide = 'back';
+    updateDisplay(true, senderInfo);
+    backDiv.innerHTML = '';
+    let bCanvas = document.getElementById('postcard-canvas');
+    if (bCanvas) backDiv.appendChild(bCanvas.cloneNode(true));
 
-        Object.assign(postcardData, backupData);
-        updateDisplay(false); 
+    // 3. Возвращаем настройки конструктора в исходное состояние
+    Object.assign(postcardData, backupData);
+    updateDisplay(false); 
 
-        // Сбрасываем углы вращения при открытии
-        currentRotateX = 0; 
-        currentRotateY = 0;
-        if(inner) {
-            inner.style.transition = 'none';
-            inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
+    // Сбрасываем вращение 3D модели
+    if (inner) {
+        inner.style.transition = 'none';
+        inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
+        // Сброс глобальных переменных вращения (если они у тебя есть)
+        if (typeof currentRotateX !== 'undefined') {
+            currentRotateX = 0;
+            currentRotateY = 0;
         }
+    }
 
-        modal.style.display = 'flex';
-        
-        setTimeout(() => {
-            const rect = wrapper.getBoundingClientRect();
-            const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
-            const scale3D = w / 600;
-            const fCanvas = frontDiv.querySelector('#postcard-canvas');
-            const bCanvas = backDiv.querySelector('#postcard-canvas');
-            if(fCanvas) fCanvas.style.transform = `scale(${scale3D})`;
-            if(bCanvas) bCanvas.style.transform = `scale(${scale3D})`;
-            wrapper.style.height = (w * (400 / 600)) + 'px'; 
-        }, 10);
-    });
+    // Показываем модалку
+    modal.style.display = 'flex';
+    
+    // Фикс масштаба под размер экрана
+    setTimeout(() => {
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
+        const scale3D = w / 600;
+        const finalF = frontDiv.querySelector('#postcard-canvas');
+        const finalB = backDiv.querySelector('#postcard-canvas');
+        if(finalF) finalF.style.transform = `scale(${scale3D})`;
+        if(finalB) finalB.style.transform = `scale(${scale3D})`;
+        wrapper.style.height = (w * (400 / 600)) + 'px'; 
+    }, 50);
+});
 });

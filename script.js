@@ -169,45 +169,96 @@ renderListComponent("tracking-list", state.tracking, item => {
         </div>`;
 });
 
- // 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ С БОТАМИ)
- const uniqueCountriesCount = new Set(state.sentPostcards.map(card => card.countryFlag || card.flag)).size;
+// 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ С БОТАМИ И СТРАНАМИ)
+const uniqueCountriesCount = new Set(state.sentPostcards.map(card => card.countryFlag || card.flag)).size;
     
- // Твой профиль
- const userLeaderboardEntry = { 
-     name: `${state.profile.name} (You)`, 
-     sent: state.sentPostcards.length, 
-     countries: uniqueCountriesCount,
-     isUser: true
- };
+// Твой профиль
+const userLeaderboardEntry = { 
+    name: `${state.profile.name} (You)`, 
+    sent: state.sentPostcards.length, 
+    countries: uniqueCountriesCount,
+    isUser: true,
+    flag: state.profile.country || "🌍" // добавили флаг, чтобы он красиво рисовался
+};
 
- // Смешиваем тебя и ботов, затем сортируем по количеству отправленных (от большего к меньшему)
- let combinedLeaderboard = [userLeaderboardEntry, ...state.bots];
- combinedLeaderboard.sort((a, b) => b.sent - a.sent);
+// Собираем ботов и добавляем им параметр стран (примерно 80% от отправленных)
+const botEntries = state.bots.map(bot => {
+    const simulatedCountries = bot.sent === 0 ? 0 : Math.max(1, Math.floor(bot.sent * 0.8));
+    return {
+        ...bot,
+        countries: simulatedCountries,
+        isUser: false
+    };
+});
 
- if (combinedLeaderboard.length > 0) {
-     renderListComponent("leaderboard-list", combinedLeaderboard, (player, index) => {
-         const rank = index + 1;
-         let rankBadge = `${rank}.`;
-         if (rank === 1) rankBadge = "🥇";
-         if (rank === 2) rankBadge = "🥈";
-         if (rank === 3) rankBadge = "🥉";
+// Смешиваем тебя и ботов
+let combinedLeaderboard = [userLeaderboardEntry, ...botEntries];
 
-         // Выделяем твой профиль цветом, чтобы ты не потерялся среди ботов
-         const bgStyle = player.isUser ? 'background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px solid #f39c12;' : 'padding: 8px 0; border-bottom: 1px solid #eee;';
-         const nameWeight = player.isUser ? 'font-weight: 900; color: #d35400;' : 'font-weight: 600; color: #333;';
+// === СЧИТАЕМ РЕЙТИНГ: 1 открытка = 1 балл, 1 страна = 10 баллов ===
+combinedLeaderboard.forEach(p => p.score = p.sent + (p.countries * 10));
+combinedLeaderboard.sort((a, b) => b.score - a.score);
 
-         return `
-             <li class="leaderboard-item" style="${bgStyle} display: flex; justify-content: space-between; align-items: center; list-style: none;">
-                 <div style="display: flex; align-items: center; gap: 10px;">
-                     <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
-                     <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ''}</span>
-                 </div>
-                 <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
-                     ${player.sent} <span style="font-size: 10px; color: #aaa;">SENT</span>
-                 </span>
-             </li>`;
-     });
- }
+// Находим твое реальное место в рейтинге
+const playerIndex = combinedLeaderboard.findIndex(p => p.isUser);
+const playerRank = playerIndex + 1;
+
+// Отрезаем только ТОП-10
+const top10 = combinedLeaderboard.slice(0, 10);
+
+const listContainer = document.getElementById("leaderboard-list");
+if (listContainer) {
+    // 1. Рисуем ТОП-10
+    let html = top10.map((player, index) => {
+        const rank = index + 1;
+        let rankBadge = `${rank}.`;
+        if (rank === 1) rankBadge = "🥇";
+        if (rank === 2) rankBadge = "🥈";
+        if (rank === 3) rankBadge = "🥉";
+
+        // Выделяем твой профиль цветом, чтобы ты не потерялся среди ботов
+        const bgStyle = player.isUser ? 'background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px solid #f39c12;' : 'padding: 8px 0; border-bottom: 1px solid #eee;';
+        const nameWeight = player.isUser ? 'font-weight: 900; color: #d35400;' : 'font-weight: 600; color: #333;';
+
+        return `
+            <li class="leaderboard-item" style="${bgStyle} display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
+                    <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ''}</span>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
+                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
+                    </span>
+                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
+                        ${player.sent} sent • ${player.countries} countries
+                    </span>
+                </div>
+            </li>`;
+    }).join('');
+
+    // 2. Если ты не попал в ТОП-10, добавляем тебя в самый низ
+    if (playerRank > 10) {
+        const player = combinedLeaderboard[playerIndex];
+        html += `
+            <li style="text-align: center; color: #aaa; font-size: 14px; margin: 4px 0; list-style: none;">•••</li>
+            <li class="leaderboard-item" style="background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px dashed #f39c12; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${playerRank}.</span>
+                    <span style="font-weight: 900; color: #d35400; font-size: 14px;">${player.name} ${player.flag || ''}</span>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
+                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
+                    </span>
+                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
+                        ${player.sent} sent • ${player.countries} countries
+                    </span>
+                </div>
+            </li>`;
+    }
+
+    listContainer.innerHTML = html;
+}
 
 // 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (УМНЫЙ ШАБЛОН)
 const cardTemplate = (card, index, isReceived) => {

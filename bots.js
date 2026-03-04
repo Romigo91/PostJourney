@@ -29,22 +29,31 @@ function simulateBotActivity() {
     if (activeIncoming < BOT_SETTINGS.MAX_INCOMING && Math.random() < BOT_SETTINGS.CHANCE_TO_SEND) {
         const randomBot = state.bots[Math.floor(Math.random() * state.bots.length)];
         
-        // === НОВАЯ ГЕОГРАФИЯ (12 - 72 часа) ===
-        const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
-        const minHours = 12;
-        const maxHours = 72;
-        const maxEarthDistance = 20000; 
-        
-        let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
-        if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
-        if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
-
-        const deliveryHours = Math.floor(baseDeliveryHours);
-        const randomMinutes = Math.floor(Math.random() * 60);
-
         const now = new Date().getTime();
-        // Переводим часы и минуты в миллисекунды
-        const arrivalTime = now + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000);
+        let arrivalTime;
+
+        // === ПРОВЕРКА МГНОВЕННОЙ ДОСТАВКИ (ЧИТ-РЕЖИМ) ===
+        const instantToggle = document.getElementById('instant-delivery-toggle');
+        if (instantToggle && instantToggle.checked) {
+            // Доставка через 1 секунду
+            arrivalTime = now + 1000; 
+        } else {
+            // Стандартная логика географии (12 - 72 часа)
+            const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
+            const minHours = 12;
+            const maxHours = 72;
+            const maxEarthDistance = 20000; 
+            
+            let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
+            if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
+            if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
+
+            const deliveryHours = Math.floor(baseDeliveryHours);
+            const randomMinutes = Math.floor(Math.random() * 60);
+
+            // Переводим часы и минуты в миллисекунды
+            arrivalTime = now + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000);
+        }
 
         state.tracking.unshift({
             type: "incoming",
@@ -67,7 +76,73 @@ function simulateBotActivity() {
     }
 }
 
-// 2. ПРОВЕРКА ДОСТАВКИ
+// ==========================================================================
+// 2. АСИНХРОННАЯ ГЕНЕРАЦИЯ И ПРОВЕРКА ДОСТАВКИ
+// ==========================================================================
+
+// Функция фоновой генерации AI-открытки от бота
+async function processIncomingDelivery(item) {
+    const seed = Math.floor(Math.random() * 10000000);
+    const apiKey = "sk_cWgVu0P68kj6o4SVTj3eLeF79FgLbie8";
+    
+    // Формируем красивые промпты, используя страну бота
+    const frontPrompt = encodeURIComponent(`Beautiful landscape, famous landmarks, and nature of ${item.countryName}, highly detailed, professional postcard photography, cinematic lighting, 8k (variation: ${seed})`);
+    const stampPrompt = encodeURIComponent(`Vintage postage stamp of ${item.countryName}, intricate engraving, official postal look, muted philatelic colors, highly detailed (variation: ${seed})`);
+
+    // Подключаем модель FLUX
+    const frontUrl = `https://gen.pollinations.ai/image/${frontPrompt}?width=800&height=500&model=flux&nologo=true&seed=${seed}`;
+    const stampUrl = `https://gen.pollinations.ai/image/${stampPrompt}?width=200&height=250&model=flux&nologo=true&seed=${seed}`;
+
+    try {
+        // Скачиваем обе картинки параллельно с твоим ключом
+        const [frontRes, stampRes] = await Promise.all([
+            fetch(frontUrl, { headers: { "Authorization": `Bearer ${apiKey}` } }),
+            fetch(stampUrl, { headers: { "Authorization": `Bearer ${apiKey}` } })
+        ]);
+
+        if (!frontRes.ok || !stampRes.ok) throw new Error("API Limit reached");
+
+        const frontBlob = await frontRes.blob();
+        const stampBlob = await stampRes.blob();
+
+        // Добавляем готовую открытку в твой Архив
+        state.receivedPostcards.unshift({
+            countryFlag: item.flag,
+            fromBot: item.fromBot,
+            senderName: item.fromBot,
+            senderCity: item.countryName || "Capital",
+            to: item.fromBot + ", " + item.flag, 
+            status: "Delivered",
+            frontImage: URL.createObjectURL(frontBlob), // Сгенерированное фото страны
+            message: `Hello friend!\n\nI am sending you warm greetings from ${item.countryName}! I generated this photo specially for you to show the beauty of my homeland.\n\nBest wishes,\n${item.fromBot}`,
+            stampType: "ai",
+            stampImage: URL.createObjectURL(stampBlob) // Сгенерированная марка страны
+        });
+
+    } catch (e) {
+        console.error("Bot image generation failed:", e);
+        // Если вдруг API перегружено, возвращаем заглушку, чтобы открытка не потерялась
+        state.receivedPostcards.unshift({
+            countryFlag: item.flag,
+            fromBot: item.fromBot,
+            senderName: item.fromBot,
+            senderCity: item.countryName || "Capital",
+            to: item.fromBot + ", " + item.flag, 
+            status: "Delivered",
+            frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${seed}`,
+            message: `Hello friend!\n\nWarm greetings from ${item.countryName}!\n\nBest wishes,\n${item.fromBot}`,
+            stampType: "emoji",
+            stampData: "💌"
+        });
+    }
+    
+    // Обновляем списки и показываем окошко радости
+    if (typeof refreshAllLists === 'function') refreshAllLists();
+    showDeliveryModal(item.fromBot, item.flag);
+}
+
+
+// Основная функция проверки таймеров Трекера
 function checkBotDeliveries() {
     if (!state.tracking || state.tracking.length === 0) return;
     
@@ -77,33 +152,29 @@ function checkBotDeliveries() {
     for (let i = state.tracking.length - 1; i >= 0; i--) {
         const item = state.tracking[i];
         
-        if (item.type === "incoming" && item.arrivalAt && now >= item.arrivalAt) {
+        if (item.arrivalAt && now >= item.arrivalAt) {
             
-            state.receivedPostcards.unshift({
-                countryFlag: item.flag,
-                fromBot: item.fromBot,
-                senderName: item.fromBot,
-                senderCity: item.countryName || "Capital",
-                to: item.fromBot + ", " + item.flag, 
-                status: "Delivered",
-                frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${Math.random()}`,
-                message: `Hello friend!\n\nI'm sending you warm greetings from my country! Hope you enjoy this postcard.\n\nBest wishes,\n${item.fromBot}`,
-                stampType: "emoji",
-                stampData: "💌"
-            });
+            if (item.type === "incoming") {
+                // БОТ ДОСТАВИЛ ТЕБЕ -> Запускаем фоновую нейро-генерацию!
+                processIncomingDelivery(item);
+                
+            } else if (item.type === "outgoing") {
+                // ТВОЯ ОТКРЫТКА ДОСТАВЛЕНА БОТУ -> Получаем Токен Кармы
+                const sentCard = state.sentPostcards.find(c => c.sentAt === item.sentAt);
+                if (sentCard) sentCard.status = "Delivered";
+                
+                state.receiveTokens = (state.receiveTokens || 0) + 1;
+                showOutgoingDeliveredModal(item.toCountry, item.flag);
+            }
             
+            // Открытка "приземлилась", сразу убираем её из Трекера
             state.tracking.splice(i, 1);
             uiNeedsUpdate = true;
-            
-            showDeliveryModal(item.fromBot, item.flag);
         }
     }
     
-    if (uiNeedsUpdate && typeof refreshAllLists === 'function') {
-        refreshAllLists();
-    }
+    if (uiNeedsUpdate && typeof refreshAllLists === 'function') refreshAllLists();
 }
-
 // ==========================================================================
 // 3. НОВЫЕ КРАСИВЫЕ МОДАЛЬНЫЕ ОКНА
 // ==========================================================================
@@ -172,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const randomCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
             const nameBase = botNames[Math.floor(Math.random() * botNames.length)];
             const botName = `@${nameBase}_${Math.floor(Math.random() * 999)}`;
-            const sentCount = Math.floor(Math.random() * 40) + 1; 
+            const sentCount = 0;
             
             state.bots.push({
                 name: botName,
@@ -183,17 +254,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         if (typeof refreshAllLists === 'function') refreshAllLists();
+        
+        // Обновляем экран Create при генерации ботов
+        if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI(); 
     }
 
     if (botToggle && botSettingsRow && botSlider && btnApplyBots) {
         botToggle.onchange = (e) => {
             if (e.target.checked) {
+                // Только показываем ползунок, ничего не генерируем!
                 botSettingsRow.style.display = 'block';
-                generateBots(parseInt(botSlider.value));
             } else {
                 botSettingsRow.style.display = 'none';
                 state.bots = []; 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
+                
+                // Возвращаем экран Create в режим Personal Collection
+                if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI();
             }
         };
 
@@ -203,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         btnApplyBots.onclick = () => {
             const count = parseInt(botSlider.value);
-            generateBots(count);
+            generateBots(count); // Генерируем ботов только по клику!
             
             const originalText = btnApplyBots.textContent;
             btnApplyBots.textContent = "✅ Applied!";
