@@ -260,22 +260,18 @@ if (listContainer) {
     listContainer.innerHTML = html;
 }
 
-// 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (УМНЫЙ ШАБЛОН)
+// 3. НОВЫЕ ПРЯМОУГОЛЬНЫЕ КАРТОЧКИ (УМНЫЙ ШАБЛОН) — БЕЗ ГОРОДОВ
 const cardTemplate = (card, index, isReceived) => {
     const flag = card.countryFlag || card.flag || '🌍';
     let mainText = "";
-    let subText = "";
 
-    // ЛОГИКА: Разделяем отображение для Входящих и Исходящих
+    // ЛОГИКА: Оставляем только важную информацию без подстрок
     if (isReceived) {
-        // Для полученных открыток показываем только Никнейм отправителя
+        // Для полученных: только Никнейм отправителя
         mainText = card.fromBot || card.senderName || "Unknown Sender";
-        subText = ""; // Вторую строку (город/дубль флага) оставляем пустой
     } else {
-        // Для отправленных открыток показываем Страну и Город
-        const toParts = (card.to || "Unknown, Unknown").split(", ");
-        mainText = toParts[0]; 
-        subText = toParts.length > 1 ? toParts[1] : ""; 
+        // Для отправленных: берем только Страну (отсекаем город после запятой, если он был)
+        mainText = (card.to || "Unknown").split(", ")[0]; 
     }
 
     // Цвет статуса: зеленый для полученных, оранжевый для отправленных
@@ -292,8 +288,6 @@ const cardTemplate = (card, index, isReceived) => {
             <span style="color: white; font-weight: bold; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
                 ${flag} ${mainText}
             </span>
-            
-            ${subText ? `<span style="color: #e0e0e0; font-size: 11px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1;">${subText}</span>` : ''}
             
             <span style="color: ${statusColor}; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 2px;">
                 ${card.status}

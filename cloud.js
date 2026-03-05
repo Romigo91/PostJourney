@@ -30,7 +30,7 @@ const CloudSystem = {
             name: targetBot.name,
             country: targetBot.countryName,
             flag: targetBot.flag,
-            city: "Capital", 
+            // Город удален
             interests: selectedInterests,
             bio: bio
         };
@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; margin-top: 5px;">
                         <div>
                             <div style="font-weight: 900; font-size: 16px; color: #333;">${target.name}</div>
-                            <div style="font-size: 12px; color: #555;">${target.flag} ${target.country}, ${target.city}</div>
+                            <div style="font-size: 12px; color: #555;">${target.flag} ${target.country}</div>
                         </div>
                         <div style="font-size: 28px;">${target.flag}</div>
                     </div>

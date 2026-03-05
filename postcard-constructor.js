@@ -203,15 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     
                     <div class="sender-profile-block">
-                        <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-                            <span style="font-size:9px; color:var(--text-sub);">${country} ${city}</span>
-                        </div>
-                    </div>
+    <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
+    <div style="display:flex; flex-direction:column; gap:2px;">
+        <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
+        <span style="font-size:9px; color:var(--text-sub);">${country}</span>
+    </div>
+</div>
                     
                     <div class="data-badge-block">
-                        <div>📍 FROM: ${country.toUpperCase()}${city ? ', ' + city.toUpperCase() : ''}</div>
                         <div>📅 DATE: ${date}</div>
                         <div>🔢 ID: ${cardID}</div>
                         <div style="margin-top:4px; font-size:12px; opacity:0.6;">✈️ 🚢 🚂</div>
@@ -446,57 +445,72 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         });
     });
 
-    // === ЛОГИКА 3D ===
-    const btnView3D = document.getElementById('btn-view-3d');
-    if (btnView3D) {
-        btnView3D.onclick = function() {
-            if (this.classList.contains('disabled')) return;
-            const modal = document.getElementById('modal-3d');
-            const frontDiv = document.getElementById('3d-front');
-            const backDiv = document.getElementById('3d-back');
-            const wrapper = document.querySelector('.card-3d-wrapper');
+// === ЛОГИКА 3D ===
+const btnView3D = document.getElementById('btn-view-3d');
+if (btnView3D) {
+    btnView3D.onclick = function() {
+        if (this.classList.contains('disabled')) return;
+        const modal = document.getElementById('modal-3d');
+        const frontDiv = document.getElementById('3d-front');
+        const backDiv = document.getElementById('3d-back');
+        const wrapper = document.querySelector('.card-3d-wrapper');
+        const inner = document.getElementById('card-3d-inner');
 
-            const originalSide = postcardData.currentSide;
+        // 1. Сразу прячем контент, чтобы избежать скачка
+        wrapper.style.opacity = '0';
+        wrapper.style.transition = 'none'; 
 
-            postcardData.currentSide = 'front';
-            updateDisplay(true); 
-            frontDiv.innerHTML = '';
-            frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
+        modal.style.zIndex = '999999';
 
-            postcardData.currentSide = 'back';
-            updateDisplay(true);
-            backDiv.innerHTML = '';
-            backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
+        const originalSide = postcardData.currentSide;
 
-            postcardData.currentSide = originalSide;
-            updateDisplay(false);
-            
-            currentRotateX = 0;
-            currentRotateY = 0;
-            if(inner) {
-                inner.style.transition = 'none';
-                inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
-            }
+        // Рендерим стороны во временный буфер
+        postcardData.currentSide = 'front';
+        updateDisplay(true); 
+        frontDiv.innerHTML = '';
+        frontDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-            modal.style.display = 'flex';
+        postcardData.currentSide = 'back';
+        updateDisplay(true);
+        backDiv.innerHTML = '';
+        backDiv.appendChild(previewContent.querySelector('#postcard-canvas').cloneNode(true));
 
-            setTimeout(() => {
-                const rect = wrapper.getBoundingClientRect();
-                const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
-                const scale3D = w / 600;
-                if(frontDiv.querySelector('#postcard-canvas')) frontDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
-                if(backDiv.querySelector('#postcard-canvas')) backDiv.querySelector('#postcard-canvas').style.transform = `scale(${scale3D})`;
-                wrapper.style.height = (w * (400 / 600)) + 'px'; 
-            }, 10);
-        };
-    }
+        postcardData.currentSide = originalSide;
+        updateDisplay(false);
+        
+        if (typeof currentRotateX !== 'undefined') currentRotateX = 0;
+        if (typeof currentRotateY !== 'undefined') currentRotateY = 0;
+        if(inner) inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
 
-    const close3dBtn = document.getElementById('close-3d-btn');
-    if (close3dBtn) {
-        close3dBtn.onclick = () => {
-            document.getElementById('modal-3d').style.display = 'none';
-        };
-    }
+        modal.style.display = 'flex';
+
+        // 2. Выполняем расчеты ДО того, как показать карту
+        const rect = wrapper.getBoundingClientRect();
+        const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
+        const scale3D = w / 600;
+        
+        const fCanvas = frontDiv.querySelector('#postcard-canvas');
+        const bCanvas = backDiv.querySelector('#postcard-canvas');
+        if(fCanvas) fCanvas.style.transform = `scale(${scale3D})`;
+        if(bCanvas) bCanvas.style.transform = `scale(${scale3D})`;
+        wrapper.style.height = (w * (400 / 600)) + 'px'; 
+
+        // 3. Плавно проявляем уже подогнанную по размеру карту
+        requestAnimationFrame(() => {
+            wrapper.style.transition = 'opacity 0.3s ease';
+            wrapper.style.opacity = '1';
+        });
+    };
+}
+
+const close3dBtn = document.getElementById('close-3d-btn');
+if (close3dBtn) {
+    close3dBtn.onclick = () => {
+        document.getElementById('modal-3d').style.display = 'none';
+    };
+}
 
     // === DRAG TO REPOSITION ===
     let isDraggingImg = false;
@@ -598,30 +612,54 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
 
     setTimeout(() => { updateDisplay(); update3DButtonState(); }, 50);
 
-    // === ОТПРАВКА ОТКРЫТКИ ===
-    const btnSendPostcard = document.getElementById('send-card-btn'); 
-    if (btnSendPostcard) {
-        btnSendPostcard.addEventListener('click', () => {
-            if (!postcardData.frontImage) return showAppAlert("Please generate or upload an image for the Front Side!");
-            if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
-            if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
+// === ОТПРАВКА ОТКРЫТКИ ===
+const btnSendPostcard = document.getElementById('send-card-btn'); 
+if (btnSendPostcard) {
+    btnSendPostcard.addEventListener('click', () => {
+        if (!postcardData.frontImage) return showAppAlert("Please generate or upload an image for the Front Side!");
+        if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
+        if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
+        
+        if (!state.currentTarget) {
+            return showAppAlert("Oops! You haven't pulled an address yet.");
+        }
+
+        const originalText = btnSendPostcard.textContent;
+        btnSendPostcard.disabled = true;
+        btnSendPostcard.textContent = "🚀 Sending...";
+
+        const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
+        if(canvasWrapper) canvasWrapper.classList.add('fly-away-active');
+
+        setTimeout(() => {
+            state.postcards -= 1;
+            const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
+            if (balanceEl) balanceEl.textContent = state.postcards;
+
+            const now = new Date();
+            let overlayIcon = "✈️";
+            let overlayTitle = "Bon Voyage!";
+            let overlayText = "";
+
+            // === 1. ОФФЛАЙН РЕЖИМ (Персональная коллекция) ===
+            if (state.currentTarget === "offline") {
+                state.sentPostcards.unshift({
+                    sentAt: now.getTime(),
+                    status: "Saved",
+                    countryFlag: state.profile.country || "🌍",
+                    to: "Personal Archive",
+                    frontImage: postcardData.frontImage,
+                    message: postcardData.message,
+                    stampType: postcardData.stampType,
+                    stampImage: postcardData.stampImage
+                });
+                
+                overlayIcon = "🗂️";
+                overlayTitle = "Saved!";
+                overlayText = `Your postcard has been saved to your<br><b>Personal Collection</b>.`;
             
-            if (!state.currentTarget) {
-                return showAppAlert("Oops! You haven't pulled an address yet.");
-            }
-
-            const originalText = btnSendPostcard.textContent;
-            btnSendPostcard.disabled = true;
-            btnSendPostcard.textContent = "🚀 Sending...";
-
-            const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
-            if(canvasWrapper) canvasWrapper.classList.add('fly-away-active');
-
-            setTimeout(() => {
-                state.postcards -= 1;
-                const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
-                if (balanceEl) balanceEl.textContent = state.postcards;
-
+            // === 2. ОНЛАЙН РЕЖИМ (Реальная отправка боту) ===
+            } else {
                 const dest = {
                     country: state.currentTarget.country,
                     city: state.currentTarget.city,
@@ -629,21 +667,16 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                     name: state.currentTarget.name
                 };
 
-                const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
-
-                const minHours = 12;
-                const maxHours = 72;
-                const maxEarthDistance = 20000; 
+                // Безопасно получаем твою страну или ставим дефолтную
+                const myCountry = state.profile.country || "Russia";
                 
-                let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
-                if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
-                if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
+                // Считаем время доставки через наш новый файл географии
+                const arrivalTime = typeof calculateDeliveryTime === 'function' 
+                ? calculateDeliveryTime(MY_HOME_FLAG, dest.flag) 
+                : now.getTime() + (24 * 60 * 60 * 1000);
 
-                const deliveryHours = Math.floor(baseDeliveryHours);
-                const randomMinutes = Math.floor(Math.random() * 60);
-
-                const now = new Date();
-                const arrivalTime = now.getTime() + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000); 
+                // Высчитываем обратно часы для твоего красивого окна
+                const deliveryHours = Math.round((arrivalTime - now.getTime()) / (1000 * 60 * 60));
 
                 state.tracking.unshift({
                     type: "outgoing",
@@ -669,90 +702,95 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
                     stampImage: postcardData.stampImage
                 });
 
-                if (typeof refreshAllLists === 'function') refreshAllLists();
+                overlayText = `Your postcard is flying to <b>${dest.country}</b>!<br>It will arrive in <b>~${deliveryHours} hours</b>.`;
+            }
 
-                // === ИДЕАЛЬНЫЙ СБРОС КОНСТРУКТОРА ===
-                postcardData.frontImage = null;
-                postcardData.message = '';
-                postcardData.stampImage = null;
-                postcardData.stampType = 'emoji';
-                postcardData.currentSide = 'front';
+            if (typeof refreshAllLists === 'function') refreshAllLists();
 
-                if (btnFront && btnBack && panelFront && panelBack) {
-                    btnFront.classList.add('constructor-mode-active');
-                    btnBack.classList.remove('constructor-mode-active');
-                    panelFront.style.display = 'block';
-                    panelBack.style.display = 'none';
-                }
+            // === ИДЕАЛЬНЫЙ СБРОС КОНСТРУКТОРА ===
+            postcardData.frontImage = null;
+            postcardData.message = '';
+            postcardData.stampImage = null;
+            postcardData.stampType = 'emoji';
+            postcardData.currentSide = 'front';
 
-                if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
-                if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
-                if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
-                if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+            const btnFront = document.getElementById('btn-front');
+            const btnBack = document.getElementById('btn-back');
+            const panelFront = document.getElementById('panel-front');
+            const panelBack = document.getElementById('panel-back');
 
-                if(canvasWrapper) canvasWrapper.classList.remove('fly-away-active');
-                updateDisplay();
+            if (btnFront && btnBack && panelFront && panelBack) {
+                btnFront.classList.add('constructor-mode-active');
+                btnBack.classList.remove('constructor-mode-active');
+                panelFront.style.display = 'block';
+                panelBack.style.display = 'none';
+            }
 
-                btnSendPostcard.disabled = false;
-                btnSendPostcard.textContent = originalText;
+            if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
+            if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
+            if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
+            if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+
+            if(canvasWrapper) canvasWrapper.classList.remove('fly-away-active');
+            updateDisplay();
+
+            btnSendPostcard.disabled = false;
+            btnSendPostcard.textContent = originalText;
+            
+            // === ТВОЕ КРАСИВОЕ ОКНО УСПЕХА ===
+            const previewContainer = document.getElementById('postcard-preview-container');
+            if (previewContainer) {
+                const successOverlay = document.createElement('div');
                 
-                const previewContainer = document.getElementById('postcard-preview-container');
-                if (previewContainer) {
-                    const successOverlay = document.createElement('div');
-                    
-                    successOverlay.style.position = 'absolute';
-                    successOverlay.style.top = '0';
-                    successOverlay.style.left = '0';
-                    successOverlay.style.width = '100%';
-                    successOverlay.style.height = '100%';
-                    successOverlay.style.background = 'rgba(255, 255, 255, 0.95)'; 
-                    successOverlay.style.zIndex = '200';
-                    successOverlay.style.display = 'flex';
-                    successOverlay.style.flexDirection = 'column';
-                    successOverlay.style.alignItems = 'center';
-                    successOverlay.style.justifyContent = 'center';
-                    successOverlay.style.textAlign = 'center';
-                    successOverlay.style.padding = '20px';
-                    successOverlay.style.boxSizing = 'border-box';
-                    successOverlay.style.opacity = '0'; 
-                    successOverlay.style.transition = 'opacity 0.4s ease'; 
+                successOverlay.style.position = 'absolute';
+                successOverlay.style.top = '0';
+                successOverlay.style.left = '0';
+                successOverlay.style.width = '100%';
+                successOverlay.style.height = '100%';
+                successOverlay.style.background = 'rgba(255, 255, 255, 0.95)'; 
+                successOverlay.style.zIndex = '200';
+                successOverlay.style.display = 'flex';
+                successOverlay.style.flexDirection = 'column';
+                successOverlay.style.alignItems = 'center';
+                successOverlay.style.justifyContent = 'center';
+                successOverlay.style.textAlign = 'center';
+                successOverlay.style.padding = '20px';
+                successOverlay.style.boxSizing = 'border-box';
+                successOverlay.style.opacity = '0'; 
+                successOverlay.style.transition = 'opacity 0.4s ease'; 
 
-                    successOverlay.innerHTML = `
-                        <div style="font-size: 40px; margin-bottom: 8px;">✈️</div>
-                        <div style="font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 6px;">Bon Voyage!</div>
-                        <div style="font-size: 13px; color: var(--text-main);">
-                            Your postcard is flying to <b>${dest.country}</b>!<br>
-                            It will arrive in <b>${deliveryHours} hours</b>.
-                        </div>
-                    `;
+                // Используем динамический текст (для оффлайна и онлайна)
+                successOverlay.innerHTML = `
+                    <div style="font-size: 40px; margin-bottom: 8px;">${overlayIcon}</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 6px;">${overlayTitle}</div>
+                    <div style="font-size: 13px; color: var(--text-main);">
+                        ${overlayText}
+                    </div>
+                `;
 
-                    previewContainer.appendChild(successOverlay);
-                    setTimeout(() => successOverlay.style.opacity = '1', 10);
+                previewContainer.appendChild(successOverlay);
+                setTimeout(() => successOverlay.style.opacity = '1', 10);
+                setTimeout(() => {
+                    successOverlay.style.opacity = '0';
                     setTimeout(() => {
-                        successOverlay.style.opacity = '0';
-                        setTimeout(() => {
-                            successOverlay.remove();
-                            if (typeof window.resetCloudScreen === 'function') {
-                                window.resetCloudScreen();
-                            }
-                        }, 400); 
-                    }, 3500);
-                }
-            }, 1500);
-        });
-    }
+                        successOverlay.remove();
+                        if (typeof window.resetCloudScreen === 'function') {
+                            window.resetCloudScreen();
+                        }
+                    }, 400); 
+                }, 3500);
+            }
+        }, 1500);
+    });
+}
 
-  // === УНИВЕРСАЛЬНАЯ ЛОГИКА ОТКРЫТИЯ 3D-ПРОСМОТРА (ИСПРАВЛЕНО) ===
+ // === УНИВЕРСАЛЬНАЯ ЛОГИКА ОТКРЫТИЯ 3D (БЕЗ СКАЧКОВ) ===
 document.addEventListener('click', (e) => {
-    // Ищем, был ли клик по карточке архива
     const cardEl = e.target.closest('.archive-card');
     if (!cardEl) return;
 
-    // Определяем, в какой секции лежит карточка (Sent или Received)
     const isSent = cardEl.closest('#sent-postcards-grid') !== null;
     const index = parseInt(cardEl.getAttribute('data-index'));
-    
-    // Берем данные из нужного массива в state
     const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
     if (!cardData) return;
 
@@ -762,17 +800,22 @@ document.addEventListener('click', (e) => {
     const wrapper = document.querySelector('.card-3d-wrapper');
     const inner = document.getElementById('card-3d-inner');
 
-    // Настраиваем данные для оборота (для полученных - это данные бота)
+    // 1. Прячем обертку перед наполнением
+    wrapper.style.opacity = '0';
+    wrapper.style.transition = 'none';
+
+    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
+    modal.style.zIndex = '999999';
+
     const senderInfo = isSent ? null : {
         name: cardData.senderName || cardData.fromBot || "Stranger",
-        country: cardData.countryFlag || "🌍",
-        city: cardData.senderCity || "Unknown"
+        country: cardData.countryFlag || "🌍"
     };
 
-    // 1. Сохраняем текущее состояние конструктора, чтобы не испортить недоделанную открытку
     const backupData = JSON.parse(JSON.stringify(postcardData));
     
-    // 2. Наполняем временные данные конструктора данными из архива
+    // Наполняем данными
     postcardData.frontImage = cardData.frontImage;
     postcardData.message = cardData.message;
     postcardData.stampType = cardData.stampType || (cardData.stampImage ? 'ai' : 'emoji');
@@ -781,48 +824,43 @@ document.addEventListener('click', (e) => {
     postcardData.font = cardData.font || "'Caveat', cursive";
     postcardData.color = cardData.color || '#1e3799';
 
-    // Рендерим ЛИЦЕВУЮ сторону
     postcardData.currentSide = 'front';
     updateDisplay(true, senderInfo); 
     frontDiv.innerHTML = '';
-    let fCanvas = document.getElementById('postcard-canvas');
-    if (fCanvas) frontDiv.appendChild(fCanvas.cloneNode(true));
+    let fCanvasClone = document.getElementById('postcard-canvas').cloneNode(true);
+    frontDiv.appendChild(fCanvasClone);
 
-    // Рендерим ОБОРОТНУЮ сторону
     postcardData.currentSide = 'back';
     updateDisplay(true, senderInfo);
     backDiv.innerHTML = '';
-    let bCanvas = document.getElementById('postcard-canvas');
-    if (bCanvas) backDiv.appendChild(bCanvas.cloneNode(true));
+    let bCanvasClone = document.getElementById('postcard-canvas').cloneNode(true);
+    backDiv.appendChild(bCanvasClone);
 
-    // 3. Возвращаем настройки конструктора в исходное состояние
     Object.assign(postcardData, backupData);
     updateDisplay(false); 
 
-    // Сбрасываем вращение 3D модели
     if (inner) {
-        inner.style.transition = 'none';
         inner.style.transform = `rotateX(0deg) rotateY(0deg)`;
-        // Сброс глобальных переменных вращения (если они у тебя есть)
-        if (typeof currentRotateX !== 'undefined') {
-            currentRotateX = 0;
-            currentRotateY = 0;
-        }
+        if (typeof currentRotateX !== 'undefined') { currentRotateX = 0; currentRotateY = 0; }
     }
 
-    // Показываем модалку
     modal.style.display = 'flex';
     
-    // Фикс масштаба под размер экрана
+    // 2. Сразу применяем масштаб (используем бОльшую задержку для надежности рендера)
     setTimeout(() => {
         const rect = wrapper.getBoundingClientRect();
         const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
         const scale3D = w / 600;
+        
         const finalF = frontDiv.querySelector('#postcard-canvas');
         const finalB = backDiv.querySelector('#postcard-canvas');
         if(finalF) finalF.style.transform = `scale(${scale3D})`;
         if(finalB) finalB.style.transform = `scale(${scale3D})`;
         wrapper.style.height = (w * (400 / 600)) + 'px'; 
-    }, 50);
+
+        // 3. Плавное появление
+        wrapper.style.transition = 'opacity 0.3s ease';
+        wrapper.style.opacity = '1';
+    }, 60); // 60мс достаточно, чтобы браузер «проглотил» новые элементы
 });
 });

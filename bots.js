@@ -38,21 +38,8 @@ function simulateBotActivity() {
             // Доставка через 1 секунду
             arrivalTime = now + 1000; 
         } else {
-            // Стандартная логика географии (12 - 72 часа)
-            const distanceKm = Math.floor(Math.random() * (15000 - 500 + 1)) + 500;
-            const minHours = 12;
-            const maxHours = 72;
-            const maxEarthDistance = 20000; 
-            
-            let baseDeliveryHours = minHours + (distanceKm / maxEarthDistance) * (maxHours - minHours);
-            if (baseDeliveryHours > maxHours) baseDeliveryHours = maxHours;
-            if (baseDeliveryHours < minHours) baseDeliveryHours = minHours;
-
-            const deliveryHours = Math.floor(baseDeliveryHours);
-            const randomMinutes = Math.floor(Math.random() * 60);
-
-            // Переводим часы и минуты в миллисекунды
-            arrivalTime = now + (deliveryHours * 60 * 60 * 1000) + (randomMinutes * 60 * 1000);
+            // Реальная география от страны бота до твоего дома
+            arrivalTime = calculateDeliveryTime(randomBot.flag, MY_HOME_FLAG);
         }
 
         state.tracking.unshift({
@@ -60,6 +47,7 @@ function simulateBotActivity() {
             fromBot: randomBot.name,
             flag: randomBot.flag,
             countryName: randomBot.countryName,
+            // Город удален
             sentAt: now,
             arrivalAt: arrivalTime,
             status: "In transit ✈️"
@@ -110,7 +98,7 @@ async function processIncomingDelivery(item) {
             countryFlag: item.flag,
             fromBot: item.fromBot,
             senderName: item.fromBot,
-            senderCity: item.countryName || "Capital",
+            // Город удален
             to: item.fromBot + ", " + item.flag, 
             status: "Delivered",
             frontImage: URL.createObjectURL(frontBlob), // Сгенерированное фото страны
@@ -126,7 +114,7 @@ async function processIncomingDelivery(item) {
             countryFlag: item.flag,
             fromBot: item.fromBot,
             senderName: item.fromBot,
-            senderCity: item.countryName || "Capital",
+            // Город удален
             to: item.fromBot + ", " + item.flag, 
             status: "Delivered",
             frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${seed}`,
@@ -249,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 name: botName,
                 flag: randomCountry.flag,
                 countryName: randomCountry.name,
+                // Город удален
                 sent: sentCount
             });
         }
