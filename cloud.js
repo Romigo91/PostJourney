@@ -49,13 +49,17 @@ window.updateCloudScreenUI = function() {
     if (!state.bots || state.bots.length === 0) {
         // === ОФФЛАЙН РЕЖИМ ===
         title.innerText = "Personal Collection 🗂️";
-        desc.innerText = "Create a beautiful postcard for your own archive. No recipient needed.";
+        desc.innerHTML = "Create a beautiful postcard for your own archive. No recipient needed.";
         btn.innerHTML = "🎨 Create Postcard (-1 Postcard)";
         if (offlineBanner) offlineBanner.style.display = "block";
     } else {
         // === ОНЛАЙН РЕЖИМ ===
+        // Считаем сколько наших открыток сейчас в пути
+        const activeOutgoing = state.tracking ? state.tracking.filter(item => item.type === "outgoing").length : 0;
+        
         title.innerText = "Who is next?";
-        desc.innerText = "Pull a random address from the PostJourney Cloud and discover a new friend's interests!";
+        // Выводим текст с красивым счетчиком лимита
+        desc.innerHTML = `Pull a random address from the PostJourney Cloud and discover a new friend's interests!<br><br><span style="color: #d35400; font-weight: bold; font-size: 12px; background: #ffeebd; padding: 4px 8px; border-radius: 8px; display: inline-block; margin-top: 5px;">🛫 Traveling limit: ${activeOutgoing} / 10</span>`;
         btn.innerHTML = "✉️ Pull Address (-1 Postcard)";
         if (offlineBanner) offlineBanner.style.display = "none";
     }
@@ -94,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // В ОНЛАЙНЕ - ВЫТЯГИВАЕМ АДРЕС И ПРОВЕРЯЕМ ЛИМИТЫ
             const activeOutgoing = state.tracking ? state.tracking.filter(item => item.type === "outgoing").length : 0;
-            if (activeOutgoing >= 5) {
+            if (activeOutgoing >= 10) {
                 return showAppAlert("Limit reached! ✈️<br>You already have 5 postcards traveling. Wait for them to be delivered.");
             }
 

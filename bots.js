@@ -56,7 +56,6 @@ function simulateBotActivity() {
         randomBot.sent += 1;
         uiNeedsUpdate = true;
         
-        showMysteryIncomingModal();
     }
 
     if (uiNeedsUpdate && typeof refreshAllLists === 'function') {

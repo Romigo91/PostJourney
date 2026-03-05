@@ -202,13 +202,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     </div>
                     
-                    <div class="sender-profile-block">
-    <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
-    <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
-        <span style="font-size:9px; color:var(--text-sub);">${country}</span>
-    </div>
-</div>
+                <div class="sender-profile-block">
+                    <div class="sender-mini-avatar" style="${avatarStyle}">${avatarContent}</div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:10px; font-weight:bold; color:var(--text-main);">${name}</span>
+                        <span style="font-size:10px; color:var(--text-main);">${country}</span>
+                    </div>
+                </div>
                     
                     <div class="data-badge-block">
                         <div>📅 DATE: ${date}</div>
@@ -612,7 +612,7 @@ if (close3dBtn) {
 
     setTimeout(() => { updateDisplay(); update3DButtonState(); }, 50);
 
-// === ОТПРАВКА ОТКРЫТКИ ===
+// === ОТПРАВКА ОТКРЫТКИ (ИСПРАВЛЕННАЯ АНИМАЦИЯ И ПЕРЕХОД) ===
 const btnSendPostcard = document.getElementById('send-card-btn'); 
 if (btnSendPostcard) {
     btnSendPostcard.addEventListener('click', () => {
@@ -628,159 +628,186 @@ if (btnSendPostcard) {
         btnSendPostcard.disabled = true;
         btnSendPostcard.textContent = "🚀 Sending...";
 
-        const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
-        if(canvasWrapper) canvasWrapper.classList.add('fly-away-active');
+        // 1. МГНОВЕННО СПИСЫВАЕМ ОТКРЫТКУ
+        state.postcards -= 1;
+        const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
+        if (balanceEl) balanceEl.textContent = state.postcards;
 
-        setTimeout(() => {
-            state.postcards -= 1;
-            const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
-            if (balanceEl) balanceEl.textContent = state.postcards;
+        const now = new Date();
+        let overlayIcon = "✈️";
+        let overlayTitle = "Bon Voyage!";
+        let overlayText = "";
 
-            const now = new Date();
-            let overlayIcon = "✈️";
-            let overlayTitle = "Bon Voyage!";
-            let overlayText = "";
-
-            // === 1. ОФФЛАЙН РЕЖИМ (Персональная коллекция) ===
-            if (state.currentTarget === "offline") {
-                state.sentPostcards.unshift({
-                    sentAt: now.getTime(),
-                    status: "Saved",
-                    countryFlag: state.profile.country || "🌍",
-                    to: "Personal Archive",
-                    frontImage: postcardData.frontImage,
-                    message: postcardData.message,
-                    stampType: postcardData.stampType,
-                    stampImage: postcardData.stampImage
-                });
-                
-                overlayIcon = "🗂️";
-                overlayTitle = "Saved!";
-                overlayText = `Your postcard has been saved to your<br><b>Personal Collection</b>.`;
+        // ЛОГИКА ОФФЛАЙН/ОНЛАЙН
+        if (state.currentTarget === "offline") {
+            state.sentPostcards.unshift({
+                sentAt: now.getTime(),
+                status: "Saved",
+                countryFlag: state.profile.country || "🌍",
+                to: "Personal Archive",
+                frontImage: postcardData.frontImage,
+                message: postcardData.message,
+                stampType: postcardData.stampType,
+                stampImage: postcardData.stampImage
+            });
             
-            // === 2. ОНЛАЙН РЕЖИМ (Реальная отправка боту) ===
-            } else {
-                const dest = {
-                    country: state.currentTarget.country,
-                    city: state.currentTarget.city,
-                    flag: state.currentTarget.flag,
-                    name: state.currentTarget.name
-                };
+            overlayIcon = "🗂️";
+            overlayTitle = "Saved!";
+            overlayText = `Your postcard has been saved to your<br><b>Personal Collection</b>.`;
+        } else {
+            const dest = {
+                country: state.currentTarget.country,
+                flag: state.currentTarget.flag,
+                name: state.currentTarget.name
+            };
+            
+            const arrivalTime = typeof calculateDeliveryTime === 'function' 
+            ? calculateDeliveryTime(MY_HOME_FLAG, dest.flag) 
+            : now.getTime() + (24 * 60 * 60 * 1000);
 
-                // Безопасно получаем твою страну или ставим дефолтную
-                const myCountry = state.profile.country || "Russia";
-                
-                // Считаем время доставки через наш новый файл географии
-                const arrivalTime = typeof calculateDeliveryTime === 'function' 
-                ? calculateDeliveryTime(MY_HOME_FLAG, dest.flag) 
-                : now.getTime() + (24 * 60 * 60 * 1000);
+            const deliveryHours = Math.round((arrivalTime - now.getTime()) / (1000 * 60 * 60));
 
-                // Высчитываем обратно часы для твоего красивого окна
-                const deliveryHours = Math.round((arrivalTime - now.getTime()) / (1000 * 60 * 60));
+            state.tracking.unshift({
+                type: "outgoing",
+                toCountry: dest.country,
+                flag: dest.flag,
+                frontImage: postcardData.frontImage,
+                message: postcardData.message,
+                stampType: postcardData.stampType,
+                stampData: postcardData.stampType === 'ai' ? postcardData.stampImage : postcardData.stamp,
+                sentAt: now.getTime(),
+                arrivalAt: arrivalTime,
+                status: "In transit"
+            });
 
-                state.tracking.unshift({
-                    type: "outgoing",
-                    toCountry: dest.country,
-                    toCity: dest.city,
-                    flag: dest.flag,
-                    frontImage: postcardData.frontImage,
-                    message: postcardData.message,
-                    stampType: postcardData.stampType,
-                    stampData: postcardData.stampType === 'ai' ? postcardData.stampImage : postcardData.stamp,
-                    sentAt: now.getTime(),
-                    arrivalAt: arrivalTime,
-                    status: "In transit"
-                });
+            state.sentPostcards.unshift({
+                countryFlag: dest.flag,
+                to: dest.country,
+                status: "In transit",
+                frontImage: postcardData.frontImage, 
+                message: postcardData.message,
+                stampType: postcardData.stampType,
+                stampImage: postcardData.stampImage
+            });
 
-                state.sentPostcards.unshift({
-                    countryFlag: dest.flag,
-                    to: dest.country + ", " + dest.city,
-                    status: "In transit",
-                    frontImage: postcardData.frontImage, 
-                    message: postcardData.message,
-                    stampType: postcardData.stampType,
-                    stampImage: postcardData.stampImage
-                });
+            overlayText = `Your postcard is flying to <b>${dest.country}</b>!<br>It will arrive in <b>~${deliveryHours} hours</b>.`;
+        }
 
-                overlayText = `Your postcard is flying to <b>${dest.country}</b>!<br>It will arrive in <b>~${deliveryHours} hours</b>.`;
+        if (typeof refreshAllLists === 'function') refreshAllLists();
+
+        // === 2. СОЗДАЕМ ТЕКСТ ПОД ОТКРЫТКОЙ ===
+        const canvasWrapper = previewContent.querySelector('div[style*="position: relative"]');
+        
+        const successOverlay = document.createElement('div');
+        successOverlay.style.position = 'absolute';
+        successOverlay.style.top = '0';
+        successOverlay.style.left = '0';
+        successOverlay.style.width = '100%';
+        successOverlay.style.height = '100%';
+        successOverlay.style.background = 'var(--bg-flag-circle)'; 
+        successOverlay.style.zIndex = '1'; // НИЗКИЙ СЛОЙ
+        successOverlay.style.display = 'flex';
+        successOverlay.style.flexDirection = 'column';
+        successOverlay.style.alignItems = 'center';
+        successOverlay.style.justifyContent = 'center';
+        successOverlay.style.textAlign = 'center';
+        successOverlay.style.padding = '20px';
+        successOverlay.style.boxSizing = 'border-box';
+        successOverlay.style.borderRadius = '12px';
+        
+        successOverlay.innerHTML = `
+            <div style="font-size: 40px; margin-bottom: 8px;">${overlayIcon}</div>
+            <div style="font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 6px;">${overlayTitle}</div>
+            <div style="font-size: 13px; color: var(--text-main);">
+                ${overlayText}
+            </div>
+        `;
+
+        if (canvasWrapper) {
+            canvasWrapper.style.zIndex = '10'; // Открытка ВЫШЕ текста
+            previewContent.insertBefore(successOverlay, canvasWrapper);
+            // Запускаем полет!
+            canvasWrapper.classList.add('fly-away-active');
+        } else {
+            previewContent.appendChild(successOverlay);
+        }
+
+        // === 3. ПЕРЕХОД НА HOME И ТИХИЙ СБРОС КОНСТРУКТОРА ===
+        // Таймер: 1.5 сек на полет + 1 сек на чтение текста = 2500 мс
+        setTimeout(() => {
+            
+            // 1. Мгновенно переключаем пользователя на экран Home (имитируем клик по меню)
+            const homeTab = document.querySelector('.nav-item[data-target="home"]');
+            if (homeTab) {
+                homeTab.click();
             }
 
-            if (typeof refreshAllLists === 'function') refreshAllLists();
-
-            // === ИДЕАЛЬНЫЙ СБРОС КОНСТРУКТОРА ===
-            postcardData.frontImage = null;
-            postcardData.message = '';
-            postcardData.stampImage = null;
-            postcardData.stampType = 'emoji';
-            postcardData.currentSide = 'front';
-
-            const btnFront = document.getElementById('btn-front');
-            const btnBack = document.getElementById('btn-back');
-            const panelFront = document.getElementById('panel-front');
-            const panelBack = document.getElementById('panel-back');
-
-            if (btnFront && btnBack && panelFront && panelBack) {
-                btnFront.classList.add('constructor-mode-active');
-                btnBack.classList.remove('constructor-mode-active');
-                panelFront.style.display = 'block';
-                panelBack.style.display = 'none';
+            // 2. Сбрасываем Cloud Screen (убираем профиль получателя)
+            if (typeof window.resetCloudScreen === 'function') {
+                window.resetCloudScreen();
             }
 
-            if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
-            if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
-            if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
-            if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+           // 3. ТИХО обнуляем конструктор, пока пользователь УЖЕ на вкладке Home
+           postcardData.frontImage = null;
+           postcardData.message = '';
+           postcardData.stampImage = null;
+           postcardData.stampType = 'emoji';
+           postcardData.currentSide = 'front';
 
-            if(canvasWrapper) canvasWrapper.classList.remove('fly-away-active');
-            updateDisplay();
+           // --- СБРОС ОСНОВНЫХ ВКЛАДОК (Front / Back) ---
+           const bFront = document.getElementById('btn-front-side') || document.getElementById('btn-front');
+           const bBack = document.getElementById('btn-back-side') || document.getElementById('btn-back');
+           const pFront = document.getElementById('panel-front');
+           const pBack = document.getElementById('panel-back');
+
+           if (bFront && bBack && pFront && pBack) {
+               bFront.classList.add('constructor-mode-active');
+               bBack.classList.remove('constructor-mode-active');
+               pFront.style.display = 'block';
+               pBack.style.display = 'none';
+           }
+
+           // --- СБРОС ПОДМЕНЮ (AI / Upload) ---
+           const modeButtons = document.querySelectorAll('.constructor-toggle .constructor-mode');
+           const modePanels = document.querySelectorAll('.constructor-panel');
+           if (modeButtons.length > 0 && modePanels.length > 0) {
+               // Снимаем активность со всех кнопок и прячем все панели
+               modeButtons.forEach(btn => btn.classList.remove('constructor-mode-active'));
+               modePanels.forEach(p => p.style.display = 'none');
+               
+               // Принудительно включаем первую кнопку (Generate with AI) и первую панель
+               modeButtons[0].classList.add('constructor-mode-active');
+               modePanels[0].style.display = 'block';
+           }
+
+           // --- СБРОС ЦВЕТА ТЕКСТА (на первый по умолчанию) ---
+           const inkButtons = document.querySelectorAll('.ink-btn');
+           if(inkButtons.length > 0) {
+               inkButtons.forEach(b => b.classList.remove('active'));
+               inkButtons[0].classList.add('active');
+               postcardData.color = inkButtons[0].getAttribute('data-color') || '#1e3799';
+           }
+
+           // Очистка полей ввода
+           if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
+           if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
+           if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
+           if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+
+           // Убираем анимацию и текст доставки из DOM
+           if (successOverlay) successOverlay.remove();
+           if (canvasWrapper) {
+               canvasWrapper.classList.remove('fly-away-active');
+               canvasWrapper.style.zIndex = '';
+           }
+
+           // Перерисовываем пустую открытку
+           updateDisplay();
 
             btnSendPostcard.disabled = false;
             btnSendPostcard.textContent = originalText;
             
-            // === ТВОЕ КРАСИВОЕ ОКНО УСПЕХА ===
-            const previewContainer = document.getElementById('postcard-preview-container');
-            if (previewContainer) {
-                const successOverlay = document.createElement('div');
-                
-                successOverlay.style.position = 'absolute';
-                successOverlay.style.top = '0';
-                successOverlay.style.left = '0';
-                successOverlay.style.width = '100%';
-                successOverlay.style.height = '100%';
-                successOverlay.style.background = 'rgba(255, 255, 255, 0.95)'; 
-                successOverlay.style.zIndex = '200';
-                successOverlay.style.display = 'flex';
-                successOverlay.style.flexDirection = 'column';
-                successOverlay.style.alignItems = 'center';
-                successOverlay.style.justifyContent = 'center';
-                successOverlay.style.textAlign = 'center';
-                successOverlay.style.padding = '20px';
-                successOverlay.style.boxSizing = 'border-box';
-                successOverlay.style.opacity = '0'; 
-                successOverlay.style.transition = 'opacity 0.4s ease'; 
-
-                // Используем динамический текст (для оффлайна и онлайна)
-                successOverlay.innerHTML = `
-                    <div style="font-size: 40px; margin-bottom: 8px;">${overlayIcon}</div>
-                    <div style="font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 6px;">${overlayTitle}</div>
-                    <div style="font-size: 13px; color: var(--text-main);">
-                        ${overlayText}
-                    </div>
-                `;
-
-                previewContainer.appendChild(successOverlay);
-                setTimeout(() => successOverlay.style.opacity = '1', 10);
-                setTimeout(() => {
-                    successOverlay.style.opacity = '0';
-                    setTimeout(() => {
-                        successOverlay.remove();
-                        if (typeof window.resetCloudScreen === 'function') {
-                            window.resetCloudScreen();
-                        }
-                    }, 400); 
-                }, 3500);
-            }
-        }, 1500);
+        }, 2500);
     });
 }
 

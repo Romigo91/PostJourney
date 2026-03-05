@@ -13,7 +13,6 @@ const AVAILABLE_INTERESTS = [
     profile: {
         name: "@Alex",
         country: "🇫🇷",
-        city: "Paris",
         bio: "Detailed statistics and recent achievements...",
         avatar: null,
         avatarPosX: 50, // НОВОЕ: Позиция по горизонтали
@@ -55,18 +54,14 @@ const AVAILABLE_INTERESTS = [
     container.innerHTML = items.map((item, index) => templateFn(item, index)).join('');
 }
   
-  function updateProfileUI() {
-    const { name, country, city, bio, avatar, interests } = state.profile; 
+function updateProfileUI() {
+    const { name, country, bio, avatar, interests } = state.profile; 
     const editBtn = document.getElementById("edit-profile-btn");
     const isEditingNow = editBtn && editBtn.getAttribute('data-mode') === 'save';
   
     document.getElementById("display-name").textContent = name;
     document.getElementById("display-country").textContent = country;
-
-    const displayCity = document.getElementById("display-city");
-    if (displayCity) {
-        displayCity.textContent = city;
-    }
+    
   
     const bioElement = document.getElementById("display-bio");
     const isDefaultBio = !bio || bio.includes("Detailed statistics");
@@ -99,6 +94,9 @@ const AVAILABLE_INTERESTS = [
   
   function refreshAllLists() {
 // 1. УМНЫЙ ТРЕКИНГ С ТАЙМЕРАМИ (ВХОДЯЩИЕ И ИСХОДЯЩИЕ)
+if (state.tracking && state.tracking.length > 0) {
+    state.tracking.sort((a, b) => a.arrivalAt - b.arrivalAt);
+}
 renderListComponent("tracking-list", state.tracking, item => {
     // Проверяем, летит ли открытка К НАМ или ОТ НАС
     const isIncoming = item.type === "incoming";
@@ -143,6 +141,19 @@ renderListComponent("tracking-list", state.tracking, item => {
         const fallbackColor = isIncoming ? "#2980b9" : "#d35400";
         timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:4px 8px; border-radius:12px; font-size:11px;">${displayStatus}</div>`;
     }
+    // === ОБНОВЛЕНИЕ БЕЙДЖА В НИЖНЕМ БАРЕ ===
+    const homeBadge = document.getElementById("home-badge");
+    if (homeBadge) {
+        // Считаем, сколько открыток летит к нам прямо сейчас
+        const incomingCount = state.tracking.filter(item => item.type === "incoming").length;
+        
+        if (incomingCount > 0) {
+            homeBadge.textContent = incomingCount;
+            homeBadge.style.display = "block";
+        } else {
+            homeBadge.style.display = "none";
+        }
+    }
 
     // === ГЛАВНАЯ МАГИЯ ВИЗУАЛА ===
     // Входящие карточки будут нежно-голубыми, а исходящие - теплыми оранжевыми
@@ -167,6 +178,7 @@ renderListComponent("tracking-list", state.tracking, item => {
                 ${timeHtml}
             </div>
         </div>`;
+        
 });
 
 // 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ С БОТАМИ И СТРАНАМИ)
@@ -480,7 +492,6 @@ function renderMapSections() {
   
         document.getElementById("input-name").value = state.profile.name;
         document.getElementById("input-country").value = state.profile.country;
-        document.getElementById("input-city").value = state.profile.city || ""; 
         document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
         
         ids.forEach(id => document.getElementById(id).style.display = "none");
@@ -490,7 +501,6 @@ function renderMapSections() {
         // СОХРАНЕНИЕ
         state.profile.name = document.getElementById("input-name").value;
         state.profile.country = tempSelectedCountry;
-        state.profile.city = document.getElementById("input-city").value.trim(); 
         
         // НОВОЕ: Сохраняем сдвинутые координаты в память
         state.profile.avatarPosX = tempAvatarPosX;

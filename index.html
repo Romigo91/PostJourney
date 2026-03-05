@@ -27,13 +27,11 @@
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
                   <div class="profile-name" id="display-name">@Alex</div>
                   <div class="profile-country" id="display-country">🇫🇷</div>
-                  <div class="profile-city" id="display-city" style="font-size: 12px; color: var(--text-sub);">Paris</div>
                 </div>
           
                 <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
                   <input type="text" id="input-name" style="width: 80px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
                   <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);" readonly>
-                  <input type="text" id="input-city" placeholder="City" style="width: 70px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
                 </div>
 
                 <div class="profile-membership">In app for: 1 days</div>
@@ -457,8 +455,11 @@
 
       <nav class="bottom-nav">
         <button class="nav-item nav-active" data-target="home">
-          <span>🏠</span>
-          <span>Home</span>
+            <span style="position: relative; display: inline-block;">
+                🏠
+                <div id="home-badge" class="nav-badge" style="display: none;">0</div>
+            </span>
+            <span>Home</span>
         </button>
         <button class="nav-item" data-target="map">
           <span>🗺️</span>
