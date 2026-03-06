@@ -12,8 +12,28 @@ const CloudSystem = {
     ],
 
     generateProfile: function() {
-        // Берем случайного бота ИЗ НАШЕЙ СГЕНЕРИРОВАННОЙ БАЗЫ
-        const targetBot = state.bots[Math.floor(Math.random() * state.bots.length)];
+        // Убедимся, что универсальный массив памяти существует
+        if (!state.contactedUsers) state.contactedUsers = [];
+
+        // В БУДУЩЕМ: здесь вместо state.bots будет лежать массив ВСЕХ доступных пользователей (боты + люди)
+        let poolOfUsers = state.bots; 
+
+        // 1. Фильтруем: оставляем только тех, чей УНИКАЛЬНЫЙ ID ЕЩЁ НЕ в списке
+        let availableUsers = poolOfUsers.filter(user => {
+            // Берем реальный ID или ник (если это старый бот без ID)
+            const uniqueId = user.userId || user.id || user.name; 
+            return !state.contactedUsers.includes(uniqueId);
+        });
+
+        // 2. Если свободных юзеров не осталось — начинаем новый круг!
+        if (availableUsers.length === 0) {
+            state.contactedUsers = []; // Очищаем память
+            availableUsers = poolOfUsers; 
+            console.log("Круг пройден! Список получателей обнулен.");
+        }
+
+        // 3. Берем случайного пользователя ИЗ ОСТАВШИХСЯ
+        const targetUser = availableUsers[Math.floor(Math.random() * availableUsers.length)];
 
         let shuffledInterests = [...AVAILABLE_INTERESTS].sort(() => 0.5 - Math.random());
         let selectedInterests = shuffledInterests.slice(0, 3);
@@ -23,14 +43,18 @@ const CloudSystem = {
             .replace('{int1}', selectedInterests[0].toLowerCase())
             .replace('{int2}', selectedInterests[1].toLowerCase())
             .replace('{int3}', selectedInterests[2].toLowerCase())
-            .replace('{country}', targetBot.countryName);
+            .replace('{country}', targetUser.countryName);
 
         return {
-            userId: 'PJ-' + Math.floor(1000 + Math.random() * 9000),
-            name: targetBot.name,
-            country: targetBot.countryName,
-            flag: targetBot.flag,
-            // Город удален
+            // Передаем настоящий ID пользователя для нашей системы памяти
+            targetId: targetUser.userId || targetUser.id || targetUser.name, 
+            
+            // Визуальный ID для штампа на открытке (можешь оставить рандомным или брать реальный)
+            displayId: 'PJ-' + Math.floor(1000 + Math.random() * 9000), 
+            
+            name: targetUser.name,
+            country: targetUser.countryName,
+            flag: targetUser.flag,
             interests: selectedInterests,
             bio: bio
         };

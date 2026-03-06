@@ -3,60 +3,83 @@
 // ==========================================================================
 
 const BOT_SETTINGS = {
-    ACTIVITY_INTERVAL: 15000, // Боты "думают" каждые 15 секунд
-    CHANCE_TO_SEND: 0.15,     // 15% шанс отправки
-    MAX_INCOMING: 3           // ВАЖНО: Максимальное количество открыток, которые могут лететь к тебе одновременно
+    ACTIVITY_INTERVAL: 10000, // Боты "думают" каждые 10 секунд
+    CHANCE_TO_SEND: 0.15,     // Советую 15% (0.15), чтобы при 10-сек интервале открытки летели реалистично
 };
 
-// 1. ГЛАВНЫЙ ЦИКЛ ЖИЗНИ БОТОВ
+// 1. ГЛАВНЫЙ ЦИКЛ ЖИЗНИ БОТОВ (ОБЪЕДИНЕННАЯ УМНАЯ ЛОГИКА)
 function simulateBotActivity() {
     if (!state.bots || state.bots.length === 0) return;
 
     let uiNeedsUpdate = false;
+    const chance = BOT_SETTINGS.CHANCE_TO_SEND || 0.15;
 
-    // Симуляция активности для Leaderboard
     state.bots.forEach(bot => {
-        if (Math.random() < 0.10) {
-            bot.sent += 1;
-            uiNeedsUpdate = true;
+        // Проверяем бюджет: у бота должно быть меньше 5 отправленных
+        if (bot.sent < 5) {
+            
+            // Бот решает, отправить ли кому-то открытку прямо сейчас
+            if (Math.random() < chance) {
+                
+                if (!bot.contactedUsers) bot.contactedUsers = [];
+                if (!bot.contactedCountries) bot.contactedCountries = [];
+
+                // 1. Собираем в список всех доступных ботов (кому еще не писали)
+                let availableTargets = state.bots.filter(target => 
+                    target.name !== bot.name && !bot.contactedUsers.includes(target.name)
+                );
+
+                // 2. ДОБАВЛЯЕМ ТЕБЯ В ЭТОТ ЖЕ СПИСОК! (если бот тебе еще не писал)
+                if (!bot.contactedUsers.includes("You")) {
+                    availableTargets.push({ 
+                        name: "You", 
+                        countryName: state.profile.country || "My Country", 
+                        isPlayer: true // Метка, что это реальный игрок
+                    });
+                }
+
+                // 3. Бот тянет случайное имя из шляпы
+                if (availableTargets.length > 0) {
+                    const randomTarget = availableTargets[Math.floor(Math.random() * availableTargets.length)];
+                    
+                    // Запоминаем счастливчика и его страну
+                    bot.contactedUsers.push(randomTarget.name);
+                    
+                    if (!bot.contactedCountries.includes(randomTarget.countryName)) {
+                        bot.contactedCountries.push(randomTarget.countryName);
+                    }
+
+                    // Списываем открытку с баланса бота (и для Лидерборда)
+                    bot.sent += 1;
+                    uiNeedsUpdate = true;
+
+                    // 4. ЕСЛИ БОТ ВЫБРАЛ ТЕБЯ — ЗАПУСКАЕМ РЕАЛЬНУЮ ОТПРАВКУ В ТРЕКЕР
+                    if (randomTarget.isPlayer) {
+                        const now = new Date().getTime();
+                        let arrivalTime;
+
+                        const instantToggle = document.getElementById('instant-delivery-toggle');
+                        if (instantToggle && instantToggle.checked) {
+                            arrivalTime = now + 1000; 
+                        } else {
+                            const myFlag = typeof MY_HOME_FLAG !== 'undefined' ? MY_HOME_FLAG : "🌍";
+                            arrivalTime = calculateDeliveryTime(bot.flag, myFlag);
+                        }
+
+                        state.tracking.unshift({
+                            type: "incoming",
+                            fromBot: bot.name,
+                            flag: bot.flag,
+                            countryName: bot.countryName,
+                            sentAt: now,
+                            arrivalAt: arrivalTime,
+                            status: "In transit ✈️"
+                        });
+                    }
+                }
+            }
         }
     });
-
-    // Считаем, сколько открыток уже летит к тебе прямо сейчас
-    const activeIncoming = state.tracking ? state.tracking.filter(item => item.type === "incoming").length : 0;
-
-    // Отправка открытки ТЕБЕ (только если не превышен лимит)
-    if (activeIncoming < BOT_SETTINGS.MAX_INCOMING && Math.random() < BOT_SETTINGS.CHANCE_TO_SEND) {
-        const randomBot = state.bots[Math.floor(Math.random() * state.bots.length)];
-        
-        const now = new Date().getTime();
-        let arrivalTime;
-
-        // === ПРОВЕРКА МГНОВЕННОЙ ДОСТАВКИ (ЧИТ-РЕЖИМ) ===
-        const instantToggle = document.getElementById('instant-delivery-toggle');
-        if (instantToggle && instantToggle.checked) {
-            // Доставка через 1 секунду
-            arrivalTime = now + 1000; 
-        } else {
-            // Реальная география от страны бота до твоего дома
-            arrivalTime = calculateDeliveryTime(randomBot.flag, MY_HOME_FLAG);
-        }
-
-        state.tracking.unshift({
-            type: "incoming",
-            fromBot: randomBot.name,
-            flag: randomBot.flag,
-            countryName: randomBot.countryName,
-            // Город удален
-            sentAt: now,
-            arrivalAt: arrivalTime,
-            status: "In transit ✈️"
-        });
-
-        randomBot.sent += 1;
-        uiNeedsUpdate = true;
-        
-    }
 
     if (uiNeedsUpdate && typeof refreshAllLists === 'function') {
         refreshAllLists();
@@ -81,7 +104,7 @@ async function processIncomingDelivery(item) {
     const stampUrl = `https://gen.pollinations.ai/image/${stampPrompt}?width=200&height=250&model=flux&nologo=true&seed=${seed}`;
 
     try {
-        // Скачиваем обе картинки параллельно с твоим ключом
+        // Скачиваем обе картинки параллельно
         const [frontRes, stampRes] = await Promise.all([
             fetch(frontUrl, { headers: { "Authorization": `Bearer ${apiKey}` } }),
             fetch(stampUrl, { headers: { "Authorization": `Bearer ${apiKey}` } })
@@ -97,23 +120,21 @@ async function processIncomingDelivery(item) {
             countryFlag: item.flag,
             fromBot: item.fromBot,
             senderName: item.fromBot,
-            // Город удален
             to: item.fromBot + ", " + item.flag, 
             status: "Delivered",
-            frontImage: URL.createObjectURL(frontBlob), // Сгенерированное фото страны
+            frontImage: URL.createObjectURL(frontBlob), 
             message: `Hello friend!\n\nI am sending you warm greetings from ${item.countryName}! I generated this photo specially for you to show the beauty of my homeland.\n\nBest wishes,\n${item.fromBot}`,
             stampType: "ai",
-            stampImage: URL.createObjectURL(stampBlob) // Сгенерированная марка страны
+            stampImage: URL.createObjectURL(stampBlob) 
         });
 
     } catch (e) {
         console.error("Bot image generation failed:", e);
-        // Если вдруг API перегружено, возвращаем заглушку, чтобы открытка не потерялась
+        // Если вдруг API перегружено, возвращаем красивую заглушку
         state.receivedPostcards.unshift({
             countryFlag: item.flag,
             fromBot: item.fromBot,
             senderName: item.fromBot,
-            // Город удален
             to: item.fromBot + ", " + item.flag, 
             status: "Delivered",
             frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${seed}`,
@@ -128,7 +149,6 @@ async function processIncomingDelivery(item) {
     showDeliveryModal(item.fromBot, item.flag);
 }
 
-
 // Основная функция проверки таймеров Трекера
 function checkBotDeliveries() {
     if (!state.tracking || state.tracking.length === 0) return;
@@ -142,11 +162,11 @@ function checkBotDeliveries() {
         if (item.arrivalAt && now >= item.arrivalAt) {
             
             if (item.type === "incoming") {
-                // БОТ ДОСТАВИЛ ТЕБЕ -> Запускаем фоновую нейро-генерацию!
+                // БОТ ДОСТАВИЛ ТЕБЕ -> Запускаем генерацию
                 processIncomingDelivery(item);
                 
             } else if (item.type === "outgoing") {
-                // ТВОЯ ОТКРЫТКА ДОСТАВЛЕНА БОТУ -> Получаем Токен Кармы
+                // ТВОЯ ОТКРЫТКА ДОСТАВЛЕНА БОТУ -> Получаем Токен
                 const sentCard = state.sentPostcards.find(c => c.sentAt === item.sentAt);
                 if (sentCard) sentCard.status = "Delivered";
                 
@@ -154,7 +174,7 @@ function checkBotDeliveries() {
                 showOutgoingDeliveredModal(item.toCountry, item.flag);
             }
             
-            // Открытка "приземлилась", сразу убираем её из Трекера
+            // Убираем из Трекера
             state.tracking.splice(i, 1);
             uiNeedsUpdate = true;
         }
@@ -162,28 +182,10 @@ function checkBotDeliveries() {
     
     if (uiNeedsUpdate && typeof refreshAllLists === 'function') refreshAllLists();
 }
-// ==========================================================================
-// 3. НОВЫЕ КРАСИВЫЕ МОДАЛЬНЫЕ ОКНА
-// ==========================================================================
-function showMysteryIncomingModal() {
-    const phoneFrame = document.querySelector('.phone-frame') || document.body;
-    const overlay = document.createElement('div');
-    overlay.className = 'custom-alert-overlay';
 
-    overlay.innerHTML = `
-        <div class="custom-alert-box">
-            <div style="font-size: 50px; margin-bottom: -15px;">✈️</div>
-            <div style="font-size: 20px; font-weight: 900; color: #2980b9; margin-bottom: 5px;">Incoming Mail!</div>
-            <div class="custom-alert-text" style="font-size: 14px;">
-                Someone from across the world just sent you a mystery postcard!<br>
-                <br>
-                <span style="color: #7f8c8d; font-size: 12px;">Track it on your Home screen.</span>
-            </div>
-            <button class="primary-button custom-alert-btn" style="background: #2980b9; border-color: #2980b9;" onclick="this.closest('.custom-alert-overlay').remove()">Awesome!</button>
-        </div>
-    `;
-    phoneFrame.appendChild(overlay);
-}
+// ==========================================================================
+// 3. МОДАЛЬНЫЕ ОКНА
+// ==========================================================================
 
 function showDeliveryModal(botName, flag) {
     const phoneFrame = document.querySelector('.phone-frame') || document.body;
@@ -230,34 +232,27 @@ document.addEventListener("DOMContentLoaded", () => {
             const randomCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
             const nameBase = botNames[Math.floor(Math.random() * botNames.length)];
             const botName = `@${nameBase}_${Math.floor(Math.random() * 999)}`;
-            const sentCount = 0;
             
             state.bots.push({
                 name: botName,
                 flag: randomCountry.flag,
                 countryName: randomCountry.name,
-                // Город удален
-                sent: sentCount
+                sent: 0
             });
         }
         
         if (typeof refreshAllLists === 'function') refreshAllLists();
-        
-        // Обновляем экран Create при генерации ботов
         if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI(); 
     }
 
     if (botToggle && botSettingsRow && botSlider && btnApplyBots) {
         botToggle.onchange = (e) => {
             if (e.target.checked) {
-                // Только показываем ползунок, ничего не генерируем!
                 botSettingsRow.style.display = 'block';
             } else {
                 botSettingsRow.style.display = 'none';
                 state.bots = []; 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
-                
-                // Возвращаем экран Create в режим Personal Collection
                 if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI();
             }
         };
@@ -268,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         btnApplyBots.onclick = () => {
             const count = parseInt(botSlider.value);
-            generateBots(count); // Генерируем ботов только по клику!
+            generateBots(count); 
             
             const originalText = btnApplyBots.textContent;
             btnApplyBots.textContent = "✅ Applied!";

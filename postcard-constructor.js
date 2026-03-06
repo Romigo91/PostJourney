@@ -25,6 +25,38 @@ document.addEventListener('DOMContentLoaded', () => {
         phoneFrame.appendChild(overlay);
     }
 
+    // ==========================================================================
+    // УМНЫЙ КОМПРЕССОР ИЗОБРАЖЕНИЙ (ЧТОБЫ НЕ ЗАБИВАТЬ ПАМЯТЬ)
+    // ==========================================================================
+    function compressImage(file, maxWidth, callback) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Если картинка больше нужного размера - уменьшаем её пропорционально
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Сжимаем в формат JPEG с качеством 70% (визуально не отличить, а весит в 20 раз меньше!)
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                callback(compressedDataUrl);
+            };
+        };
+    }
+
     // 1. ЭЛЕМЕНТЫ УПРАВЛЕНИЯ
     const btnFront = document.getElementById('btn-front-side');
     const btnBack = document.getElementById('btn-back-side');
@@ -120,20 +152,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === ЗАГРУЗКА СВОЕГО ФОТО ===
+    // === ЗАГРУЗКА СВОЕГО ФОТО (С КОМПРЕССИЕЙ!) ===
     if (frontUpload) {
         frontUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                postcardData.frontImage = event.target.result;
+            // Прогоняем загруженное фото через компрессор (макс ширина 800px)
+            compressImage(file, 800, (compressedBase64) => {
+                postcardData.frontImage = compressedBase64;
                 postcardData.imagePosX = 50;
                 postcardData.imagePosY = 50;
                 updateDisplay();
-            };
-            reader.readAsDataURL(file);
+            });
         });
     }
 
@@ -276,7 +307,7 @@ if (btnGenerateAI) {
             const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
             const encodedPrompt = encodeURIComponent(uniquePrompt);
             
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=imagen-4&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=klein&nologo=true&seed=${randomSeed}`;
 
             const response = await fetch(url, {
                 method: "GET",
@@ -360,7 +391,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             
             const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=imagen-4&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=klein&nologo=true&seed=${randomSeed}`;
             
             const response = await fetch(url, {
                 method: "GET",
@@ -562,6 +593,7 @@ if (close3dBtn) {
         window.addEventListener('mouseup', imgDragEnd);
         previewContent.addEventListener('touchstart', imgDragStart, { passive: false });
         window.addEventListener('touchmove', imgDragMove, { passive: false });
+        window.addEventListener('touchmove', imgDragMove, { passive: false });
         window.addEventListener('touchend', imgDragEnd);
     }
 
@@ -645,6 +677,7 @@ if (btnSendPostcard) {
                 status: "Saved",
                 countryFlag: state.profile.country || "🌍",
                 to: "Personal Archive",
+                isOffline: true,
                 frontImage: postcardData.frontImage,
                 message: postcardData.message,
                 stampType: postcardData.stampType,
@@ -656,10 +689,15 @@ if (btnSendPostcard) {
             overlayText = `Your postcard has been saved to your<br><b>Personal Collection</b>.`;
         } else {
             const dest = {
+                targetId: state.currentTarget.targetId, // <-- ДОСТАЕМ УНИВЕРСАЛЬНЫЙ ID
                 country: state.currentTarget.country,
                 flag: state.currentTarget.flag,
                 name: state.currentTarget.name
             };
+            
+            // === ЗАПОМИНАЕМ ID ПОЛЬЗОВАТЕЛЯ (БОТА ИЛИ ЖИВОГО) ===
+            if (!state.contactedUsers) state.contactedUsers = [];
+            state.contactedUsers.push(dest.targetId);
             
             const arrivalTime = typeof calculateDeliveryTime === 'function' 
             ? calculateDeliveryTime(MY_HOME_FLAG, dest.flag) 

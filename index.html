@@ -18,15 +18,15 @@
           <div class="profile-card clickable-block" id="profile-block">
             <div class="profile-header-main" style="display: flex; align-items: center; gap: 12px; width: 100%; position: relative;">
               <div class="avatar-container" style="position: relative; cursor: pointer;">
-                <div class="avatar-circle" id="profile-avatar">A</div>
+                <div class="avatar-circle" id="profile-avatar">?</div>
                 <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
                 <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
               </div>
           
               <div class="profile-info">
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
-                  <div class="profile-name" id="display-name">@Alex</div>
-                  <div class="profile-country" id="display-country">🇫🇷</div>
+                  <div class="profile-name" id="display-name"></div>
+                  <div class="profile-country" id="display-country"></div>
                 </div>
           
                 <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
@@ -437,6 +437,20 @@
                 </button>
               </div>
             </div>
+
+            <div class="settings-group" style="margin-top: 20px;">
+              <h3 style="margin-bottom: 10px; color: #7f8c8d; font-size: 14px; text-transform: uppercase;">Data & Storage</h3>
+              
+              <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <span style="font-weight: bold; color: #333;">💾 Auto-Save Progress</span>
+                  <label class="switch">
+                      <input type="checkbox" id="save-toggle">
+                      <span class="slider round"></span>
+                  </label>
+              </div>
+              
+              <button id="btn-clear-data" class="primary-button" style="background: #e74c3c; border-color: #c0392b; width: 100%; color: white;">🗑️ Clear All Data</button>
+          </div>
 
         <div id="modal-3d" class="modal-3d">
             <div class="modal-3d-overlay" id="modal-3d-overlay"></div>
