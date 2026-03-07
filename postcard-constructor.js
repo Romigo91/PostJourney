@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === КАСТОМНЫЕ ВСПЛЫВАЮЩИЕ ОКНА (АЛЕРТЫ) ===
     function showAppAlert(message) {
-        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const phoneFrame = document.body;
         
         const overlay = document.createElement('div');
         overlay.className = 'custom-alert-overlay';
@@ -491,7 +491,7 @@ if (btnView3D) {
         wrapper.style.opacity = '0';
         wrapper.style.transition = 'none'; 
 
-        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const phoneFrame = document.body;
         if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
         modal.style.zIndex = '999999';
 
@@ -869,7 +869,7 @@ document.addEventListener('click', (e) => {
     wrapper.style.opacity = '0';
     wrapper.style.transition = 'none';
 
-    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    const phoneFrame = document.body;
     if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
     modal.style.zIndex = '999999';
 

@@ -13,39 +13,45 @@
       <main id="screen-container">
         
         <section class="screen screen-active" data-screen="home" id="home-screen">
-          <h2 class="screen-title">PostJourney</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 0px; padding: 15px 0 10px;">
+            <h2 class="screen-title" style="margin: 0;">PostJourney</h2>
+            <div class="day-badge" id="days-in-app-badge">DAY 1</div>
+          </div>
           
           <div class="profile-card clickable-block" id="profile-block">
-            <div class="profile-header-main" style="display: flex; align-items: center; gap: 12px; width: 100%; position: relative;">
-              <div class="avatar-container" style="position: relative; cursor: pointer;">
+            
+            <div class="profile-header-main" style="display: flex; align-items: center; width: 100%; position: relative;">
+              
+              <div class="avatar-container" style="position: relative; cursor: pointer; flex-shrink: 0; margin-right: 12px;">
                 <div class="avatar-circle" id="profile-avatar">?</div>
                 <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
                 <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
               </div>
           
-              <div class="profile-info">
+              <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 1; min-width: 0; gap: 4px;">
+                
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
-                  <div class="profile-name" id="display-name"></div>
-                  <div class="profile-country" id="display-country"></div>
+                    <div class="profile-name" id="display-name"></div>
+                    <div class="profile-country" id="display-country"></div>
                 </div>
-          
+            
                 <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
-                  <input type="text" id="input-name" style="width: 80px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
-                  <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);" readonly>
+                    <input type="text" id="input-name" style="width: 100px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
+                    <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);" readonly>
                 </div>
 
-                <div class="profile-membership">In app for: 1 days</div>
+                <div class="tags-full-width-container" id="display-tags-minimal" style="margin: 0; padding: 0; width: 100%;"></div>
+                
               </div>
           
-              <span class="expand-trigger" style="margin-left: auto; align-self: flex-start;">⬇️</span>
-            </div>
-
-            <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 10px;">
+              <span class="expand-trigger" style="flex-shrink: 0; margin-left: 12px;">⬇️</span>
+              
+            </div> 
+            <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
               <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
               <div id="flag-grid-picker" class="flag-grid-picker-style"></div>
             </div>
-          
-            <div id="display-tags-minimal" class="tags-full-width-container"></div>
+
           
             <div class="extra-content">
               <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here.</p>
@@ -56,7 +62,7 @@
               </textarea>
               
               <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
-                <div style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select interests (max 4):</div>
+                <div id="tags-hint-text" style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select exactly 3 interests:</div>
                 <div id="edit-tags-list" class="tags-container-edit"></div>
               </div>
               
@@ -64,7 +70,7 @@
             </div>
           </div>
 
-          <div class="section-block home-assets clickable-block">
+          <div class="section-block clickable-block" id="assets-block" style="display: none;">
             <div class="section-header">
               <span>My Assets</span>
               <span class="expand-trigger">⬇️</span> 
@@ -72,8 +78,7 @@
             <div class="assets-row">
               <div class="asset-card">
                 <div class="asset-label">Available postcards</div>
-                <div class="asset-value">5</div>
-              </div>
+                <div class="asset-value" id="postcard-display">5</div> </div>
               <div class="asset-card">
                 <div class="asset-label">Available energy</div>
                 <div class="asset-value" id="energy-display">500</div>
@@ -85,7 +90,7 @@
             </div>
           </div>
 
-          <div class="section-block home-tracking clickable-block">
+          <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span>Tracking Board</span>
@@ -95,21 +100,22 @@
             </div>
             
             <div class="extra-content">
-              <p class="small-text" style="margin-bottom: 15px;">Track your postcards in real-time. Wait for the timer to see them in your archive!</p>
-              <div class="tracking-list" id="tracking-list"></div>
+              <p id="tracking-empty-text" class="small-text" style="margin-bottom: 10px;">Track your postcards in real-time. Wait for the timer to see them in your archive!</p>
+              
+              <div class="tracking-list tracking-scroll-area" id="tracking-list"></div>
             </div>
           </div>
 
-          <div class="section-block clickable-block" style="margin-top: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <div class="section-block clickable-block" id="archive-block" style="display: none; margin-top: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">Archive 🗃️</span>
+                <span style="color: #333; font-weight: 600;">Archive</span>
               </div>
               <span class="expand-trigger">⬇️</span>
             </div>
             
-            <div class="extra-content" style="padding-top: 15px;">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <div class="extra-content">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 15px;">
                 <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent postcards</span>
                 <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">0</span>
               </div>
@@ -369,88 +375,94 @@
         </section>
 
         <section class="screen" data-screen="settings">
-            <h2 class="screen-title">Settings</h2>
+          <h2 class="screen-title">Settings</h2>
           
-            <div class="section-block">
-              <div class="section-header">
-                <span>Theme</span>
-              </div>
-              <div class="toggle-row">
-                <span class="small-text">Light / Dark</span>
-                <label class="switch">
-                  <input type="checkbox" checked />
-                  <span class="slider round"></span>
-                </label>
-              </div>
+          <div class="section-block">
+            <div class="section-header">
+              <span>Theme</span>
             </div>
-          
-            <div class="section-block">
-              <div class="section-header">
-                <span>Notifications</span>
-              </div>
-              <div class="toggle-row">
-                <span class="small-text">Email notifications</span>
-                <label class="switch">
-                  <input type="checkbox" checked />
-                  <span class="slider round"></span>
-                </label>
-              </div>
-              <div class="toggle-row">
-                <span class="small-text">In‑app notifications</span>
-                <label class="switch">
-                  <input type="checkbox" checked />
-                  <span class="slider round"></span>
-                </label>
-              </div>
+            <div class="toggle-row">
+              <span class="small-text">Light / Dark</span>
+              <label class="switch">
+                <input type="checkbox" id="theme-toggle" checked />
+                <span class="slider round"></span>
+              </label>
             </div>
-
-            <div class="section-block" style="border: 2px dashed #d35400; background: #fff5eb;">
-              <div class="section-header">
-                <span style="color: #d35400;">Developer / Testing 🛠️</span>
-              </div>
-              
-              <div class="toggle-row">
-                <span class="small-text" style="font-weight: bold;">Simulate World (Bots)</span>
-                <label class="switch">
-                  <input type="checkbox" id="bot-toggle" />
-                  <span class="slider round"></span>
-                </label>
-              </div>
-            
-              <div class="toggle-row" style="margin-top: 10px;">
-                <span style="font-size: 13px; color: var(--text-main);">⚡ Instant Bot Delivery (1s)</span>
-                <label class="switch">
-                  <input type="checkbox" id="instant-delivery-toggle">
-                  <span class="slider"></span>
-                </label>
-              </div>
-              
-              <div id="bot-settings-row" style="display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <span class="small-text">Number of Bots:</span>
-                  <span id="bot-count-display" style="font-weight: bold; color: var(--primary); font-size: 16px;">5</span>
-                </div>
-                <input type="range" id="bot-count-slider" min="1" max="50" value="5" style="width: 100%; accent-color: #d35400;">
-                
-                <button id="btn-apply-bots" class="secondary-button" style="width: 100%; margin-top: 12px; border-color: #d35400; color: #d35400; font-weight: bold;">
-                  Apply Bots
-                </button>
-              </div>
-            </div>
-
-            <div class="settings-group" style="margin-top: 20px;">
-              <h3 style="margin-bottom: 10px; color: #7f8c8d; font-size: 14px; text-transform: uppercase;">Data & Storage</h3>
-              
-              <div class="settings-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                  <span style="font-weight: bold; color: #333;">💾 Auto-Save Progress</span>
-                  <label class="switch">
-                      <input type="checkbox" id="save-toggle">
-                      <span class="slider round"></span>
-                  </label>
-              </div>
-              
-              <button id="btn-clear-data" class="primary-button" style="background: #e74c3c; border-color: #c0392b; width: 100%; color: white;">🗑️ Clear All Data</button>
           </div>
+          
+          <div class="section-block">
+            <div class="section-header">
+              <span>Notifications</span>
+            </div>
+            <div class="toggle-row">
+              <span class="small-text">Email notifications</span>
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span class="small-text">In‑app notifications</span>
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-header">
+              <span>Developer / Testing 🛠️</span>
+            </div>
+            
+            <div class="toggle-row">
+              <span class="small-text">Simulate World (Bots)</span>
+              <label class="switch">
+                <input type="checkbox" id="bot-toggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            
+            <div class="toggle-row" style="margin-top: 10px;">
+              <span class="small-text">⚡ Instant Bot Delivery (1s)</span>
+              <label class="switch">
+                <input type="checkbox" id="instant-delivery-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+            
+            <div id="bot-settings-row" style="display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span class="small-text">Number of Bots:</span>
+                <span id="bot-count-display" style="font-weight: bold; color: var(--primary); font-size: 16px;">5</span>
+              </div>
+              <input type="range" id="bot-count-slider" min="1" max="50" value="5" style="width: 100%; accent-color: var(--primary);">
+              
+              <button id="btn-apply-bots" class="secondary-button" style="width: 100%; margin-top: 12px;">
+                Apply Bots
+              </button>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-header">
+              <span>Data & Storage 💾</span>
+            </div>
+            
+            <div class="toggle-row">
+              <span class="small-text">Auto-Save Progress</span>
+              <label class="switch">
+                <input type="checkbox" id="save-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+            
+            <button id="btn-clear-data" class="primary-button" style="background: #e74c3c; width: 100%; color: white; margin-top: 15px;">
+              🗑️ Clear All Data
+            </button>
+          </div>
+
+        </section>
 
         <div id="modal-3d" class="modal-3d">
             <div class="modal-3d-overlay" id="modal-3d-overlay"></div>

@@ -58,7 +58,6 @@
   }
 
   
-  
   /* ==========================================================================
      2. ОБОЛОЧКА ТЕЛЕФОНА И ЭКРАНЫ (LAYOUT)
      ========================================================================== */
@@ -136,11 +135,11 @@
   
   .expanded { flex: none; height: auto !important; z-index: 10; }
   .expanded .extra-content {
-    max-height: 800px;
+    max-height: 1200px; /* Увеличили запас высоты */
     opacity: 1;
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid var(--nav-border);
+    border-top: 1px dashed var(--border); 
   }
   
   .expand-trigger {
@@ -172,10 +171,10 @@
     font-weight: 700; color: var(--text-main);
     
     /* === НОВЫЕ БРОНЕБОЙНЫЕ СТИЛИ ЗАЩИТЫ === */
-    overflow: hidden !important; /* Убиваем любые ползунки на 100% */
-    touch-action: none; /* Запрещаем скролл страницы при перетаскивании на мобилке */
-    user-select: none; /* Запрещаем выделение "невидимого" текста */
-    -webkit-user-drag: none; /* Запрещаем браузеру тянуть картинку как скачанный файл */
+    overflow: hidden !important; 
+    touch-action: none; 
+    user-select: none; 
+    -webkit-user-drag: none; 
     
     background-size: cover; 
     background-position: center; 
@@ -183,32 +182,92 @@
     cursor: pointer;
   }
   
-  .profile-info { display: flex; flex-direction: column; justify-content: center; }
-  .profile-name { font-weight: 600; color: var(--text-main); }
-  .profile-country, .profile-membership { font-size: 12px; color: var(--text-sub); }
+  .profile-info { 
+    display: block; /* Превращаем в обычный блок без всяких скрытых отступов */
+    margin: 0; 
+    padding: 0;
+  }
+
+  .profile-name {
+    margin: 0; /* Убиваем дефолтные отступы параграфа */
+    line-height: 1; /* МАГИЯ: сплющиваем невидимую рамку вокруг букв */
+    font-weight: 600; 
+    color: var(--text-main);
+    font-size: 16px; 
+  }
+
+  .profile-country { 
+    display: inline-flex; /* Делаем плашку флексом, чтобы текст внутри стоял идеально ровно */
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    font-size: 10px; 
+    font-weight: 800; 
+    text-transform: uppercase;
+    color: var(--primary); 
+    background: var(--bg-flag-circle); 
+    padding: 3px 8px; 
+    border-radius: 6px; 
+    letter-spacing: 0.5px;
+    line-height: 1; /* Тоже убираем лишний воздух вокруг текста */
+  }
   
-  .tags-full-width-container { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 12px; padding: 0 4px; }
+  .tags-full-width-container { 
+    display: flex; 
+    flex-wrap: nowrap; /* Строго одна строка */
+    align-items: center;
+    justify-content: flex-start; /* Выравниваем строго по левому краю! */
+    width: 100%; 
+    margin-top: 8px; 
+    padding: 0; 
+    overflow: hidden; 
+  }
+
   .tag-mini {
-    font-size: 10px; padding: 3px 10px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 999px; color: var(--text-main);
-    white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    font-size: 9.5px; /* Идем на крайние меры: шрифт чуть меньше 10px */
+    letter-spacing: -0.3px; /* МАГИЯ: слегка сдвигаем буквы плотнее друг к другу */
+    font-weight: normal; 
+    color: var(--text-sub); 
+    background: transparent; 
+    border: none; 
+    padding: 0; 
+    box-shadow: none; 
+    white-space: nowrap; 
+  }
+
+  /* Максимально сплющиваем разделители */
+  .tag-mini:not(:last-child)::after {
+    content: "•"; 
+    color: var(--border); 
+    margin: 0 2px; /* Точки стоят почти вплотную к словам */
   }
   
   .profile-card .expand-trigger { position: static !important; }
   
   .tags-container-edit {
-    display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0;
-    max-height: 200px; overflow-y: auto; scrollbar-width: none;
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 6px; /* Было 8px, сделали плотнее */
+    padding: 8px 0; /* Уменьшили отступы сверху и снизу */
   }
-  .tags-container-edit::-webkit-scrollbar { display: none; }
   
   .tag-selectable {
-    font-size: 12px; padding: 6px 12px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 999px; cursor: pointer; color: var(--text-main);
+    font-size: 11px; /* Чуть уменьшили шрифт (было 12px) */
+    padding: 4px 10px; /* Уменьшили "пухлость" кнопок (было 6px 12px) */
+    background: var(--bg-card); 
+    border: 1px solid var(--border);
+    border-radius: 999px; 
+    cursor: pointer; 
+    color: var(--text-main);
+    transition: all 0.2s ease; /* Добавили плавность при клике */
   }
-  .tag-selectable.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+  
+  .tag-selectable.selected { 
+    background: var(--primary); 
+    color: #fff; 
+    border-color: var(--primary); 
+    transform: scale(1.05); /* Выбранный тег теперь слегка увеличивается! */
+  }
   
   .flag-grid-picker-style {
     display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 8px;
@@ -302,14 +361,13 @@
 /* === УЛУЧШЕННАЯ СЕТКА ДЛЯ АРХИВА ОТКРЫТОК === */
 .postcard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Строго 2 колонки одинаковой ширины */
-  gap: 12px; /* Аккуратный отступ между карточками */
-  padding: 5px; /* Небольшой отступ от краев желтого блока */
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 12px; 
+  padding: 5px; 
 }
 
-/* Сама карточка в архиве */
 .archive-card {
-  width: 100%; /* Карточка занимает всю ширину своей колонки */
+  width: 100%; 
   border-radius: 12px !important;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -325,7 +383,6 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
 }
 
-/* ИСПРАВЛЕНО: убрали width: calc(50% - 4px), чтобы не ломать сетку */
 .postcard-card { 
   border-radius: 12px; 
   background: var(--bg-flag-circle); 
@@ -360,8 +417,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   display: flex;
 }
   
-
-/* Стили для текста на обороте открытки */
 .postcard-message-preview {
   width: 80%;
   padding: 20px;
@@ -369,10 +424,8 @@ input:checked + .slider:before { transform: translateX(14px); }
   word-wrap: break-word;
   line-height: 1.4;
   color: #333;
-  /* Шрифт будет меняться динамически через JS */
 }
 
-/* Добавим стандартный рукописный шрифт, если Brush Script MT нет в системе */
 @font-face {
   font-family: 'Handwritten';
   src: local('Brush Script MT'), local('Comic Sans MS');
@@ -382,39 +435,29 @@ input:checked + .slider:before { transform: translateX(14px); }
      7. НАВИГАЦИЯ (BOTTOM NAV)
      ========================================================================== */
      .bottom-nav {
-      /* Делаем бар плавающим внутри .phone-frame */
       position: absolute; 
       bottom: 20px; 
       left: 16px; 
       right: 16px; 
       height: 65px;
-      
-      /* Овальная форма */
       border-radius: 40px; 
-      
-      /* Эффект матового стекла */
       background: rgba(255, 255, 255, 0.85); 
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      
-      /* Границы и тени */
       border: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      
       display: flex; 
       z-index: 1000;
       box-sizing: border-box;
       overflow: hidden;
     }
   
-    /* Поддержка темной темы для плавающего бара */
     [data-theme="dark"] .bottom-nav {
       background: rgba(30, 30, 30, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
     
-    /* Фикс для мобильных устройств с учетом челок/безопасных зон */
     @media (max-width: 450px) { 
       .bottom-nav { 
         position: fixed; 
@@ -431,15 +474,13 @@ input:checked + .slider:before { transform: translateX(14px); }
     
     .nav-item span:first-child { font-size: 20px; }
     .nav-active { color: var(--primary); font-weight: 700; }
-    
-    /* Легкий эффект при нажатии */
     .nav-item:active { transform: scale(0.9); }
 
   /* Иконка 3D */
 .icon-3d {
   transition: all 0.3s ease;
   cursor: pointer;
-  color: #e67e22; /* Оранжевый акцент */
+  color: #e67e22; 
 }
 
 .icon-3d.disabled {
@@ -451,30 +492,6 @@ input:checked + .slider:before { transform: translateX(14px); }
 
 .icon-3d:not(.disabled):hover {
   transform: scale(1.1);
-}
-
-/* Модалка и сцена */
-.modal-3d {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-3d-overlay {
-  position: absolute;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(5px);
-}
-
-.modal-3d-container {
-  position: relative;
-  width: 90%;
-  max-width: 400px;
-  z-index: 10;
 }
 
 .card-3d-wrapper {
@@ -491,12 +508,9 @@ input:checked + .slider:before { transform: translateX(14px); }
   cursor: pointer;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  
-  /* НОВОЕ: Задаем цвет "ребра" открытки (цвет плотного картона) */
   background-color: #e8d5bc; 
 }
 
-/* Когда наводим мышку, карточка "приподнимается" (тень становится больше) */
 .card-3d-wrapper:hover .card-3d-inner {
   box-shadow: 0 25px 50px rgba(0,0,0,0.6);
 }
@@ -509,7 +523,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   overflow: hidden;
 }
 
-/* НОВОЕ: Выдвигаем лицевую сторону чуть-чуть ВПЕРЕД (на 1.5 пикселя) */
 .card-3d-front {
   transform: translateZ(1.5px);
 }
@@ -533,11 +546,9 @@ input:checked + .slider:before { transform: translateX(14px); }
   cursor: pointer;
 }
 
-
   /* ==========================================================================
      8. Анимация 
      ========================================================================== */
-
   #ai-progress-bar {
     background-image: linear-gradient(
         45deg, 
@@ -564,29 +575,25 @@ input:checked + .slider:before { transform: translateX(14px); }
    .ink-btn {
     width: 24px;
     height: 24px;
-    border-radius: 50%; /* Делает кнопку круглой */
+    border-radius: 50%; 
     border: 2px solid transparent;
     cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease;
     padding: 0;
   }
   
-  /* Эффект при наведении мышки */
   .ink-btn:hover {
     transform: scale(1.15);
   }
   
-  /* Дизайн ВЫБРАННОГО кружочка (добавляем белую обводку внутри) */
   .ink-btn.active {
-    border-color: var(--primary); /* Оранжевая рамка снаружи */
-    box-shadow: inset 0 0 0 2px #ffffff; /* Белое кольцо внутри */
+    border-color: var(--primary); 
+    box-shadow: inset 0 0 0 2px #ffffff; 
   }
 
 /* ====================================================================
    ОБНОВЛЕННЫЕ, УКРУПНЕННЫЕ СТИЛИ ДЛЯ ПРАВОЙ СТОРОНЫ ОБОРОТА (600x400)
    ==================================================================== */
-
-/* Разметка оборотной стороны */
 .postcard-back-layout {
   display: flex;
   width: 100%;
@@ -595,22 +602,19 @@ input:checked + .slider:before { transform: translateX(14px); }
   position: relative;
 }
 
-/* Левая часть: Немного сузим, чтобы дать место правой */
 .postcard-left-side {
   flex: 1;
-  min-width: 0; /* Жестко запрещаем блоку расширяться из-за длинного текста */
+  min-width: 0; 
   padding: 10px 15px;
   display: flex;
   align-items: center; 
   justify-content: center;
 }
 
-/* Жесткий контейнер ровно на 7 строк */
 .lines-container {
   width: 100%;
-  height: 168px; /* 7 строк * 24px = 168px */
+  height: 168px; 
   position: relative;
-  /* Рисуем 7 линий, которые никогда никуда не съедут */
   background-image: repeating-linear-gradient(
     transparent,
     transparent 23px,
@@ -619,7 +623,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   );
 }
 
-/* Сам текст */
 #postcard-text-area {
   width: 100%;
   height: 100%;
@@ -629,11 +632,10 @@ input:checked + .slider:before { transform: translateX(14px); }
   line-height: 24px; 
   white-space: pre-wrap; 
   overflow-wrap: break-word; 
-  word-break: break-word; /* Заставляет переносить сплошные буквы */
+  word-break: break-word; 
   overflow: hidden;
 }
 
-/* Центральный разделитель */
 .postcard-divider {
   width: 1px;
   background: var(--border);
@@ -641,23 +643,21 @@ input:checked + .slider:before { transform: translateX(14px); }
   opacity: 0.5;
 }
 
-/* Правая часть: Увеличили долю места */
 .postcard-right-side {
   flex: 1;
-  padding: 20px; /* Увеличили отступы внутри */
+  padding: 20px; 
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* Визитка автора (центр): СТАЛА КРУПНЕЕ */
 .sender-profile-block {
-  margin-top: 140px; /* Было 75px, чтобы быть ниже крупной марки */
+  margin-top: 140px; 
   margin-bottom: auto; 
   display: flex;
   align-items: center;
-  gap: 12px; /* Было 8px */
-  padding: 12px; /* Было 8px */
+  gap: 12px; 
+  padding: 12px; 
   border: 1px dashed var(--border);
   border-radius: 10px;
   background: rgba(255,255,255,0.5);
@@ -666,58 +666,53 @@ input:checked + .slider:before { transform: translateX(14px); }
 }
 
 .sender-mini-avatar {
-  width: 45px; height: 45px; /* Было 30x30 */
+  width: 45px; height: 45px; 
   border-radius: 50%;
   background: var(--bg-accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px; /* Шрифт буквы стал крупнее */
+  font-size: 18px; 
   font-weight: bold;
 }
 
-/* Шрифты внутри визитки */
 .sender-profile-block span[style*="font-size:10px"] {
-  font-size: 14px !important; /* Имя юзера */
+  font-size: 14px !important; 
 }
 .sender-profile-block span[style*="font-size:9px"] {
-  font-size: 12px !important; /* Страна и Sender */
+  font-size: 12px !important; 
 }
 
-/* Блок "Маршрут и статистика" (низ слева/центр) */
 .data-badge-block {
-  font-size: 13px; /* БЫЛО 9px! Теперь легко читается */
-  color: var(--text-main); /* Сделали цвет чуть темнее для чёткости */
+  font-size: 13px; 
+  color: var(--text-main); 
   margin-top: auto;
-  line-height: 1.4; /* Увеличили межстрочное расстояние */
+  line-height: 1.4; 
 }
 
-/* Иконки транспорта: СТАЛИ КРУПНЕЕ */
 .data-badge-block div[style*="font-size:12px"] {
-  font-size: 18px !important; /* Было 12px */
-  margin-top: 8px !important; /* Было 4px */
+  font-size: 18px !important; 
+  margin-top: 8px !important; 
 }
 
-/* Марка (верх право): СТАЛА ЕЩЁ БОЛЬШЕ */
 .stamp-place {
   position: absolute;
   top: 20px; right: 20px;
-  width: 80px; height: 100px; /* Было 60x75 */
+  width: 80px; height: 100px; 
   border: 2px dashed var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-size: 55px; /* Увеличили шрифт эмодзи внутри, было 38px */
+  font-size: 55px; 
   background: white;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Добавили легкую тень для объема */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
 }
 
-/* Штемпель (низ право): СТАЛ КРУПНЕЕ */
 .postmark-circle {
   position: absolute;
   bottom: 10px; right: 10px;
-  width: 85px; height: 85px; /* Было 70x70 */
+  width: 85px; height: 85px; 
   border: 2px solid rgba(25, 25, 25, 0.7);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   text-align: center;
-  font-size: 10px; /* Было 8px */
+  font-size: 10px; 
   font-weight: 900; 
   color: rgba(25, 25, 25, 0.7); 
   text-transform: uppercase;
@@ -727,7 +722,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   mix-blend-mode: multiply; 
 }
 
-/* Кнопки марок в меню */
 .stamp-btn {
   min-width: 40px; height: 40px;
   border: 1px solid var(--border);
@@ -740,21 +734,18 @@ input:checked + .slider:before { transform: translateX(14px); }
 .stamp-btn.premium { border-color: #ffd700; position: relative; }
 .stamp-btn.premium::after { content: '💎'; position: absolute; top: -5px; right: -5px; font-size: 10px; }
 
-/* Новые стили для ИИ-марки на обороте */
 .stamp-place img.ai-stamp-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Картинка полностью заполняет марку, лишнее обрезается */
+  object-fit: cover; 
   display: block;
-  border-radius: 1px; /* Легкое закругление углов самой картинки */
+  border-radius: 1px; 
 }
 
-/* Скрываем эмодзи, если внутри есть картинка */
 .stamp-place img.ai-stamp-image + span {
   display: none;
 }
 
-/* Анимация улетающей открытки */
 @keyframes flyAway {
   0% { transform: scale(1) translate(0, 0) rotate(0deg); opacity: 1; }
   20% { transform: scale(1.05) translate(0, 20px) rotate(-3deg); opacity: 1; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
@@ -767,55 +758,39 @@ input:checked + .slider:before { transform: translateX(14px); }
   z-index: 100;
 }
 
-/* === ЕДИНЫЙ СТИЛЬ ДЛЯ СТРЕЛОК РАСКРЫТИЯ (АВТО-РАЗМЕР И АНИМАЦИЯ) === */
 .expand-trigger {
-  font-size: 18px !important; /* Делаем размер строго одинаковым везде */
+  font-size: 18px !important; 
   cursor: pointer !important;
-  display: inline-block; /* Нужно, чтобы анимация увеличения работала плавно */
-  transition: transform 0.2s ease; /* Плавность эффекта */
-  user-select: none; /* Чтобы стрелка случайно не выделялась текстом при клике */
+  display: inline-block; 
+  transition: transform 0.2s ease; 
+  user-select: none; 
 }
 
-/* Эффект увеличения при наведении мыши */
 .expand-trigger:hover {
   transform: scale(1.3);
 }
 
-/* При нажатии (клике) стрелка будет чуть "прожиматься" */
 .expand-trigger:active {
   transform: scale(0.9);
 }
 
-/* === КАРТА МИРА (БИНГО ФЛАГОВ) === */
 .flag-locked {
-  filter: grayscale(100%) opacity(30%); /* Делаем флаг серым и полупрозрачным */
+  filter: grayscale(100%) opacity(30%); 
   transition: filter 0.3s ease, transform 0.2s ease;
 }
 
 .flag-collected {
-  filter: grayscale(0%) opacity(100%); /* Возвращаем яркие цвета */
-  transform: scale(1.15); /* Чуть увеличиваем собранный флаг */
-  background: #fff; /* Белый фон для контраста */
-  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4); /* Добавляем теплое оранжевое свечение */
+  filter: grayscale(0%) opacity(100%); 
+  transform: scale(1.15); 
+  background: #fff; 
+  box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4); 
   border: 1px solid rgba(230, 126, 34, 0.5);
-  z-index: 2; /* Выдвигаем поверх серых флагов */
+  z-index: 2; 
   transition: all 0.3s ease;
 }
 /* ==========================================================================
    10. ВНУТРИИГРОВЫЕ УВЕДОМЛЕНИЯ (CUSTOM ALERTS)
    ========================================================================== */
-   .custom-alert-overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(3px);
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: inherit; /* Наследует скругления рамки телефона */
-  }
-  
   .custom-alert-box {
     background: var(--bg-card);
     width: 80%;
@@ -929,7 +904,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   box-shadow: 0 0 0 var(--border-input);
 }
 
-/* Анимации для писем */
 .slide-in { animation: letterSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .success-out { animation: letterSuccessOut 0.3s forwards; }
 .error-shake { animation: letterShake 0.4s forwards; border-color: #e74c3c; background: #ffeaea; }
@@ -950,7 +924,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   100% { transform: translateX(0); }
 }
 
-/* Всплывающий текст энергии */
 .energy-float {
   position: absolute;
   color: #27ae60;
@@ -1031,7 +1004,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   box-shadow: inset 0 0 20px rgba(139, 107, 75, 0.1);
 }
 
-/* Кожаные багажные бирки для счета */
 .luggage-tags-container {
   display: flex;
   justify-content: space-between;
@@ -1052,7 +1024,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Дырочка на бирке */
 .luggage-tag::before {
   content: '';
   position: absolute;
@@ -1068,7 +1039,6 @@ input:checked + .slider:before { transform: translateX(14px); }
 
 .luggage-tag.combo { background: linear-gradient(135deg, #b33939, #902b2b); }
 
-/* Карточка в виде старой марки */
 .vintage-stamp-card {
   background: #fffdf9;
   border: 3px dashed #bcaaa4;
@@ -1086,19 +1056,17 @@ input:checked + .slider:before { transform: translateX(14px); }
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Водяные знаки / Декорации на марке */
 .stamp-decor { position: absolute; opacity: 0.15; font-size: 30px; pointer-events: none; }
 .decor-plane { top: 10px; right: 10px; transform: rotate(15deg); }
 .decor-globe { bottom: 10px; left: 10px; transform: rotate(-15deg); }
 
-/* Деревянные кнопки-штампы */
 .wooden-stamp-btn {
   background: linear-gradient(180deg, #e67e22, #d35400);
   color: #fffdf9;
   border: 2px solid #a04000;
   border-radius: 8px;
   padding: 12px 10px;
-  font-family: 'Special Elite', monospace; /* Аутентичный шрифт печатной машинки */
+  font-family: 'Special Elite', monospace; 
   font-size: 14px;
   font-weight: bold;
   box-shadow: 0 5px 0 #a04000, 0 8px 10px rgba(0,0,0,0.15), inset 0 2px 5px rgba(255,255,255,0.2);
@@ -1113,7 +1081,6 @@ input:checked + .slider:before { transform: translateX(14px); }
   box-shadow: 0 0 0 #a04000, 0 2px 3px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.2);
 }
 
-/* Эффекты ответа */
 .wooden-stamp-btn.correct { background: linear-gradient(180deg, #2ecc71, #27ae60); border-color: #1e8449; box-shadow: 0 5px 0 #1e8449; }
 .wooden-stamp-btn.correct:active { box-shadow: 0 0 0 #1e8449; }
 
@@ -1130,7 +1097,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     max-width: 360px;
     padding: 20px;
     text-align: left;
-    background: #fdf6e3; /* Теплый бумажный фон */
+    background: #fdf6e3; 
   }
   
   .store-header {
@@ -1210,13 +1177,13 @@ input:checked + .slider:before { transform: translateX(14px); }
   }
 
   /* ==========================================================================
-   СТИЛИ ДЛЯ УВЕДОМЛЕНИЙ В НИЖНЕМ БАРЕ
+   15. СТИЛИ ДЛЯ УВЕДОМЛЕНИЙ В НИЖНЕМ БАРЕ
    ========================================================================== */
 .nav-badge {
   position: absolute;
   top: -5px;
   right: -8px;
-  background: #e74c3c; /* Ярко-красный цвет */
+  background: #e74c3c; 
   color: white;
   font-size: 10px;
   font-weight: 900;
@@ -1225,10 +1192,7 @@ input:checked + .slider:before { transform: translateX(14px); }
   min-width: 14px;
   text-align: center;
   box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
-  
-  /* Обводка цвета фона панели, чтобы визуально "вырезать" кусок иконки */
   border: 2px solid var(--nav-bg); 
-  
   pointer-events: none;
   z-index: 10;
   animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1237,4 +1201,110 @@ input:checked + .slider:before { transform: translateX(14px); }
 @keyframes popBadge {
   0% { transform: scale(0); }
   100% { transform: scale(1); }
+}
+
+/* ==========================================================================
+   16. ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ ЗАТЕМНЕНИЙ И 3D-ОКОН
+   ========================================================================== */
+
+/* 1. Затемнение для алертов и магазина */
+.custom-alert-overlay,
+.store-overlay {
+    position: fixed !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Единый стиль темного размытого фона */
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+}
+
+/* 2. Модалка 3D (Главный контейнер) */
+.modal-3d {
+    display: none; /* JS будет менять на flex */
+    position: fixed !important; 
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3. Затемняющий фон 3D окна (идентичный алертам) */
+.modal-3d-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1 !important; /* Фон позади открытки */
+    
+    /* Единый стиль темного размытого фона */
+    background: rgba(0, 0, 0, 0.85) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+}
+
+/* 4. Контейнер с самой 3D-открыткой */
+.modal-3d-container {
+    position: relative !important;
+    z-index: 10 !important; /* Открытка поверх фона */
+    width: 90%;
+    max-width: 400px;
+}
+
+/* === ВНУТРЕННИЙ СКРОЛЛ ДЛЯ ТРЕКИНГА === */
+.tracking-scroll-area {
+  max-height: 220px; /* Ограничиваем высоту, чтобы Архив всегда оставался на экране */
+  overflow-y: auto;  /* Включаем прокрутку */
+  padding-right: 5px; /* Отступ, чтобы скроллбар не прилипал к карточкам */
+}
+
+/* Красивый тонкий скроллбар (как в macOS/Telegram) */
+.tracking-scroll-area::-webkit-scrollbar {
+  width: 4px;
+}
+.tracking-scroll-area::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 10px;
+}
+.tracking-scroll-area::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+/* === БЕЙДЖ ДНЕЙ В ИГРЕ === */
+.day-badge {
+  font-size: 10px; 
+  font-weight: 800; 
+  text-transform: uppercase;
+  color: var(--primary); /* Твой фирменный оранжевый */
+  background: var(--bg-flag-circle); /* Светлый фон */
+  padding: 4px 12px; 
+  border-radius: 20px; 
+  letter-spacing: 0.5px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  white-space: nowrap;
+}
+
+/* Выравниваем высоту всех свернутых карточек */
+.clickable-block:not(.expanded) .section-header {
+  margin-bottom: 0 !important;
+}
+
+/* Подсветка незаполненных полей при первом запуске */
+.needs-fill {
+  border: 2px solid #e74c3c !important;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.3) !important;
+  transition: all 0.3s ease; /* Плавное исчезновение рамки */
 }

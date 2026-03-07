@@ -7,7 +7,7 @@ const AVAILABLE_INTERESTS = [
     "Animals", "Coffee", "Gardening", "Languages", "Space", "Fashion", 
     "Gaming", "Hiking", "Writing", "Painting", "Drawing", "Vintage", 
     "Cultures", "Sea", "Mountains", "Handmade", "Dances"
-];
+].sort();
   
 const state = {
     profile: {
@@ -42,7 +42,6 @@ function compressImage(file, maxWidth, callback) {
             let width = img.width;
             let height = img.height;
 
-            // Если картинка больше нужного размера - уменьшаем её пропорционально
             if (width > maxWidth) {
                 height = Math.round((height * maxWidth) / width);
                 width = maxWidth;
@@ -53,7 +52,6 @@ function compressImage(file, maxWidth, callback) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Сжимаем в формат JPEG с качеством 70% (визуально не отличить, а весит в 20 раз меньше!)
             const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
             callback(compressedDataUrl);
         };
@@ -78,7 +76,6 @@ function saveState() {
         if (saveToggle) saveToggle.checked = false;
         localStorage.setItem('pj_save_enabled', 'false');
         
-        // === ТЕПЕРЬ ВЫЗЫВАЕТСЯ НАШЕ КРАСИВОЕ ОКНО ===
         if (typeof showCustomAlert === 'function') {
             showCustomAlert("⚠️", "Storage Full!", "Cannot save more images. Your browser memory is full.<br><br>Use <b>'Clear All Data'</b> in Settings.", "#e74c3c");
         } else {
@@ -105,7 +102,6 @@ function loadState() {
     }
 }
 
-// СРАЗУ ПОСЛЕ STATE ПЫТАЕМСЯ ЗАГРУЗИТЬ СОХРАНЕНИЯ
 loadState();
   
 const COUNTRIES_BY_CONTINENT = {
@@ -149,22 +145,68 @@ function showCustomAlert(icon, title, text, color = "#2980b9", onConfirm = null)
         </div>
     `;
     
-    // Находим кнопку внутри окошка и вешаем умный клик
     const btn = overlay.querySelector('.custom-alert-btn');
     btn.onclick = () => {
-        overlay.remove(); // Закрываем окно
-        if (onConfirm) onConfirm(); // Выполняем действие, если оно было передано!
+        overlay.remove(); 
+        if (onConfirm) onConfirm(); 
     };
     
     phoneFrame.appendChild(overlay);
 }
+
+// === ВСПЛЫВАЮЩАЯ ПЛАШКА СВЕРХУ (TOAST NOTIFICATION) ===
+function showToastNotification(message) {
+    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) existingToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'custom-toast';
+    
+    toast.style.position = 'absolute';
+    toast.style.top = '10px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = '#f39c12'; 
+    toast.style.color = '#fff';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '20px';
+    toast.style.fontSize = '12px';
+    toast.style.fontWeight = 'bold';
+    toast.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+    toast.style.zIndex = '99999';
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease, top 0.3s ease';
+    toast.style.pointerEvents = 'none'; 
+    toast.style.textAlign = 'center';
+    toast.style.width = 'max-content';
+    toast.style.maxWidth = '90%';
+    
+    toast.innerHTML = message;
+    
+    phoneFrame.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.style.opacity = '1';
+        toast.style.top = '30px';
+    });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.top = '10px';
+        setTimeout(() => toast.remove(), 300); 
+    }, 1500);
+}
   
 function updateProfileUI() {
+    if (!state.profile.name || state.profile.name === "") {
+        localStorage.removeItem('onboarding_done');
+    }
     const { name, country, bio, avatar, interests } = state.profile; 
     const editBtn = document.getElementById("edit-profile-btn");
     const isEditingNow = editBtn && editBtn.getAttribute('data-mode') === 'save';
   
-    // Если профиль пуст - ставим заглушки "New Traveler" и белый флаг
     document.getElementById("display-name").textContent = name || "New Traveler";
     document.getElementById("display-country").textContent = country || "🏳️";
     
@@ -174,7 +216,8 @@ function updateProfileUI() {
   
     const tagsContainer = document.getElementById("display-tags-minimal");
     if (tagsContainer) {
-        tagsContainer.innerHTML = interests
+        // Добавлена защита (interests || [])
+        tagsContainer.innerHTML = (interests || [])
             .map(tag => `<span class="tag-mini">${tag}</span>`)
             .join("");
     }
@@ -192,9 +235,24 @@ function updateProfileUI() {
         avatarEl.style.cursor = isEditingNow ? "move" : "default"; 
     } else {
         avatarEl.style.backgroundImage = "none";
-        // Берем первую букву имени или '?' если пусто
         const firstLetter = name ? name.replace('@', '')[0] : '?';
         avatarEl.textContent = (firstLetter || '?').toUpperCase();
+    }
+    
+    const isProfileSetup = state.profile.name && state.profile.name !== "";
+    
+    const assetsBlock = document.getElementById('assets-block');
+    const trackingBlock = document.getElementById('tracking-block');
+    const archiveBlock = document.getElementById('archive-block');
+
+    if (assetsBlock) {
+        assetsBlock.style.display = isProfileSetup ? 'block' : 'none';
+    }
+    if (trackingBlock) {
+        trackingBlock.style.display = isProfileSetup ? 'block' : 'none';
+    }
+    if (archiveBlock) {
+        archiveBlock.style.display = isProfileSetup ? 'block' : 'none';
     }
 }
   
@@ -204,6 +262,11 @@ function refreshAllLists() {
     if (state.tracking && state.tracking.length > 0) {
         state.tracking.sort((a, b) => a.arrivalAt - b.arrivalAt);
     }
+    const emptyText = document.getElementById("tracking-empty-text");
+    if (emptyText) {
+        emptyText.style.display = (state.tracking && state.tracking.length > 0) ? "none" : "block";
+    }
+
     renderListComponent("tracking-list", state.tracking, item => {
         const isIncoming = item.type === "incoming";
         let countryName = isIncoming ? "Mystery Postcard" : (item.toCountry || "Unknown");
@@ -228,16 +291,16 @@ function refreshAllLists() {
                 const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
                 displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
                 const timeColor = isIncoming ? "#2980b9" : "#d35400";
-                timeHtml = `<div style="font-size:11px; font-weight:bold; color:${timeColor}; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
+                timeHtml = `<div style="font-size:10px; font-weight:bold; color:${timeColor}; background:#fff; padding:3px 6px; border-radius:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
             } else {
                 displayStatus = "Delivered ✅";
                 item.status = "Delivered";
-                timeHtml = `<div style="font-size:11px; font-weight:bold; color:#27ae60; background:#fff; padding:4px 8px; border-radius:12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Done</div>`;
+                timeHtml = `<div style="font-size:10px; font-weight:bold; color:#27ae60; background:#fff; padding:3px 6px; border-radius:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Done</div>`;
             }
         } else {
             displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
             const fallbackColor = isIncoming ? "#2980b9" : "#d35400";
-            timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:4px 8px; border-radius:12px; font-size:11px;">${displayStatus}</div>`;
+            timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:3px 6px; border-radius:10px; font-size:10px;">${displayStatus}</div>`;
         }
         
         const homeBadge = document.getElementById("home-badge");
@@ -255,41 +318,35 @@ function refreshAllLists() {
         const statusColor = isIncoming ? "#2980b9" : "#d35400";
 
         return `
-            <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; ${bgStyle} border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div class="tracking-info" style="display: flex; flex-direction: column; gap: 4px;">
-                    <div style="font-weight: bold; font-size: 14px; color: #333; display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 16px;">${flag}</span> ${countryName}
+            <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; ${bgStyle} border-radius: 10px; margin-bottom: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div class="tracking-info" style="display: flex; flex-direction: column; gap: 1px;">
+                    <div style="font-weight: bold; font-size: 13px; color: #333; display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 14px;">${flag}</span> ${countryName}
                     </div>
-                    ${cityName ? `<div style="font-size: 12px; color: #555;">${cityName}</div>` : ''}
-                    <div style="font-size: 11px; font-weight: 600; color: ${statusColor}; margin-top: 2px;">
-                        ${displayStatus}
+                    <div style="font-size: 10px; font-weight: 600; color: ${statusColor};">
+                        ${displayStatus} ${cityName ? `<span style="color: #888; font-weight: normal;">• ${cityName}</span>` : ''}
                     </div>
                 </div>
                 <div>${timeHtml}</div>
             </div>`;
     });
 
-/// 2. LEADERBOARD (ДИНАМИЧЕСКИЙ ПОДСЧЕТ С БОТАМИ И СТРАНАМИ)
-    
-    // === ЖЕЛЕЗОБЕТОННЫЙ ФИЛЬТР ОФФЛАЙН-ОТКРЫТОК ===
     const validSentPostcards = state.sentPostcards.filter(card => {
-        // 1. Если стоит явная метка оффлайна
         if (card.isOffline === true) return false;
         
-        // 2. Ищем слова-маркеры в адресате (приводим к нижнему регистру для надежности)
         const dest = (card.to || "").toLowerCase();
         if (dest.includes("personal") || dest.includes("collection") || dest.includes("offline") || dest === "") {
             return false;
         }
         
-        return true; // Если проверки пройдены, открытка летит в рейтинг
+        return true; 
     });
 
     const uniqueCountriesCount = new Set(validSentPostcards.map(card => card.countryFlag || card.flag)).size;
         
     const userLeaderboardEntry = { 
         name: `${state.profile.name || "New Traveler"} (You)`, 
-        sent: validSentPostcards.length, // Используем отфильтрованный массив!
+        sent: validSentPostcards.length, 
         countries: uniqueCountriesCount,
         isUser: true,
         flag: state.profile.country || "🏳️" 
@@ -424,12 +481,9 @@ function refreshAllLists() {
 }
   
 function renderMapSections() {
-    // === ЖЕЛЕЗОБЕТОННЫЙ ФИЛЬТР ОФФЛАЙН-ОТКРЫТОК ДЛЯ КАРТЫ ===
     const validSentPostcards = state.sentPostcards.filter(card => {
-        // 1. Если стоит явная метка оффлайна
         if (card.isOffline === true) return false;
         
-        // 2. Ищем слова-маркеры в адресате
         const dest = (card.to || "").toLowerCase();
         if (dest.includes("personal") || dest.includes("collection") || dest.includes("offline") || dest === "") {
             return false;
@@ -437,7 +491,6 @@ function renderMapSections() {
         return true;
     });
 
-    // 1. Собираем уникальные флаги, используя ОТФИЛЬТРОВАННЫЙ массив для отправленных!
     const sentFlags = [...new Set(validSentPostcards.map(card => card.countryFlag || card.flag))];
     const receivedFlags = [...new Set(state.receivedPostcards.map(card => card.countryFlag || card.flag))];
 
@@ -477,7 +530,6 @@ function renderMapSections() {
         }).join("");
     };
     
-    // Рисуем обе карты
     mapTemplate("sent-by-continent", sentFlags);
     mapTemplate("received-by-continent", receivedFlags);
 }
@@ -508,11 +560,15 @@ function setupProfileEditing() {
             const file = e.target.files[0];
             if (!file) return;
             
-            // НОВОЕ: Прогоняем фото через компрессор, ужимая до 300px ширины
             compressImage(file, 300, (compressedBase64) => {
                 tempAvatar = compressedBase64;
                 tempAvatarPosX = 50; 
                 tempAvatarPosY = 50;
+                
+                // СНИМАЕМ ОБВОДКУ АВАТАРА
+                const avNode = document.getElementById('profile-avatar');
+                if(avNode) avNode.classList.remove('needs-fill');
+
                 updateProfileUI(); 
             });
         };
@@ -526,8 +582,12 @@ function setupProfileEditing() {
             el.onclick = (e) => {
                 e.stopPropagation();
                 tempSelectedCountry = el.textContent;
-                inputCountry.value = tempSelectedCountry;
-                flagPicker.style.display = "none";
+                if(inputCountry) {
+                    inputCountry.value = tempSelectedCountry;
+                    // СНИМАЕМ ОБВОДКУ ФЛАГА
+                    inputCountry.classList.remove('needs-fill'); 
+                }
+                if(flagPicker) flagPicker.style.display = "none";
             };
         });
     }
@@ -545,6 +605,23 @@ function setupProfileEditing() {
           toggleEditMode(!isEditingNow);
       };
     }
+
+    // === 🟢 СНЯТИЕ КРАСНОЙ ОБВОДКИ ПРИ ВВОДЕ ТЕКСТА ===
+    const inputNameNode = document.getElementById("input-name");
+    if (inputNameNode) {
+        inputNameNode.addEventListener('input', (e) => {
+            if (e.target.value.trim() !== "") e.target.classList.remove('needs-fill');
+            else e.target.classList.add('needs-fill');
+        });
+    }
+
+    const inputBioNode = document.getElementById("input-bio");
+    if (inputBioNode) {
+        inputBioNode.addEventListener('input', (e) => {
+            if (e.target.value.trim() !== "") e.target.classList.remove('needs-fill');
+            else e.target.classList.add('needs-fill');
+        });
+    }
 }
   
 function toggleEditMode(enable) {
@@ -553,36 +630,70 @@ function toggleEditMode(enable) {
     const editIds = ["profile-edit-name-row", "input-bio", "avatar-edit-hint", "edit-tags-wrapper"];
   
     if (enable) {
-        editBtn.setAttribute('data-mode', 'save');
-        editBtn.textContent = "Save Changes"; 
+        if(editBtn) {
+            editBtn.setAttribute('data-mode', 'save');
+            editBtn.textContent = "Save Changes"; 
+        }
         
         tempSelectedCountry = state.profile.country;
-        tempSelectedInterests = [...state.profile.interests];
+        tempSelectedInterests = [...(state.profile.interests || [])];
         tempAvatar = state.profile.avatar;
         
         tempAvatarPosX = state.profile.avatarPosX || 50; 
         tempAvatarPosY = state.profile.avatarPosY || 50; 
   
-        document.getElementById("input-name").value = state.profile.name;
-        document.getElementById("input-country").value = state.profile.country;
-        document.getElementById("input-bio").value = state.profile.bio.includes("Detailed statistics") ? "" : state.profile.bio;
+        const nameNode = document.getElementById("input-name");
+        if(nameNode) nameNode.value = state.profile.name || "";
+
+        const countryNode = document.getElementById("input-country");
+        if(countryNode) countryNode.value = state.profile.country || "";
+
+        const bioNode = document.getElementById("input-bio");
+        if(bioNode) {
+            bioNode.value = (!state.profile.bio || state.profile.bio.includes("Detailed statistics")) ? "" : state.profile.bio;
+        }
         
-        // Подсказка, если пустая страна
-        if (!state.profile.country) {
-             document.getElementById("input-country").placeholder = "🌍";
+        if (!state.profile.country && countryNode) {
+             countryNode.placeholder = "🌍";
         }
 
-        ids.forEach(id => document.getElementById(id).style.display = "none");
-        editIds.forEach(id => document.getElementById(id).style.display = "flex"); 
+        ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
+        editIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "flex"; }); 
         renderEditTags();
     } else {
-        // === ЖЕСТКАЯ ПРОВЕРКА ДАННЫХ ПРИ СОХРАНЕНИИ ===
-        const newName = document.getElementById("input-name").value.trim();
-        const newCountry = tempSelectedCountry || document.getElementById("input-country").value;
         
-        if (newName === "" || newName === "@" || newCountry === "") {
-            showCustomAlert("⚠️", "Hold on!", "Please enter your <b>Nickname</b> and select your <b>Country</b> to continue!", "#d35400");
-            return; // Запрещаем сохранять пустым
+        // === 🔴 ЖЕСТКАЯ ПРОВЕРКА ВСЕХ ПОЛЕЙ ПРИ СОХРАНЕНИИ ===
+        const nameNode = document.getElementById("input-name");
+        const countryNode = document.getElementById("input-country");
+        const bioNode = document.getElementById("input-bio");
+
+        const newName = nameNode ? nameNode.value.trim() : "";
+        const newCountry = tempSelectedCountry || (countryNode ? countryNode.value : "");
+        const newBio = bioNode ? bioNode.value.trim() : "";
+        
+        const isNameEmpty = newName === "" || newName === "@";
+        const isCountryEmpty = newCountry === "";
+        const isBioEmpty = newBio === "" || newBio.includes("Detailed statistics");
+        const isAvatarEmpty = !tempAvatar;
+        const isInterestsInvalid = tempSelectedInterests.length !== 3;
+
+        if (isNameEmpty || isCountryEmpty || isBioEmpty || isAvatarEmpty || isInterestsInvalid) {
+            
+            if (isNameEmpty && nameNode) nameNode.classList.add('needs-fill');
+            if (isCountryEmpty && countryNode) countryNode.classList.add('needs-fill');
+            if (isBioEmpty && bioNode) bioNode.classList.add('needs-fill');
+            
+            const avNode = document.getElementById('profile-avatar');
+            if (isAvatarEmpty && avNode) avNode.classList.add('needs-fill');
+            
+            const hintText = document.getElementById('tags-hint-text');
+            if (isInterestsInvalid && hintText) {
+                hintText.style.color = '#e74c3c';
+                setTimeout(() => hintText.style.color = '#8b6b4b', 2000);
+            }
+
+            showToastNotification("⚠️ Fill all fields!");
+            return; 
         }
 
         // Автоматически добавляем @ к нику, если юзер забыл
@@ -591,41 +702,49 @@ function toggleEditMode(enable) {
         state.profile.avatarPosX = tempAvatarPosX;
         state.profile.avatarPosY = tempAvatarPosY;
         
-        const newBio = document.getElementById("input-bio").value.trim();
         state.profile.bio = newBio === "" ? "Detailed statistics and recent achievements..." : newBio;
         state.profile.interests = [...tempSelectedInterests];
         state.profile.avatar = tempAvatar;
   
-        editBtn.setAttribute('data-mode', 'edit');
-        editBtn.textContent = "Edit Profile"; 
+        if(editBtn) {
+            editBtn.setAttribute('data-mode', 'edit');
+            editBtn.textContent = "Edit Profile"; 
+        }
         
-        ids.forEach(id => document.getElementById(id).style.display = "flex");
-        editIds.forEach(id => document.getElementById(id).style.display = "none");
-        document.getElementById("flag-picker-container").style.display = "none";
+        ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "flex"; });
+        editIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
+        
+        const picker = document.getElementById("flag-picker-container");
+        if(picker) picker.style.display = "none";
   
         updateProfileUI(); 
         
-        // Поздравляем новичка!
+        // === ЛОГИКА СВОРАЧИВАНИЯ ПРОФИЛЯ ===
+        const profileBlock = document.getElementById('profile-block');
+        const collapseProfile = () => {
+            if (profileBlock) {
+                profileBlock.classList.remove('expanded');
+                const t = profileBlock.querySelector('.expand-trigger');
+                if (t) t.textContent = "⬇️";
+            }
+        };
+
+        // Поздравляем новичка 
         if (!localStorage.getItem('onboarding_done')) {
             localStorage.setItem('onboarding_done', 'true');
-            
-            // Вызываем алерт и передаем ему команду: "Когда нажмут ОК — сверни профиль"
             showCustomAlert("🎉", "Setup Complete!", "You are ready to explore the world!", "#27ae60", () => {
-                const profileBlock = document.getElementById('profile-block');
-                if (profileBlock) {
-                    profileBlock.classList.remove('expanded');
-                    const t = profileBlock.querySelector('.expand-trigger');
-                    if (t) t.textContent = "⬇️";
-                }
+                collapseProfile();
             });
+        } else {
+            collapseProfile();
         }
     }
 }
   
 function cancelEditMode() {
-    // ЗАПРЕЩАЕМ ОТМЕНУ, ЕСЛИ ПРОФИЛЬ ПУСТ (ONBOARDING)
+    // ЗАПРЕЩАЕМ ОТМЕНУ, ЕСЛИ ПРОФИЛЬ ПУСТ
     if (!state.profile.name || state.profile.name === "") {
-        showCustomAlert("⚠️", "Wait!", "You must set up your Nickname and Country first!", "#d35400");
+        showToastNotification("⚠️ Wait! Set up your profile first!");
         return;
     }
 
@@ -638,9 +757,11 @@ function cancelEditMode() {
     const ids = ["profile-display-name-row", "display-bio", "display-tags-minimal"];
     const editIds = ["profile-edit-name-row", "input-bio", "avatar-edit-hint", "edit-tags-wrapper"];
   
-    ids.forEach(id => document.getElementById(id).style.display = "flex");
-    editIds.forEach(id => document.getElementById(id).style.display = "none");
-    document.getElementById("flag-picker-container").style.display = "none";
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "flex"; });
+    editIds.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = "none"; });
+    
+    const picker = document.getElementById("flag-picker-container");
+    if(picker) picker.style.display = "none";
   
     updateProfileUI();
 }
@@ -661,10 +782,20 @@ function renderEditTags() {
             const tag = el.dataset.tag;
             if (tempSelectedInterests.includes(tag)) {
                 tempSelectedInterests = tempSelectedInterests.filter(t => t !== tag);
-            } else if (tempSelectedInterests.length < 4) {
+            } else if (tempSelectedInterests.length < 3) { 
                 tempSelectedInterests.push(tag);
             }
             renderEditTags();
+            
+            // ПРОВЕРКА И КРАШЕНИЕ ПОДСКАЗКИ
+            const hintText = document.getElementById('tags-hint-text');
+            if (hintText) {
+                if (tempSelectedInterests.length === 3) {
+                    hintText.style.color = '#8b6b4b'; 
+                } else {
+                    hintText.style.color = '#e74c3c'; 
+                }
+            }
         };
     });
 }
@@ -696,10 +827,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     navItems.forEach(btn => {
         btn.onclick = () => {
-            // === БЛОКИРУЕМ ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ДО ЗАПОЛНЕНИЯ ПРОФИЛЯ ===
             if ((!state.profile.name || state.profile.name === "") && btn.dataset.target !== "home") {
-                showCustomAlert("🔒", "Locked", "Please set up your profile first to access this section.", "#7f8c8d");
-                return;
+                showToastNotification("✍️ Set up your profile to send postcards!");
             }
 
             const target = btn.dataset.target;
@@ -750,7 +879,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // === КАСТОМНОЕ ОКНО ПОДТВЕРЖДЕНИЯ УДАЛЕНИЯ ===
     if (btnClearData) {
         btnClearData.addEventListener('click', () => {
             const phoneFrame = document.querySelector('.phone-frame') || document.body;
@@ -773,12 +901,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
             
-            // Если передумал - просто закрываем окно
             overlay.querySelector('.custom-cancel-btn').onclick = () => {
                 overlay.remove();
             };
             
-            // Если подтвердил - стираем память и перезагружаем
             overlay.querySelector('.custom-confirm-btn').onclick = () => {
                 localStorage.clear();
                 location.reload();
@@ -788,27 +914,33 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
     
-    // Инициализация отображения
     updateProfileUI();
     refreshAllLists();
     renderMapSections();
   
-    const syncAssets = () => {
-        const balanceElement = document.querySelector('.home-assets .asset-card:first-child .asset-value');
-        if (balanceElement) balanceElement.textContent = state.postcards;
+    window.syncAssets = function() {
+        // Находим элементы по ID
+        const balanceElement = document.getElementById('postcard-display');
+        const energyElement = document.getElementById('energy-display');
         
-        const energyElement = document.getElementById('energy-display') || document.querySelector('.home-assets .asset-card:nth-child(2) .asset-value');
+        // Если элементы есть на странице — обновляем их из глобального состояния state
+        if (balanceElement) balanceElement.textContent = state.postcards;
         if (energyElement) energyElement.textContent = state.energy;
+        
+        // Также обновляем счетчики в Архиве (для красоты)
+        const sentCountEl = document.getElementById("sent-count");
+        if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
     };
-    syncAssets();
+    
+    // Вызываем её один раз сразу, чтобы цифры подтянулись при загрузке
+    window.syncAssets();
 
-    // === ПРОВЕРКА НА НОВОГО ПОЛЬЗОВАТЕЛЯ (ONBOARDING) ===
     function checkOnboarding() {
         if (!state.profile.name || state.profile.name === "") {
             const phoneFrame = document.querySelector('.phone-frame') || document.body;
             const overlay = document.createElement('div');
             overlay.className = 'custom-alert-overlay';
-            overlay.style.zIndex = '9999'; // Поверх всего
+            overlay.style.zIndex = '9999'; 
             
             overlay.innerHTML = `
                 <div class="custom-alert-box">
@@ -824,18 +956,25 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.querySelector('.custom-alert-btn').onclick = () => {
                 overlay.remove();
                 
-                // Раскрываем блок профиля
                 const profileBlock = document.getElementById('profile-block');
-                if (!profileBlock.classList.contains('expanded')) {
+                if (profileBlock && !profileBlock.classList.contains('expanded')) {
                     profileBlock.classList.add('expanded');
                     const t = profileBlock.querySelector('.expand-trigger');
                     if (t) t.textContent = "⬆️";
                 }
                 
-                // Включаем режим редактирования
                 toggleEditMode(true);
                 
-                // Фокус на вводе имени
+                // === 🔴 ВКЛЮЧАЕМ КРАСНУЮ ПОДСВЕТКУ ===
+                const av = document.getElementById('profile-avatar'); if(av) av.classList.add('needs-fill');
+                const inName = document.getElementById('input-name'); if(inName) inName.classList.add('needs-fill');
+                const inC = document.getElementById('input-country'); if(inC) inC.classList.add('needs-fill');
+                const inBio = document.getElementById('input-bio'); if(inBio) inBio.classList.add('needs-fill');
+                
+                const hintText = document.getElementById('tags-hint-text');
+                if (hintText) hintText.style.color = '#e74c3c'; 
+                // =====================================
+
                 const nameInput = document.getElementById('input-name');
                 if(nameInput) nameInput.focus();
             };
@@ -844,10 +983,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
-    // Запускаем окно знакомства
     checkOnboarding();
 
-    // === СИСТЕМА ЕЖЕДНЕВНЫХ НАГРАД (00:00) ===
     function checkDailyRefill() {
         const today = new Date().toDateString(); 
         const lastRefill = localStorage.getItem('lastRefillDate');
@@ -886,8 +1023,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkDailyRefill(); 
     setInterval(checkDailyRefill, 60000);
 
-    // === ВНУТРИИГРОВОЙ МАГАЗИН (TRAVEL SHOP) ===
-    const refillBtn = document.querySelector('.home-assets .primary-button');
+    const refillBtn = document.querySelector('#assets-block .primary-button');
     if (refillBtn) {
         refillBtn.onclick = (e) => {
             e.stopPropagation(); 
@@ -1048,4 +1184,24 @@ document.addEventListener("DOMContentLoaded", () => {
       document.addEventListener('touchend', endDrag);
       document.addEventListener('touchcancel', endDrag);
   }
+  
+  function updateDaysInApp() {
+      let installDate = localStorage.getItem('install_date');
+      
+      if (!installDate) {
+          installDate = new Date().getTime();
+          localStorage.setItem('install_date', installDate);
+      }
+      
+      const now = new Date().getTime();
+      const diffTime = Math.abs(now - installDate);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+      
+      const badge = document.getElementById('days-in-app-badge');
+      if (badge) {
+          badge.textContent = `DAY ${diffDays}`;
+      }
+  }
+
+  updateDaysInApp();
 });
