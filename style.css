@@ -1330,21 +1330,26 @@ input:checked + .slider:before { transform: translateX(14px); }
 .postcard-carousel {
   display: flex;
   overflow-x: auto;
-  gap: 12px;
-  padding-bottom: 10px; /* Место для скроллбара, если он есть */
-  margin-bottom: 15px;
-  /* Прячем скроллбар в Webkit (Chrome, Safari), но оставляем возможность скроллить */
+  gap: 8px; /* Уменьшили расстояние между картами */
   -ms-overflow-style: none;
   scrollbar-width: none;
-  scroll-snap-type: x mandatory; /* Мягкое "прилипание" карточек при свайпе */
+  scroll-snap-type: x mandatory;
 }
-
 .postcard-carousel::-webkit-scrollbar {
   display: none;
 }
 
-/* Настраиваем размер карточек внутри карусели */
+/* Ультра-компактные карточки */
 .postcard-carousel .postcard-card {
-  flex: 0 0 160px; /* Фиксированная ширина: карточка не сжимается, ширина 160px */
-  scroll-snap-align: start; /* Карточка прилипает к началу при скролле */
+  flex: 0 0 90px; /* Было 120px, стало 90px! */
+  scroll-snap-align: start;
+}
+
+/* Техническая подушка, чтобы авто-скроллу было куда поднимать контент */
+#screen-container {
+  padding-bottom: 120px !important; 
+}
+/* Добавляем отступ контента только тогда, когда блок раскрыт */
+.clickable-block.expanded .extra-content {
+  padding-top: 15px;
 }

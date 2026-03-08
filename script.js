@@ -304,14 +304,14 @@ function refreshAllLists() {
             timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:3px 6px; border-radius:10px; font-size:10px;">${displayStatus}</div>`;
         }
         
-        const homeBadge = document.getElementById("home-badge");
-        if (homeBadge) {
+        const mapBadge = document.getElementById("map-badge");
+        if (mapBadge) {
             const incomingCount = state.tracking.filter(item => item.type === "incoming").length;
             if (incomingCount > 0) {
-                homeBadge.textContent = incomingCount;
-                homeBadge.style.display = "block";
+                mapBadge.textContent = incomingCount;
+                mapBadge.style.display = "flex"; // Обязательно flex, чтобы цифра была по центру кружка
             } else {
-                homeBadge.style.display = "none";
+                mapBadge.style.display = "none";
             }
         }
 
@@ -435,11 +435,11 @@ function refreshAllLists() {
                 ? `<img src="${card.frontImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">` 
                 : `<div style="width: 100%; height: 100%; background: #eee; position: absolute; top: 0; left: 0; z-index: 1; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:10px;">No Image</div>`
             }
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85) 70%); padding: 30px 10px 10px 10px; z-index: 2; display: flex; flex-direction: column; gap: 3px; align-items: flex-start;">
-                <span style="color: white; font-weight: bold; font-size: 13px; text-shadow: 0 1px 3px rgba(0,0,0,0.9); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85) 70%); padding: 12px 4px 4px 4px; z-index: 2; display: flex; flex-direction: column; gap: 1px; align-items: flex-start;">
+                <span style="color: white; font-weight: bold; font-size: 9px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
                     ${flag} ${mainText}
                 </span>
-                <span style="color: ${statusColor}; font-size: 10px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 2px;">
+                <span style="color: ${statusColor}; font-size: 7px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 1px;">
                     ${card.status}
                 </span>
             </div>
@@ -843,25 +843,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll('.expand-trigger').forEach(trigger => {
-      trigger.onclick = (e) => {
-          e.stopPropagation();
-          const block = trigger.closest('.clickable-block');
-          const isExpanding = !block.classList.contains('expanded');
-          
-          document.querySelectorAll('.clickable-block').forEach(b => {
-              b.classList.remove('expanded');
-              const t = b.querySelector('.expand-trigger');
-              if (t) t.textContent = "⬇️";
-          });
+        trigger.onclick = (e) => {
+            e.stopPropagation();
+            const block = trigger.closest('.clickable-block');
+            const isExpanding = !block.classList.contains('expanded');
+            
+            document.querySelectorAll('.clickable-block').forEach(b => {
+                b.classList.remove('expanded');
+                const t = b.querySelector('.expand-trigger');
+                if (t) t.textContent = "⬇️";
+            });
+    
+            if (isExpanding) {
+                block.classList.add('expanded');
+                trigger.textContent = "⬆️";
+                
+                // === МАГИЯ: АВТОМАТИЧЕСКАЯ ПОДТЯЖКА ЭКРАНА ===
+                // Страница сама плавно приподнимет блок, чтобы он встал по центру над меню
+                setTimeout(() => {
+                    block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
   
-          if (isExpanding) {
-              block.classList.add('expanded');
-              trigger.textContent = "⬆️";
-          } else {
-              if (block.id === 'profile-block') cancelEditMode(); 
-          }
-      };
-    });
+            } else {
+                if (block.id === 'profile-block') cancelEditMode(); 
+            }
+        };
+      });
   
     setupTheme();
     setupProfileEditing();

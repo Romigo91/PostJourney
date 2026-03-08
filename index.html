@@ -70,25 +70,54 @@
             </div>
           </div>
 
-          <div class="section-block clickable-block" id="assets-block" style="display: none;">
-            <div class="section-header">
-              <span>My Assets</span>
-              <span class="expand-trigger">⬇️</span> 
-            </div>
-            <div class="assets-row">
-              <div class="asset-card">
-                <div class="asset-label">Available postcards</div>
-                <div class="asset-value" id="postcard-display">5</div> </div>
-              <div class="asset-card">
-                <div class="asset-label">Available energy</div>
-                <div class="asset-value" id="energy-display">500</div>
+          <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #333; font-weight: 600;">My Assets</span>
+              
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fad7a1;">
+                  <span id="postcard-display">0</span> ✉️
+                </div>
+                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fdebd0;">
+                  <span id="energy-display">0</span> ⚡
+                </div>
+                <span class="expand-trigger">⬇️</span>
               </div>
             </div>
+            
             <div class="extra-content">
-              <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
-              <button class="primary-button">Refill Energy</button>
+              <div style="padding-top: 10px;">
+                <button class="primary-button" style="width: 100%; background: #f39c12; border-color: #e67e22;">🛒 Open Store</button>
+              </div>
             </div>
           </div>
+
+          <div class="section-block clickable-block" id="archive-block" style="display: none; margin-top: 10px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #333; font-weight: 600;">My Collection</span>
+              </div>
+              <span class="expand-trigger">⬇️</span>
+            </div>
+            
+            <div class="extra-content" style="padding-top: 0; padding-bottom: 4px;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; margin-top: 4px;">
+                <span style="font-size: 11px; font-weight: bold; color: #d35400;">Sent collection</span>
+                <span id="sent-count" style="background: #fff; color: #d35400; padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
+              </div>
+              <div class="postcard-carousel" id="sent-postcards-grid" style="margin-bottom: 6px; padding-bottom: 2px;"></div>
+
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; border-top: 1px dashed var(--border); padding-top: 6px;">
+                <span style="font-size: 11px; font-weight: bold; color: #27ae60;">Received collection</span>
+                <span id="received-count" style="background: #fff; color: #27ae60; padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
+              </div>
+              <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 0; padding-bottom: 0;"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="map">
+          <h2 class="screen-title">World Map</h2>
 
           <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -105,57 +134,30 @@
               <div class="tracking-list tracking-scroll-area" id="tracking-list"></div>
             </div>
           </div>
-
-          <div class="section-block clickable-block" id="archive-block" style="display: none; margin-top: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+        
+          <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">Archive</span>
+                <span style="color: #333; font-weight: 600;">Flag Collection 🚩</span>
               </div>
               <span class="expand-trigger">⬇️</span>
             </div>
             
             <div class="extra-content">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 15px;">
-                <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent collection</span>
-                <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">0</span>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 5px;">
+                <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent postcards 📤</span>
               </div>
-              <div class="postcard-carousel" id="sent-postcards-grid"></div>
+              
+              <div id="sent-by-continent" style="margin-bottom: 20px;"></div>
 
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-top: 1px dashed rgba(211, 84, 0, 0.3); padding-top: 15px;">
-                <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received postcards</span>
-                <span id="received-count" style="background: #fff; color: #27ae60; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">0</span>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 15px;">
+                <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received postcards 📥</span>
               </div>
-              <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 5px;"></div>
+              
+              <div id="received-by-continent" style="margin-bottom: 5px;"></div>
             </div>
           </div>
-        </section>
 
-        <section class="screen" data-screen="map">
-          <h2 class="screen-title">World Map</h2>
-        
-          <div class="section-block clickable-block" style="margin-bottom: 15px;">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">Sent collection 📤</span>
-              </div>
-              <span class="expand-trigger">⬇️</span>
-            </div>
-            <div class="extra-content" style="padding-top: 15px;">
-              <div id="sent-by-continent"></div>
-            </div>
-          </div>
-        
-          <div class="section-block clickable-block" style="margin-bottom: 15px;">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">Received postcards 📥</span>
-              </div>
-              <span class="expand-trigger">⬇️</span>
-            </div>
-            <div class="extra-content" style="padding-top: 15px;">
-              <div id="received-by-continent"></div>
-            </div>
-          </div>
         
           <div class="section-block clickable-block">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -247,7 +249,7 @@
                   <label class="form-row">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                       <span style="font-size: 12px; color: var(--text-sub);">Message</span>
-                      <span id="char-count" style="font-size: 11px; color: var(--text-sub); font-weight: bold;">0 / 150</span>
+                      <span id="char-count" style="font-size: 11px; color: #e74c3c; font-weight: bold;">0 / 150</span>
                     </div>
                     <textarea id="card-message" maxlength="150" placeholder="Write your message here..."></textarea>
                   </label>
@@ -481,15 +483,16 @@
 
       <nav class="bottom-nav">
         <button class="nav-item nav-active" data-target="home">
-            <span style="position: relative; display: inline-block;">
-                🏠
-                <div id="home-badge" class="nav-badge" style="display: none;">0</div>
-            </span>
+            <span>🏠</span>
             <span>Home</span>
         </button>
+
         <button class="nav-item" data-target="map">
-          <span>🗺️</span>
-          <span>Map</span>
+            <span style="position: relative; display: inline-block;">
+                🗺️
+                <div id="map-badge" class="nav-badge" style="display: none;">0</div>
+            </span>
+            <span>Map</span>
         </button>
         <button class="nav-item" data-target="create">
           <span>➕</span>

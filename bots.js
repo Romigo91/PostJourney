@@ -192,8 +192,11 @@ function showDeliveryModal(botName, flag) {
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
 
+    // Добавили style="position: relative;" главному блоку и сам КРЕСТИК внутрь
     overlay.innerHTML = `
-        <div class="custom-alert-box">
+        <div class="custom-alert-box" style="position: relative; padding-top: 25px;">
+            <div class="close-delivery-btn" style="position: absolute; top: 12px; right: 15px; font-size: 16px; color: #aaa; cursor: pointer; font-weight: bold; padding: 5px; line-height: 1;">✕</div>
+            
             <div style="font-size: 50px; margin-bottom: -15px;">📬</div>
             <div style="font-size: 20px; font-weight: 900; color: #27ae60; margin-bottom: 5px;">Delivered!</div>
             <div class="custom-alert-text" style="font-size: 14px;">
@@ -202,9 +205,38 @@ function showDeliveryModal(botName, flag) {
                 <br>
                 <span style="color: #7f8c8d; font-size: 12px;">Check your Received Postcards archive.</span>
             </div>
-            <button class="primary-button custom-alert-btn" style="background: #27ae60; border-color: #27ae60;" onclick="this.closest('.custom-alert-overlay').remove()">Open Archive</button>
+            <button class="primary-button custom-alert-btn" style="background: #27ae60; border-color: #27ae60; margin-top: 10px;">Open Archive</button>
         </div>
     `;
+    
+    // 1. Логика для крестика (просто закрыть и забыть)
+    const closeBtn = overlay.querySelector('.close-delivery-btn');
+    closeBtn.onclick = () => {
+        overlay.remove();
+    };
+
+    // 2. Логика для кнопки "Open Archive" (магия с переходом)
+    const btnOpenArchive = overlay.querySelector('.custom-alert-btn');
+    btnOpenArchive.onclick = () => {
+        overlay.remove(); 
+
+        const homeTab = document.querySelector('.nav-item[data-target="home"]');
+        if (homeTab) homeTab.click();
+
+        const archiveBlock = document.getElementById('archive-block');
+        if (archiveBlock) {
+            if (!archiveBlock.classList.contains('expanded')) {
+                archiveBlock.classList.add('expanded');
+                const trigger = archiveBlock.querySelector('.expand-trigger');
+                if (trigger) trigger.textContent = "⬆️";
+            }
+
+            setTimeout(() => {
+                archiveBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
+        }
+    };
+
     phoneFrame.appendChild(overlay);
 }
 

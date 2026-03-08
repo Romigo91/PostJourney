@@ -133,6 +133,13 @@ document.addEventListener('DOMContentLoaded', () => {
             btnFront.classList.remove('constructor-mode-active');
             panelFront.style.display = 'none';
             panelBack.style.display = 'block';
+            
+            // === ПРИНУДИТЕЛЬНО ПРОВЕРЯЕМ СЧЕТЧИК ПРИ ОТКРЫТИИ ВКЛАДКИ ===
+            if (charCount) {
+                const currentLen = postcardData.message ? postcardData.message.length : 0;
+                charCount.style.color = (currentLen < 5 || currentLen >= 130) ? '#e74c3c' : 'var(--text-sub)';
+            }
+            
             updateDisplay();
         });
     }
@@ -434,7 +441,14 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             postcardData.message = e.target.value;
             const currentLen = e.target.value.length;
             charCount.innerText = `${currentLen} / 150`;
-            charCount.style.color = currentLen >= 130 ? '#ff4d4d' : 'var(--text-sub)';
+            
+            // Если введено меньше 5 символов ИЛИ больше 130 — красим в красный
+            if (currentLen < 5 || currentLen >= 130) {
+                charCount.style.color = '#e74c3c';
+            } else {
+                charCount.style.color = 'var(--text-sub)'; // Возвращаем дефолтный серый
+            }
+            
             updateDisplay();
         });
     }
@@ -646,12 +660,12 @@ if (close3dBtn) {
 const btnSendPostcard = document.getElementById('send-card-btn'); 
 if (btnSendPostcard) {
     btnSendPostcard.addEventListener('click', () => {
-        if (!postcardData.frontImage) return showAppAlert("Please generate or upload an image for the Front Side!");
-        if (!postcardData.message || postcardData.message.trim().length < 5) return showAppAlert("Please write a message (at least 5 characters) on the Back Side!");
-        if (state.postcards <= 0) return showAppAlert("You don't have any blank postcards left!");
+        if (!postcardData.frontImage) return showToastNotification("🖼️ Please generate or upload an image for the Front Side!");
+        if (!postcardData.message || postcardData.message.trim().length < 5) return showToastNotification("✍️ Please write a message (at least 5 characters)!");
+        if (state.postcards <= 0) return showToastNotification("📮 You don't have any blank postcards left!");
         
         if (!state.currentTarget) {
-            return showAppAlert("Oops! You haven't pulled an address yet.");
+            return showToastNotification("🌍 Oops! You haven't pulled an address yet.");
         }
 
         const originalText = btnSendPostcard.textContent;
@@ -828,7 +842,11 @@ if (btnSendPostcard) {
            // Очистка полей ввода
            if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
            if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
-           if (document.getElementById('char-count')) document.getElementById('char-count').innerText = '0 / 150';
+           if (document.getElementById('char-count')) {
+            const cCount = document.getElementById('char-count');
+            cCount.innerText = '0 / 150';
+            cCount.style.color = '#e74c3c'; // Снова делаем красным для следующей открытки
+        }
            if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
 
            // Убираем анимацию и текст доставки из DOM
