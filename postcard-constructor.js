@@ -96,10 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateEnergyUI = () => {
-        const assetCards = document.querySelectorAll('.home-assets .asset-card');
-        if (assetCards && assetCards.length > 1) {
-            const energyVal = assetCards[1].querySelector('.asset-value');
-            if (energyVal) energyVal.textContent = state.energy;
+        if (typeof window.syncAssets === 'function') {
+            window.syncAssets();
         }
     };
 
@@ -662,8 +660,9 @@ if (btnSendPostcard) {
 
         // 1. МГНОВЕННО СПИСЫВАЕМ ОТКРЫТКУ
         state.postcards -= 1;
-        const balanceEl = document.querySelector('.home-assets .asset-card:first-child .asset-value');
-        if (balanceEl) balanceEl.textContent = state.postcards;
+        if (typeof window.syncAssets === 'function') {
+            window.syncAssets(); // Вызываем глобальное обновление
+        }
 
         const now = new Date();
         let overlayIcon = "✈️";

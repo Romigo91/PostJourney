@@ -27,6 +27,7 @@ const state = {
     receivedPostcards: [],   
     bots: [],
 };
+window.state = state;
 
 // ==========================================================================
 // УМНЫЙ КОМПРЕССОР ИЗОБРАЖЕНИЙ (ЧТОБЫ НЕ ЗАБИВАТЬ ПАМЯТЬ)
@@ -345,7 +346,7 @@ function refreshAllLists() {
     const uniqueCountriesCount = new Set(validSentPostcards.map(card => card.countryFlag || card.flag)).size;
         
     const userLeaderboardEntry = { 
-        name: `${state.profile.name || "New Traveler"} (You)`, 
+        name: `${state.profile.name || "New Traveler"}`, 
         sent: validSentPostcards.length, 
         countries: uniqueCountriesCount,
         isUser: true,
@@ -429,7 +430,7 @@ function refreshAllLists() {
         const statusColor = isReceived ? '#2ecc71' : '#f39c12';
 
         return `
-        <div class="postcard-card archive-card" data-index="${index}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 3/2; height: auto; position: relative; cursor: pointer; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <div class="postcard-card archive-card" data-index="${index}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 3/2; position: relative; cursor: pointer; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
             ${card.frontImage 
                 ? `<img src="${card.frontImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">` 
                 : `<div style="width: 100%; height: 100%; background: #eee; position: absolute; top: 0; left: 0; z-index: 1; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:10px;">No Image</div>`
@@ -504,8 +505,12 @@ function renderMapSections() {
             const color = collectedInContinent > 0 ? (isCompleted ? '#27ae60' : '#e67e22') : '#888';
             
             return `
-                <div class="continent-wrapper" style="margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-element);">
-                    <div class="continent-header" onclick="const body = this.nextElementSibling; const isHidden = body.style.display === 'none'; body.style.display = isHidden ? 'block' : 'none'; this.querySelector('.cont-arrow').textContent = isHidden ? '⬆️' : '⬇️';" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; cursor: pointer; transition: background 0.2s;">
+                <div class="continent-wrapper" style="margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-element); transition: all 0.3s ease;">
+                    <div class="continent-header" onclick="
+                        const parent = this.parentElement; 
+                        parent.classList.toggle('expanded'); 
+                        this.querySelector('.cont-arrow').textContent = parent.classList.contains('expanded') ? '⬆️' : '⬇️';
+                    " style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; cursor: pointer; transition: background 0.2s;">
                         <span style="font-weight: bold; color: var(--text-main); font-size: 14px;">${continent}</span>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <span style="font-size: 13px; color: ${color}; font-weight: bold;">
@@ -515,7 +520,7 @@ function renderMapSections() {
                         </div>
                     </div>
                     
-                    <div class="continent-body" style="display: none; padding: 15px; border-top: 1px dashed var(--border); background: var(--bg-card);">
+                    <div class="continent-body" style="padding: 0 15px; background: var(--bg-card);">
                         <div class="flag-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
                             ${flags.map(f => {
                                 const isCollected = collectedFlags.includes(f);
@@ -942,6 +947,7 @@ document.addEventListener("DOMContentLoaded", () => {
             overlay.className = 'custom-alert-overlay';
             overlay.style.zIndex = '9999'; 
             
+            // === ДОБАВИЛИ КНОПКУ AUTO-FILL В HTML ===
             overlay.innerHTML = `
                 <div class="custom-alert-box">
                     <div style="font-size: 50px; margin-bottom: -10px;">👋</div>
@@ -949,10 +955,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="custom-alert-text" style="margin-bottom: 15px;">
                         Before you start your PostJourney, let's set up your profile so others know who you are!
                     </div>
-                    <button class="primary-button custom-alert-btn" style="width: 100%;">Set Up Profile</button>
+                    <button class="primary-button custom-alert-btn" style="width: 100%; margin-bottom: 8px;">Set Up Profile</button>
+                    <button class="secondary-button dev-autofill-btn" style="width: 100%; padding: 8px; font-size: 12px; background: transparent; border: 1px dashed #ccc; color: #888;">🪄 Auto-fill (Dev)</button>
                 </div>
             `;
             
+            // 1. СТАНДАРТНАЯ ЛОГИКА (Если юзер сам хочет заполнить)
             overlay.querySelector('.custom-alert-btn').onclick = () => {
                 overlay.remove();
                 
@@ -965,7 +973,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 toggleEditMode(true);
                 
-                // === 🔴 ВКЛЮЧАЕМ КРАСНУЮ ПОДСВЕТКУ ===
+                // Включаем красную подсветку
                 const av = document.getElementById('profile-avatar'); if(av) av.classList.add('needs-fill');
                 const inName = document.getElementById('input-name'); if(inName) inName.classList.add('needs-fill');
                 const inC = document.getElementById('input-country'); if(inC) inC.classList.add('needs-fill');
@@ -973,11 +981,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 const hintText = document.getElementById('tags-hint-text');
                 if (hintText) hintText.style.color = '#e74c3c'; 
-                // =====================================
 
                 const nameInput = document.getElementById('input-name');
                 if(nameInput) nameInput.focus();
             };
+
+            // 2. === МАГИЯ: ЛОГИКА АВТОЗАПОЛНЕНИЯ (Для тебя) ===
+            const devBtn = overlay.querySelector('.dev-autofill-btn');
+            if (devBtn) {
+                devBtn.onclick = () => {
+                    // Закидываем фейковые данные
+                    window.state.profile.name = "@DevTester";
+                    window.state.profile.country = "🇵🇱"; 
+                    window.state.profile.bio = "Just a developer testing the app! 💻";
+                    window.state.profile.avatar = null; // Оставим null, чтобы была буква "D" на фоне
+                    window.state.profile.interests = ["Tech", "Coffee", "Gaming"];
+                    
+                    overlay.remove(); // Закрываем окно
+                    
+                    // Помечаем, что онбординг пройден
+                    localStorage.setItem('onboarding_done', 'true');
+                    
+                    // Обновляем визуал и сохраняем!
+                    if (typeof window.updateProfileUI === 'function') window.updateProfileUI();
+                    if (typeof window.saveState === 'function') window.saveState();
+                    
+                    showToastNotification("🪄 Magic! Profile Auto-filled.");
+                };
+            }
             
             phoneFrame.appendChild(overlay);
         }
@@ -1205,3 +1236,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateDaysInApp();
 });
+
+window.syncAssets = function() {
+    const balanceElement = document.getElementById('postcard-display');
+    const energyElement = document.getElementById('energy-display');
+    
+    if (balanceElement) balanceElement.textContent = state.postcards;
+    if (energyElement) energyElement.textContent = state.energy;
+    
+    const sentCountEl = document.getElementById("sent-count");
+    if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
+};

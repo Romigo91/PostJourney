@@ -1308,3 +1308,43 @@ input:checked + .slider:before { transform: translateX(14px); }
   box-shadow: 0 0 8px rgba(231, 76, 60, 0.3) !important;
   transition: all 0.3s ease; /* Плавное исчезновение рамки */
 }
+/* Плавное раскрытие континентов в World Map */
+.continent-body {
+  max-height: 0;
+  overflow: hidden;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0;
+  border-top: 1px dashed transparent !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Мягкая "app-like" анимация */
+}
+
+.continent-wrapper.expanded .continent-body {
+  max-height: 1500px; /* Большое значение, чтобы точно влезли все флаги */
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+  opacity: 1;
+  border-top: 1px dashed var(--border) !important;
+}
+/* Горизонтальная карусель для открыток в Архиве */
+.postcard-carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 10px; /* Место для скроллбара, если он есть */
+  margin-bottom: 15px;
+  /* Прячем скроллбар в Webkit (Chrome, Safari), но оставляем возможность скроллить */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory; /* Мягкое "прилипание" карточек при свайпе */
+}
+
+.postcard-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Настраиваем размер карточек внутри карусели */
+.postcard-carousel .postcard-card {
+  flex: 0 0 160px; /* Фиксированная ширина: карточка не сжимается, ширина 160px */
+  scroll-snap-align: start; /* Карточка прилипает к началу при скролле */
+}
