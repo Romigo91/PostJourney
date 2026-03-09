@@ -671,6 +671,10 @@ if (btnSendPostcard) {
         const originalText = btnSendPostcard.textContent;
         btnSendPostcard.disabled = true;
         btnSendPostcard.textContent = "🚀 Sending...";
+        
+        // МГНОВЕННО ПРЯЧЕМ КНОПКУ 3D
+        const btn3D = document.getElementById('btn-view-3d');
+        if (btn3D) btn3D.classList.add('disabled');
 
         // 1. МГНОВЕННО СПИСЫВАЕМ ОТКРЫТКУ
         state.postcards -= 1;
@@ -945,4 +949,41 @@ document.addEventListener('click', (e) => {
         wrapper.style.opacity = '1';
     }, 60); // 60мс достаточно, чтобы браузер «проглотил» новые элементы
 });
+// === КНОПКА ОТМЕНЫ (НАЗАД К ГЛОБУСУ) ===
+    const btnCancelCard = document.getElementById('cancel-card-btn');
+    if (btnCancelCard) {
+        btnCancelCard.addEventListener('click', () => {
+            // 1. Прячем конструктор и показываем глобус
+            document.getElementById('postcard-constructor-section').style.display = 'none';
+            document.getElementById('cloud-address-section').style.display = 'block';
+
+            // 2. Очищаем форму, чтобы в следующий раз она была пустой
+            postcardData.frontImage = null;
+            postcardData.message = '';
+            postcardData.stampImage = null;
+            postcardData.stampType = 'emoji';
+            postcardData.currentSide = 'front';
+
+            if (document.getElementById('card-message')) document.getElementById('card-message').value = '';
+            if (document.getElementById('ai-prompt')) document.getElementById('ai-prompt').value = '';
+            if (document.getElementById('front-upload')) document.getElementById('front-upload').value = '';
+            
+            // 3. Возвращаем активные табы на место
+            const bFront = document.getElementById('btn-front-side');
+            const bBack = document.getElementById('btn-back-side');
+            if (bFront && bBack) {
+                bFront.classList.add('constructor-mode-active');
+                bBack.classList.remove('constructor-mode-active');
+                document.getElementById('panel-front').style.display = 'block';
+                document.getElementById('panel-back').style.display = 'none';
+            }
+
+            updateDisplay();
+
+            // 4. Сбрасываем логику облака, если она там есть
+            if (typeof window.resetCloudScreen === 'function') {
+                window.resetCloudScreen();
+            }
+        });
+    }
 });

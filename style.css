@@ -484,10 +484,9 @@ input:checked + .slider:before { transform: translateX(14px); }
 }
 
 .icon-3d.disabled {
-  opacity: 0.3;
-  filter: grayscale(1);
-  cursor: not-allowed;
-  color: #888;
+  opacity: 0;
+  transform: scale(0.5);
+  pointer-events: none;
 }
 
 .icon-3d:not(.disabled):hover {
@@ -1352,4 +1351,12 @@ input:checked + .slider:before { transform: translateX(14px); }
 /* Добавляем отступ контента только тогда, когда блок раскрыт */
 .clickable-block.expanded .extra-content {
   padding-top: 15px;
+}
+/* Автоматически прячем блок "Who is next / Personal Collection", если открыт сам редактор открытки */
+section[data-screen="create"]:has(#postcard-constructor-section:not([style*="display: none"])) #cloud-address-section {
+  display: none !important;
+}
+/* Выравниваем отступ сверху для всех экранов (кроме Home), чтобы компенсировать удаленные заголовки */
+.screen:not(#home-screen) {
+  padding-top: 40px;
 }

@@ -13,7 +13,7 @@
       <main id="screen-container">
         
         <section class="screen screen-active" data-screen="home" id="home-screen">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 0px; padding: 15px 0 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 0px; padding: 0px 0 10px;">
             <h2 class="screen-title" style="margin: 0;">PostJourney</h2>
             <div class="day-badge" id="days-in-app-badge">DAY 1</div>
           </div>
@@ -31,7 +31,7 @@
               <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 1; min-width: 0; gap: 4px;">
                 
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="profile-name" id="display-name"></div>
+                  <div class="profile-name" id="display-name" style="font-size: 15px; font-weight: 600; color: var(--text-main);"></div>
                     <div class="profile-country" id="display-country"></div>
                 </div>
             
@@ -70,9 +70,9 @@
             </div>
           </div>
 
-          <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: #333; font-weight: 600;">My Assets</span>
+              <span style="color: var(--text-main); font-weight: 600;">My Assets</span>
               
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fad7a1;">
@@ -92,33 +92,30 @@
             </div>
           </div>
 
-          <div class="section-block clickable-block" id="archive-block" style="display: none; margin-top: 10px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">My Collection</span>
-              </div>
+          <div class="section-block clickable-block" id="archive-block" style="display: none; margin-top: 10px;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-main); font-weight: 600;">My Collection</span>
               <span class="expand-trigger">⬇️</span>
             </div>
             
-            <div class="extra-content" style="padding-top: 0; padding-bottom: 4px;">
-              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; margin-top: 4px;">
-                <span style="font-size: 11px; font-weight: bold; color: #d35400;">Sent collection</span>
-                <span id="sent-count" style="background: #fff; color: #d35400; padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
+            <div class="extra-content">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <span style="font-size: 12px; font-weight: bold; color: #d35400;">Sent collection</span>
+                <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
               </div>
-              <div class="postcard-carousel" id="sent-postcards-grid" style="margin-bottom: 6px; padding-bottom: 2px;"></div>
+              <div class="postcard-carousel" id="sent-postcards-grid" style="margin-bottom: 15px; min-height: 20px;"></div>
 
-              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; border-top: 1px dashed var(--border); padding-top: 6px;">
-                <span style="font-size: 11px; font-weight: bold; color: #27ae60;">Received collection</span>
-                <span id="received-count" style="background: #fff; color: #27ae60; padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
+              <div style="display: flex; align-items: center; gap: 8px; border-top: 1px dashed var(--border); padding-top: 15px; margin-bottom: 10px;">
+                <span style="font-size: 12px; font-weight: bold; color: #27ae60;">Received collection</span>
+                <span id="received-count" style="background: #fff; color: #27ae60; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
               </div>
-              <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 0; padding-bottom: 0;"></div>
+              <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 5px; min-height: 20px;"></div>
             </div>
           </div>
         </section>
 
         <section class="screen" data-screen="map">
-          <h2 class="screen-title">World Map</h2>
-
+          
           <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
@@ -135,10 +132,10 @@
             </div>
           </div>
         
-          <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px; background: #ffffff; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+          <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: #333; font-weight: 600;">Flag Collection 🚩</span>
+                <span style="color: var(--text-main); font-weight: 600;">Flag Collection 🚩</span>
               </div>
               <span class="expand-trigger">⬇️</span>
             </div>
@@ -171,8 +168,7 @@
           </div>
       </section>
 
-        <section class="screen" data-screen="create">
-          <h2 class="screen-title">Postcards</h2>
+      <section class="screen" data-screen="create">
         
           <div id="cloud-address-section" class="section-block" style="text-align: center; padding: 30px 15px;">
             <div style="font-size: 60px; margin-bottom: 10px;">🌍</div>
@@ -189,155 +185,132 @@
           </div>
     
           <div id="postcard-constructor-section" style="display: none;">
-            <div class="section-block">
-              <div class="section-header">
-                <span>Create postcard</span>
-              </div>
-              <div id="offline-banner" style="display: none; background: #fff5eb; border: 1px dashed #d35400; color: #d35400; padding: 10px; border-radius: 8px; text-align: center; font-size: 12px; font-weight: bold; margin: 15px 0;">
-                📴 Offline Mode. Creating for Personal Collection.
-              </div>
-          
-              <p class="small-text">
-                AI postcard costs <strong>100 energy</strong> and <strong>1 postcard</strong>.<br />
-                Uploading your own image costs only <strong>1 postcard</strong>.
-              </p>
-          
-              <div class="constructor-body" style="margin-top: 15px;">
-                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                  <button class="constructor-mode constructor-mode-active" id="btn-front-side" style="flex:1;">Front Side</button>
-                  <button class="constructor-mode" id="btn-back-side" style="flex:1;">Back Side</button>
+            
+            <div id="cancel-card-btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #d35400; cursor: pointer; margin-bottom: 15px; padding-left: 4px; transition: transform 0.2s;">
+              🏷️ Back to Menu
+            </div>
+
+            <div id="offline-banner" style="display: none; background: #fff5eb; border: 1px dashed #d35400; color: #d35400; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 12px;">
+              📴 Offline Mode. Creating for Personal Collection.
+            </div>
+
+            <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block;">
+                
+                <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
+                    <span style="font-size: 24px; opacity: 0.5;">✉️</span>
                 </div>
-          
-                <div id="panel-front">
-                  <div class="constructor-toggle">
-                    <button class="constructor-mode constructor-mode-active" data-mode="ai">Generate with AI</button>
-                    <button class="constructor-mode" data-mode="upload">Upload Photo</button>
-                  </div>
                 
-                  <div class="constructor-panel" data-panel="ai">
-                    <label class="form-row">
-                      <span>Prompt for AI</span>
-                      <textarea id="ai-prompt" placeholder="Example: cozy winter postcard..."></textarea>
-                    </label>
-                    
-                    <button id="btn-generate-ai" class="btn-main" style="width: 100%; margin-top: 10px;">
-                      <span>Generate Image</span>
-                    </button>
-                
-                    <div id="ai-progress-container" style="display: none; margin-top: 15px;">
-                      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="font-size: 11px; color: #888; font-weight: 500;">AI is painting...</span>
-                        <span id="ai-progress-percent" style="font-size: 11px; color: #e67e22; font-weight: bold;">0%</span>
-                      </div>
-                      <div style="width: 100%; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; border: 1px solid #ddd;">
-                        <div id="ai-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); transition: width 0.3s ease; box-shadow: 0 0 10px rgba(255,126,95,0.5);"></div>
-                      </div>
+                <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
+                    <span>Your postcard preview will appear here.</span>
+                </div>
+
+                <div id="btn-view-3d" class="icon-3d disabled" title="View 3D View" style="position: absolute; bottom: 10px; left: 10px; z-index: 20; background: rgba(255, 255, 255, 0.9); border-radius: 50%; padding: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16.06V7.94a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 7.94v8.12a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </div>
+            </div>
+
+            <div class="section-block" style="padding: 12px;">
+              
+              <div style="background: var(--bg-flag-circle); border-radius: 8px; padding: 4px; display: flex; margin-bottom: 12px;">
+                <button class="constructor-mode constructor-mode-active" id="btn-front-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Front Side</button>
+                <button class="constructor-mode" id="btn-back-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Back Side</button>
+              </div>
+
+              <div id="panel-front">
+                <div class="constructor-toggle" style="display: flex; gap: 6px; margin-bottom: 10px;">
+                  <button class="constructor-mode constructor-mode-active" data-mode="ai" style="flex:1; padding: 6px; font-size: 11px;">✨ AI (100⚡)</button>
+                  <button class="constructor-mode" data-mode="upload" style="flex:1; padding: 6px; font-size: 11px;">📂 Upload</button>
+                </div>
+              
+                <div class="constructor-panel" data-panel="ai">
+                  <textarea id="ai-prompt" placeholder="Describe your image... (e.g. cozy winter cabin)" style="width: 100%; height: 50px; border-radius: 8px; border: 1px solid var(--border-input); padding: 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); resize: none; margin-bottom: 8px;"></textarea>
+                  <button id="btn-generate-ai" class="primary-button" style="width: 100%; font-size: 13px; padding: 10px; background: #e67e22; border: none; color: white; margin-top: 0;">Generate Image</button>
+              
+                  <div id="ai-progress-container" style="display: none; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 10px; color: #888; font-weight: 500;">AI is painting...</span>
+                      <span id="ai-progress-percent" style="font-size: 10px; color: #e67e22; font-weight: bold;">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #eee; border-radius: 10px; overflow: hidden;">
+                      <div id="ai-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"></div>
                     </div>
                   </div>
-                
-                  <div class="constructor-panel constructor-panel-hidden" data-panel="upload" style="display: none;">
-                    <label class="form-row">
-                      <span>Upload image</span>
-                      <div class="upload-field" style="margin-top: 8px;">
-                        <input type="file" id="front-upload" accept="image/*" />
-                      </div>
-                    </label>
+                </div>
+              
+                <div class="constructor-panel constructor-panel-hidden" data-panel="upload" style="display: none;">
+                  <div class="upload-field" style="margin-top: 4px;">
+                    <input type="file" id="front-upload" accept="image/*" style="font-size: 12px; width: 100%;"/>
                   </div>
                 </div>
-          
-                <div id="panel-back" style="display: none;">
-                  <label class="form-row">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                      <span style="font-size: 12px; color: var(--text-sub);">Message</span>
-                      <span id="char-count" style="font-size: 11px; color: #e74c3c; font-weight: bold;">0 / 150</span>
-                    </div>
-                    <textarea id="card-message" maxlength="150" placeholder="Write your message here..."></textarea>
-                  </label>
-                
-                  <label class="form-row">
-                    <span style="font-size: 12px; color: var(--text-sub);">Font Style</span>
-                    <select id="font-select" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main);">
-                      <option value="'Caveat', cursive">Casual Pen (Caveat)</option>
-                      <option value="'Dancing Script', cursive">Elegant Cursive (Dancing Script)</option>
-                      <option value="'Special Elite', monospace">Typewriter (Special Elite)</option>
-                      <option value="'Playfair Display', serif">Classic Serif (Playfair)</option>
-                      <option value="'Montserrat', sans-serif">Modern Clean (Montserrat)</option>
+              </div>
+
+              <div id="panel-back" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; color: var(--text-sub); font-weight: 600;">Message</span>
+                  <span id="char-count" style="font-size: 10px; color: #e74c3c; font-weight: bold;">0 / 150</span>
+                </div>
+                <textarea id="card-message" maxlength="150" placeholder="Write your message here..." style="width: 100%; height: 60px; border-radius: 8px; border: 1px solid var(--border-input); padding: 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); resize: none; margin-bottom: 12px;"></textarea>
+              
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                  <div style="flex: 1;">
+                    <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Font Style</span>
+                    <select id="font-select" style="width: 100%; padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main); font-size: 11px;">
+                      <option value="'Caveat', cursive">Casual Pen</option>
+                      <option value="'Dancing Script', cursive">Elegant</option>
+                      <option value="'Special Elite', monospace">Typewriter</option>
+                      <option value="'Playfair Display', serif">Classic</option>
+                      <option value="'Montserrat', sans-serif">Modern</option>
                     </select>
-                  </label>
-                
-                  <label class="form-row" style="margin-top: 10px;">
-                    <span style="font-size: 12px; color: var(--text-sub);">Ink Color</span>
-                    <div id="ink-colors" style="display: flex; gap: 10px; margin-top: 5px;">
-                      <button class="ink-btn active" data-color="#1e3799" style="background-color: #1e3799;"></button>
-                      <button class="ink-btn" data-color="#2f3640" style="background-color: #2f3640;"></button>
-                      <button class="ink-btn" data-color="#b33939" style="background-color: #b33939;"></button>
-                      <button class="ink-btn" data-color="#8d6e63" style="background-color: #8d6e63;"></button>
+                  </div>
+                  <div>
+                    <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Ink Color</span>
+                    <div id="ink-colors" style="display: flex; gap: 6px;">
+                      <button class="ink-btn active" data-color="#1e3799" style="background-color: #1e3799; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#2f3640" style="background-color: #2f3640; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#b33939" style="background-color: #b33939; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#8d6e63" style="background-color: #8d6e63; width: 22px; height: 22px;"></button>
                     </div>
-                    
-                    <label class="form-row" style="margin-top: 15px;">
-                      <span style="font-size: 12px; color: var(--text-sub);">Select Postage Stamp</span>
-                      <div id="stamp-select-grid" style="display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none;">
-                        <button class="stamp-btn active" data-stamp="🌲">🌲</button>
-                        <button class="stamp-btn" data-stamp="⛰️">⛰️</button>
-                        <button class="stamp-btn" data-stamp="🌊">🌊</button>
-                        <button class="stamp-btn" data-stamp="🏛️">🏛️</button>
-                        <button class="stamp-btn" data-stamp="🚀">🚀</button>
-                        <button class="stamp-btn premium" data-stamp="💎" title="Premium">💎</button>
-                      </div>
-                      
-                      <div id="ai-stamp-constructor" style="display: none; margin-top: 12px; border: 1px dashed var(--border); padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.3);">
-                        <label class="form-row" style="margin-bottom: 8px;">
-                          <span style="font-size: 11px; color: var(--text-sub);">Describe your Premium Stamp (AI)</span>
-                          <textarea id="ai-stamp-prompt" placeholder="E.g., tiny steampunk owl..." style="width: 100%; height: 40px; font-size: 11px; margin-top: 4px; resize: none;"></textarea>
-                        </label>
-                        <button id="btn-generate-stamp" class="primary-button" style="width: 100%; font-size: 12px; padding: 6px;">
-                          <span>🎨 Generate Stamp (50 Energy)</span>
-                        </button>
-  
-                        <div id="stamp-progress-container" style="display: none; margin-top: 15px;">
-                          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                            <span style="font-size: 11px; color: #888; font-weight: 500;">AI is painting stamp...</span>
-                            <span id="stamp-progress-percent" style="font-size: 11px; color: #e67e22; font-weight: bold;">0%</span>
-                          </div>
-                          <div style="width: 100%; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; border: 1px solid #ddd;">
-                            <div id="stamp-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); transition: width 0.3s ease; box-shadow: 0 0 10px rgba(255,126,95,0.5);"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  </label>
+                  </div>
                 </div>
-          
-                <div style="clear: both; display: block; width: 100%;">
-                  <div class="section-header" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                    <span>Preview</span>
-                    <div id="btn-view-3d" class="icon-3d disabled" title="View 3D View">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 16.06V7.94a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 7.94v8.12a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                      </svg>
+              
+                <div>
+                  <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Select Postage Stamp</span>
+                  <div id="stamp-select-grid" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+                    <button class="stamp-btn active" data-stamp="🌲" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🌲</button>
+                    <button class="stamp-btn" data-stamp="⛰️" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">⛰️</button>
+                    <button class="stamp-btn" data-stamp="🌊" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🌊</button>
+                    <button class="stamp-btn" data-stamp="🏛️" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🏛️</button>
+                    <button class="stamp-btn" data-stamp="🚀" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🚀</button>
+                    <button class="stamp-btn premium" data-stamp="💎" title="Premium" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">💎</button>
+                  </div>
+                  
+                  <div id="ai-stamp-constructor" style="display: none; margin-top: 10px; border: 1px dashed var(--border); padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.3);">
+                    <textarea id="ai-stamp-prompt" placeholder="E.g., tiny steampunk owl..." style="width: 100%; height: 35px; font-size: 11px; resize: none; border: 1px solid var(--border-input); border-radius: 6px; padding: 6px; margin-bottom: 6px;"></textarea>
+                    <button id="btn-generate-stamp" class="primary-button" style="width: 100%; font-size: 11px; padding: 6px; background: #f39c12; border: none; color: white; margin-top: 0;">🎨 Generate Stamp (50⚡)</button>
+      
+                    <div id="stamp-progress-container" style="display: none; margin-top: 8px;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 9px; color: #888;">AI is painting...</span>
+                        <span id="stamp-progress-percent" style="font-size: 9px; color: #e67e22; font-weight: bold;">0%</span>
+                      </div>
+                      <div style="width: 100%; height: 4px; background: #eee; border-radius: 10px; overflow: hidden;">
+                        <div id="stamp-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"></div>
+                      </div>
                     </div>
                   </div>
-                
-                  <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block; clear: both;">
-                      <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
-                          <span style="font-size: 24px; opacity: 0.5;">✉️</span>
-                      </div>
-                      <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
-                          <span>Your postcard preview will appear here.</span>
-                      </div>
-                  </div>
-                
-                  <button class="primary-button" id="send-card-btn" style="width: 100%;">Send postcard</button>
                 </div>
               </div>
+
+              <button class="primary-button" id="send-card-btn" style="width: 100%; margin-top: 15px; font-size: 15px; padding: 12px; background: #27ae60; border: none;">🚀 Send Postcard</button>
             </div>
           </div>
         </section>
 
         <section class="screen" data-screen="games">
-          <h2 class="screen-title">Games</h2>
       
           <div id="games-menu-list">
               <div class="section-block">
@@ -377,7 +350,6 @@
         </section>
 
         <section class="screen" data-screen="settings">
-          <h2 class="screen-title">Settings</h2>
           
           <div class="section-block">
             <div class="section-header">
