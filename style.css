@@ -936,61 +936,7 @@ input:checked + .slider:before { transform: translateX(14px); }
   0% { transform: translateY(0) scale(1); opacity: 1; }
   100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
 }
-/* ==========================================================================
-   12. МИНИ-ИГРА: CUSTOMS INSPECTOR
-   ========================================================================== */
-   .customs-card {
-    background: #fffdf9;
-    border: 2px dashed #d8c2a5;
-    border-radius: 12px;
-    min-height: 180px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    margin-bottom: 20px;
-    padding: 20px;
-  }
-  
-  .stamp-effect {
-    position: absolute;
-    font-size: 28px;
-    font-weight: 900;
-    text-transform: uppercase;
-    border: 4px solid;
-    border-radius: 10px;
-    padding: 8px 16px;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 10;
-  }
-  
-  .stamp-approve { 
-    color: #27ae60; 
-    border-color: #27ae60; 
-    animation: stampBangApprove 0.4s forwards; 
-  }
-  
-  .stamp-reject { 
-    color: #e74c3c; 
-    border-color: #e74c3c; 
-    animation: stampBangReject 0.4s forwards; 
-  }
-  
-  @keyframes stampBangApprove {
-    0% { transform: rotate(-15deg) scale(2.5); opacity: 0; }
-    60% { transform: rotate(-15deg) scale(0.8); opacity: 1; }
-    100% { transform: rotate(-15deg) scale(1); opacity: 1; }
-  }
-  
-  @keyframes stampBangReject {
-    0% { transform: rotate(15deg) scale(2.5); opacity: 0; }
-    60% { transform: rotate(15deg) scale(0.8); opacity: 1; }
-    100% { transform: rotate(15deg) scale(1); opacity: 1; }
-  }
+
   /* ==========================================================================
    13. МИНИ-ИГРА: GEO QUIZ (ВИНТАЖНЫЙ ДИЗАЙН)
    ========================================================================== */

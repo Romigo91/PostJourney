@@ -19,9 +19,7 @@
           </div>
           
           <div class="profile-card clickable-block" id="profile-block">
-            
             <div class="profile-header-main" style="display: flex; align-items: center; width: 100%; position: relative;">
-              
               <div class="avatar-container" style="position: relative; cursor: pointer; flex-shrink: 0; margin-right: 12px;">
                 <div class="avatar-circle" id="profile-avatar">?</div>
                 <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
@@ -29,10 +27,9 @@
               </div>
           
               <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 1; min-width: 0; gap: 4px;">
-                
                 <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
                   <div class="profile-name" id="display-name" style="font-size: 15px; font-weight: 600; color: var(--text-main);"></div>
-                    <div class="profile-country" id="display-country"></div>
+                  <div class="profile-country" id="display-country"></div>
                 </div>
             
                 <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
@@ -41,25 +38,19 @@
                 </div>
 
                 <div class="tags-full-width-container" id="display-tags-minimal" style="margin: 0; padding: 0; width: 100%;"></div>
-                
               </div>
           
               <span class="expand-trigger" style="flex-shrink: 0; margin-left: 12px;">⬇️</span>
-              
             </div> 
+            
             <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
               <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
               <div id="flag-grid-picker" class="flag-grid-picker-style"></div>
             </div>
 
-          
             <div class="extra-content">
               <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here.</p>
-              
-              <textarea id="input-bio" 
-                        placeholder="Detailed statistics and recent achievements..." 
-                        style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-input); padding: 6px; background: var(--bg-input); color: var(--text-main);">
-              </textarea>
+              <textarea id="input-bio" placeholder="Detailed statistics and recent achievements..." style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-input); padding: 6px; background: var(--bg-input); color: var(--text-main);"></textarea>
               
               <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
                 <div id="tags-hint-text" style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select exactly 3 interests:</div>
@@ -73,7 +64,6 @@
           <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <span style="color: var(--text-main); font-weight: 600;">My Assets</span>
-              
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fad7a1;">
                   <span id="postcard-display">0</span> ✉️
@@ -112,14 +102,11 @@
               <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 5px; min-height: 20px;"></div>
             </div>
           </div>
-        </section>
 
-        <section class="screen" data-screen="map">
-          
-          <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none;">
+          <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none; margin-top: 15px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <span>Tracking Board</span>
+                <span style="color: var(--text-main); font-weight: 600;">Tracking Board</span>
                 <span id="tracking-count" style="background: #e67e22; color: #fff; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: bold;">0</span>
               </div>
               <span class="expand-trigger">⬇️</span> 
@@ -127,38 +114,13 @@
             
             <div class="extra-content">
               <p id="tracking-empty-text" class="small-text" style="margin-bottom: 10px;">Track your postcards in real-time. Wait for the timer to see them in your archive!</p>
-              
               <div class="tracking-list tracking-scroll-area" id="tracking-list"></div>
             </div>
           </div>
         
-          <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px;">
+          <div class="section-block clickable-block" style="margin-top: 15px;">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="color: var(--text-main); font-weight: 600;">Flag Collection 🚩</span>
-              </div>
-              <span class="expand-trigger">⬇️</span>
-            </div>
-            
-            <div class="extra-content">
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 5px;">
-                <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent postcards 📤</span>
-              </div>
-              
-              <div id="sent-by-continent" style="margin-bottom: 20px;"></div>
-
-              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 15px;">
-                <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received postcards 📥</span>
-              </div>
-              
-              <div id="received-by-continent" style="margin-bottom: 5px;"></div>
-            </div>
-          </div>
-
-        
-          <div class="section-block clickable-block">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <span>Leaderboard 🏆</span>
+              <span style="color: var(--text-main); font-weight: 600;">Leaderboard 🏆</span>
               <span class="expand-trigger">⬇️</span>
             </div>
             <div class="extra-content">
@@ -166,26 +128,25 @@
               <ol class="leaderboard" id="leaderboard-list"></ol>
             </div>
           </div>
-      </section>
+        </section>
 
-      <section class="screen" data-screen="create">
-        
+        <section class="screen" data-screen="map">
+          </section>
+
+        <section class="screen" data-screen="create">
           <div id="cloud-address-section" class="section-block" style="text-align: center; padding: 30px 15px;">
             <div style="font-size: 60px; margin-bottom: 10px;">🌍</div>
             <h3 id="cloud-title" style="margin-bottom: 10px; color: var(--text-main);">Who is next?</h3>
             <p id="cloud-desc" style="color: var(--text-sub); font-size: 14px; margin-bottom: 20px;">
               Pull a random address from the PostJourney Cloud and discover a new friend's interests!
             </p>
-            
             <button id="btn-pull-address" class="primary-button" style="padding: 15px 30px; font-size: 16px; width: 100%;">
               ✉️ Pull Address (-1 Postcard)
             </button>
-    
             <div id="pulled-profile-container" style="margin-top: 20px; text-align: left; display: none;"></div>
           </div>
     
           <div id="postcard-constructor-section" style="display: none;">
-            
             <div id="cancel-card-btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #d35400; cursor: pointer; margin-bottom: 15px; padding-left: 4px; transition: transform 0.2s;">
               🏷️ Back to Menu
             </div>
@@ -195,11 +156,9 @@
             </div>
 
             <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block;">
-                
                 <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
                     <span style="font-size: 24px; opacity: 0.5;">✉️</span>
                 </div>
-                
                 <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
                     <span>Your postcard preview will appear here.</span>
                 </div>
@@ -214,7 +173,6 @@
             </div>
 
             <div class="section-block" style="padding: 12px;">
-              
               <div style="background: var(--bg-flag-circle); border-radius: 8px; padding: 4px; display: flex; margin-bottom: 12px;">
                 <button class="constructor-mode constructor-mode-active" id="btn-front-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Front Side</button>
                 <button class="constructor-mode" id="btn-back-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Back Side</button>
@@ -291,7 +249,6 @@
                   <div id="ai-stamp-constructor" style="display: none; margin-top: 10px; border: 1px dashed var(--border); padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.3);">
                     <textarea id="ai-stamp-prompt" placeholder="E.g., tiny steampunk owl..." style="width: 100%; height: 35px; font-size: 11px; resize: none; border: 1px solid var(--border-input); border-radius: 6px; padding: 6px; margin-bottom: 6px;"></textarea>
                     <button id="btn-generate-stamp" class="primary-button" style="width: 100%; font-size: 11px; padding: 6px; background: #f39c12; border: none; color: white; margin-top: 0;">🎨 Generate Stamp (50⚡)</button>
-      
                     <div id="stamp-progress-container" style="display: none; margin-top: 8px;">
                       <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                         <span style="font-size: 9px; color: #888;">AI is painting...</span>
@@ -311,37 +268,51 @@
         </section>
 
         <section class="screen" data-screen="games">
-      
           <div id="games-menu-list">
-              <div class="section-block">
-                  <div class="section-header">
-                      <span>Geo Quiz 🌍</span>
-                  </div>
-                  <p class="small-text">
-                      Test your knowledge of flags and capitals! Correct answers earn you energy.
-                  </p>
-                  <button class="secondary-button" onclick="startQuizGame()">Play</button>
-              </div>
-      
-              <div class="section-block">
-                <div class="section-header">
-                    <span>Post Office Sorter 🗂️</span>
+            
+            <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px;">
+              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="color: var(--text-main); font-weight: 600;">Flag Collection 🚩</span>
                 </div>
-                <p class="small-text">
-                    Sort incoming postcards by continent. Fast sorting earns you energy!
-                </p>
-                <button class="secondary-button" onclick="startSorterGame()">Play</button>
+                <span class="expand-trigger">⬇️</span>
               </div>
+              
+              <div class="extra-content">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 5px;">
+                  <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent postcards 📤</span>
+                </div>
+                
+                <div id="sent-by-continent" style="margin-bottom: 20px;"></div>
 
-              <div class="section-block">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 15px;">
+                  <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received postcards 📥</span>
+                </div>
+                
+                <div id="received-by-continent" style="margin-bottom: 5px;"></div>
+              </div>
+            </div>
+            
+            <div class="section-block">
                 <div class="section-header">
-                    <span>Customs Inspector 🛂</span>
+                    <span>Geo Quiz 🌍</span>
                 </div>
                 <p class="small-text">
-                    True or False? Act as a customs officer and verify the facts quickly!
+                    Test your knowledge of flags and capitals! Correct answers earn you energy.
                 </p>
-                <button class="secondary-button" onclick="startCustomsGame()">Play</button>
+                <button class="secondary-button" onclick="startQuizGame()">Play</button>
+            </div>
+      
+            <div class="section-block">
+              <div class="section-header">
+                  <span>Post Office Sorter 🗂️</span>
               </div>
+              <p class="small-text">
+                  Sort incoming postcards by continent. Fast sorting earns you energy!
+              </p>
+              <button class="secondary-button" onclick="startSorterGame()">Play</button>
+            </div>
+
           </div> 
           
           <div id="active-game-zone" class="section-block" style="display: none; text-align: center; padding-top: 10px;">
@@ -350,7 +321,6 @@
         </section>
 
         <section class="screen" data-screen="settings">
-          
           <div class="section-block">
             <div class="section-header">
               <span>Theme</span>
@@ -435,7 +405,6 @@
               🗑️ Clear All Data
             </button>
           </div>
-
         </section>
 
         <div id="modal-3d" class="modal-3d">

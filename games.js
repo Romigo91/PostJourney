@@ -335,50 +335,7 @@ function checkSorterBin(selectedContinent, btnElement) {
     }
 }
 
-// ==========================================
-// 6. ИГРА 3: CUSTOMS INSPECTOR (ВИНТАЖНЫЙ ДИЗАЙН)
-// ==========================================
-let customsScore = 0;
-let customsCombo = 0;
-let currentCustomsAnswer = true;
 
-function startCustomsGame() {
-    document.getElementById('games-menu-list').style.display = 'none';
-    document.getElementById('active-game-zone').style.display = 'block';
-
-    const container = document.getElementById('game-content');
-    
-    container.innerHTML = `
-        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:#d35400; cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px; font-family:'Montserrat', sans-serif;">
-            <span style="font-size: 18px;">🏷️</span> Back to Menu
-        </button>
-        
-        <div class="quiz-game-wrapper" id="customs-game-container">
-            <div class="luggage-tags-container">
-                <div class="luggage-tag">SCORE: <span id="customs-score">0</span></div>
-                <div class="luggage-tag combo">COMBO: <span id="customs-combo">0</span>🔥</div>
-            </div>
-
-            <div id="customs-card" class="vintage-stamp-card" style="margin-bottom: 20px; min-height: 180px;">
-                <span class="stamp-decor decor-globe">🛂</span>
-                <div id="customs-content" style="text-align: center; z-index: 2;"></div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 5px;">
-                <button id="btn-customs-reject" class="wooden-stamp-btn" onclick="checkCustomsAnswer(false, this)">
-                    ❌ REJECT
-                </button>
-                <button id="btn-customs-approve" class="wooden-stamp-btn" onclick="checkCustomsAnswer(true, this)">
-                    ✅ APPROVE
-                </button>
-            </div>
-        </div>
-    `;
-    
-    customsScore = 0;
-    customsCombo = 0;
-    nextCustomsRound();
-}
 
 function nextCustomsRound() {
     currentCustomsAnswer = Math.random() > 0.5;
