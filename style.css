@@ -1306,3 +1306,96 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
 .screen:not(#home-screen) {
   padding-top: 40px;
 }
+
+/* ==========================================================================
+   MICRO-UI: COLLECTION & TRACKING (Сплит-Блок)
+   ========================================================================== */
+
+   .compact-collection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  
+  .compact-postcard-thumb {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .compact-postcard-thumb:hover {
+    transform: scale(1.05);
+  }
+  
+  .compact-flag-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 14px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    padding: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    line-height: 1;
+  }
+  
+  .minimal-tracking-item {
+    background: var(--bg-phone);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .minimal-tracking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  .minimal-tracking-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .minimal-tracking-time {
+    font-size: 10px;
+    font-weight: 700;
+    color: #e67e22;
+    background: #fff5eb;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  
+  .minimal-progress-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  
+  .minimal-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f39c12, #e67e22);
+    border-radius: 2px;
+    transition: width 1s linear;
+  }
+  
+  .minimal-progress-fill.delivered {
+    background: #27ae60;
+  }

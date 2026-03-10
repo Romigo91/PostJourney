@@ -268,40 +268,50 @@ function refreshAllLists() {
         emptyText.style.display = (state.tracking && state.tracking.length > 0) ? "none" : "block";
     }
 
+    // === MICRO-UI ТРЕКИНГ ===
     renderListComponent("tracking-list", state.tracking, item => {
         const isIncoming = item.type === "incoming";
-        let countryName = isIncoming ? "Mystery Postcard" : (item.toCountry || "Unknown");
-        let cityName = isIncoming ? "Destination: You" : (item.toCity || "");
+        let countryName = isIncoming ? "Mystery Card" : (item.toCountry || "Unknown");
         let flag = isIncoming ? "🌍" : (item.flag || item.countryFlag || "");
         
         if (!isIncoming && item.to && !item.toCountry) {
             const parts = item.to.split(", ");
             countryName = parts[0];
-            cityName = parts.length > 1 ? parts[1] : "";
         }
 
-        let displayStatus = item.status;
+        let displayStatus = isIncoming ? "Incoming" : "In transit";
         let timeHtml = "";
+        let progressPercent = 0;
+        let progressClass = "";
 
-        if (item.arrivalAt) {
+        if (item.arrivalAt && item.sentAt) {
             const now = new Date().getTime();
+            const totalDuration = item.arrivalAt - item.sentAt;
+            const elapsed = now - item.sentAt;
+            
+            if (elapsed > 0 && elapsed < totalDuration) {
+                progressPercent = (elapsed / totalDuration) * 100;
+            } else if (elapsed >= totalDuration) {
+                progressPercent = 100;
+            }
+
             const diffMs = item.arrivalAt - now;
 
             if (diffMs > 0) {
                 const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
                 const minsLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-                displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
-                const timeColor = isIncoming ? "#2980b9" : "#d35400";
-                timeHtml = `<div style="font-size:10px; font-weight:bold; color:${timeColor}; background:#fff; padding:3px 6px; border-radius:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">${hoursLeft}h ${minsLeft}m left</div>`;
+                timeHtml = `${hoursLeft}h ${minsLeft}m`;
             } else {
-                displayStatus = "Delivered ✅";
+                displayStatus = "Delivered";
                 item.status = "Delivered";
-                timeHtml = `<div style="font-size:10px; font-weight:bold; color:#27ae60; background:#fff; padding:3px 6px; border-radius:10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Done</div>`;
+                timeHtml = "Done";
+                progressClass = "delivered";
+                progressPercent = 100;
             }
         } else {
-            displayStatus = isIncoming ? "Incoming 🛬" : "In transit 🛫";
-            const fallbackColor = isIncoming ? "#2980b9" : "#d35400";
-            timeHtml = `<div class="tracking-status" style="color:${fallbackColor}; font-weight:bold; background:#fff; padding:3px 6px; border-radius:10px; font-size:10px;">${displayStatus}</div>`;
+             // Фолбэк, если нет дат
+             timeHtml = "?";
+             progressPercent = 50;
         }
         
         const mapBadge = document.getElementById("map-badge");
@@ -309,37 +319,30 @@ function refreshAllLists() {
             const incomingCount = state.tracking.filter(item => item.type === "incoming").length;
             if (incomingCount > 0) {
                 mapBadge.textContent = incomingCount;
-                mapBadge.style.display = "flex"; // Обязательно flex, чтобы цифра была по центру кружка
+                mapBadge.style.display = "flex";
             } else {
                 mapBadge.style.display = "none";
             }
         }
 
-        const bgStyle = isIncoming ? "background: #eaf2f8; border: 1px solid #c9e1f5;" : "background: #ffd49b; border: 1px solid #f8c27a;";
-        const statusColor = isIncoming ? "#2980b9" : "#d35400";
-
         return `
-            <div class="tracking-card" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; ${bgStyle} border-radius: 10px; margin-bottom: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div class="tracking-info" style="display: flex; flex-direction: column; gap: 1px;">
-                    <div style="font-weight: bold; font-size: 13px; color: #333; display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 14px;">${flag}</span> ${countryName}
-                    </div>
-                    <div style="font-size: 10px; font-weight: 600; color: ${statusColor};">
-                        ${displayStatus} ${cityName ? `<span style="color: #888; font-weight: normal;">• ${cityName}</span>` : ''}
-                    </div>
+            <div class="minimal-tracking-item">
+                <div class="minimal-tracking-header">
+                    <span class="minimal-tracking-title">${flag} ${countryName}</span>
+                    <span class="minimal-tracking-time">${timeHtml}</span>
                 </div>
-                <div>${timeHtml}</div>
+                <div class="minimal-progress-bg">
+                    <div class="minimal-progress-fill ${progressClass}" style="width: ${progressPercent}%;"></div>
+                </div>
             </div>`;
     });
 
     const validSentPostcards = state.sentPostcards.filter(card => {
         if (card.isOffline === true) return false;
-        
         const dest = (card.to || "").toLowerCase();
         if (dest.includes("personal") || dest.includes("collection") || dest.includes("offline") || dest === "") {
             return false;
         }
-        
         return true; 
     });
 
@@ -417,43 +420,83 @@ function refreshAllLists() {
         listContainer.innerHTML = html;
     }
 
+    // === MICRO-UI КОЛЛЕКЦИЯ ===
     const cardTemplate = (card, index, isReceived) => {
         const flag = card.countryFlag || card.flag || '🌍';
-        let mainText = "";
-
-        if (isReceived) {
-            mainText = card.fromBot || card.senderName || "Unknown Sender";
-        } else {
-            mainText = (card.to || "Unknown").split(", ")[0]; 
-        }
-
-        const statusColor = isReceived ? '#2ecc71' : '#f39c12';
-
+        const bgImg = card.frontImage ? `background-image: url(${card.frontImage});` : `background: #eee;`;
+        
         return `
-        <div class="postcard-card archive-card" data-index="${index}" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; aspect-ratio: 3/2; position: relative; cursor: pointer; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-            ${card.frontImage 
-                ? `<img src="${card.frontImage}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">` 
-                : `<div style="width: 100%; height: 100%; background: #eee; position: absolute; top: 0; left: 0; z-index: 1; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:10px;">No Image</div>`
-            }
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85) 70%); padding: 12px 4px 4px 4px; z-index: 2; display: flex; flex-direction: column; gap: 1px; align-items: flex-start;">
-                <span style="color: white; font-weight: bold; font-size: 9px; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
-                    ${flag} ${mainText}
-                </span>
-                <span style="color: ${statusColor}; font-size: 7px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); line-height: 1; margin-top: 1px;">
-                    ${card.status}
-                </span>
-            </div>
+        <div class="compact-postcard-thumb archive-card" data-index="${index}" style="${bgImg}">
+            <div class="compact-flag-badge">${flag}</div>
         </div>`;
     };
         
     const renderArchiveList = (containerId, dataArray, isReceived = false) => {
         const container = document.getElementById(containerId);
         if (!container) return;
-        container.innerHTML = dataArray.map((item, i) => cardTemplate(item, i, isReceived)).join('');
+        
+        container.className = 'compact-collection-grid';
+        container.style.display = dataArray.length > 0 ? 'grid' : 'none';
+
+        const latestCards = dataArray.slice(-4);
+        
+        // Вешаем onclick на каждую карточку
+        let html = latestCards.map((item, i) => {
+            const flag = item.countryFlag || item.flag || '🌍';
+            const bgImg = item.frontImage ? `background-image: url(${item.frontImage});` : `background: #eee;`;
+            return `
+            <div class="compact-postcard-thumb archive-card" onclick="openGalleryModal(${isReceived})" style="${bgImg}">
+                <div class="compact-flag-badge">${flag}</div>
+            </div>`;
+        }).join('');
+        
+        if (dataArray.length > 4) {
+            const extraCount = dataArray.length - 4;
+            const lastCardHtml = `
+            <div class="compact-postcard-thumb archive-card" onclick="openGalleryModal(${isReceived})" style="${latestCards[3].frontImage ? `background-image: url(${latestCards[3].frontImage});` : `background: #eee;`}">
+                <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:16px;">
+                    +${extraCount}
+                </div>
+            </div>`;
+            
+            const htmlParts = html.split('<div class="compact-postcard-thumb archive-card"');
+            htmlParts.pop(); 
+            html = htmlParts.join('<div class="compact-postcard-thumb archive-card"') + lastCardHtml;
+        }
+
+        container.innerHTML = html;
     };
 
     renderArchiveList("sent-postcards-grid", state.sentPostcards, false);
     renderArchiveList("received-postcards-grid", state.receivedPostcards, true);
+    // === ФУНКЦИИ ДЛЯ МОДАЛЬНОЙ ГАЛЕРЕИ ===
+window.openGalleryModal = function(isReceived) {
+    const modal = document.getElementById('modal-gallery');
+    const grid = document.getElementById('gallery-modal-grid');
+    const title = document.getElementById('gallery-modal-title');
+    
+    if (!modal || !grid || !title) return;
+
+    const dataArray = isReceived ? state.receivedPostcards : state.sentPostcards;
+    title.innerHTML = isReceived ? "Received 📥" : "Sent 📤";
+
+    // Рендерим ВСЕ открытки в сетку 3 колонок
+    grid.innerHTML = dataArray.map((card, index) => {
+        const flag = card.countryFlag || card.flag || '🌍';
+        const bgImg = card.frontImage ? `background-image: url(${card.frontImage});` : `background: #eee;`;
+        return `
+        <div class="compact-postcard-thumb archive-card" data-index="${index}" style="${bgImg}">
+            <div class="compact-flag-badge">${flag}</div>
+        </div>`;
+    }).reverse().join(''); // reverse() чтобы новые были сверху
+
+    modal.style.display = 'flex';
+};
+
+window.closeGalleryModal = function() {
+    const modal = document.getElementById('modal-gallery');
+    if (modal) modal.style.display = 'none';
+};
 
     const sentCountEl = document.getElementById("sent-count");
     if (sentCountEl) sentCountEl.textContent = state.sentPostcards ? state.sentPostcards.length : 0;
