@@ -29,12 +29,13 @@ function simulateBotActivity() {
                     target.name !== bot.name && !bot.contactedUsers.includes(target.name)
                 );
 
-                // 2. ДОБАВЛЯЕМ ТЕБЯ В ЭТОТ ЖЕ СПИСОК! (если бот тебе еще не писал)
-                if (!bot.contactedUsers.includes("You")) {
+                // 2. ДОБАВЛЯЕМ ТЕБЯ В ЭТОТ ЖЕ СПИСОК! 
+                // Бот может выбрать тебя ТОЛЬКО если у тебя есть токен на получение (> 0)
+                if (!bot.contactedUsers.includes("You") && state.receiveTokens > 0) {
                     availableTargets.push({ 
                         name: "You", 
                         countryName: state.profile.country || "My Country", 
-                        isPlayer: true // Метка, что это реальный игрок
+                        isPlayer: true 
                     });
                 }
 
@@ -55,6 +56,10 @@ function simulateBotActivity() {
 
                     // 4. ЕСЛИ БОТ ВЫБРАЛ ТЕБЯ — ЗАПУСКАЕМ РЕАЛЬНУЮ ОТПРАВКУ В ТРЕКЕР
                     if (randomTarget.isPlayer) {
+                        
+                        // ИСПРАВЛЕНИЕ: Списываем токен, так как бот выслал тебе письмо!
+                        state.receiveTokens -= 1;
+                        
                         const now = new Date().getTime();
                         let arrivalTime;
 
@@ -215,25 +220,18 @@ function showDeliveryModal(botName, flag) {
         overlay.remove();
     };
 
-    // 2. Логика для кнопки "Open Archive" (магия с переходом)
+    // 2. Логика для кнопки "Open Archive" (переход к новому модальному окну)
     const btnOpenArchive = overlay.querySelector('.custom-alert-btn');
     btnOpenArchive.onclick = () => {
-        overlay.remove(); 
+        overlay.remove(); // Закрываем алерт
 
+        // Перекидываем пользователя на главный экран (Home)
         const homeTab = document.querySelector('.nav-item[data-target="home"]');
         if (homeTab) homeTab.click();
 
-        const archiveBlock = document.getElementById('archive-block');
-        if (archiveBlock) {
-            if (!archiveBlock.classList.contains('expanded')) {
-                archiveBlock.classList.add('expanded');
-                const trigger = archiveBlock.querySelector('.expand-trigger');
-                if (trigger) trigger.textContent = "⬆️";
-            }
-
-            setTimeout(() => {
-                archiveBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 150);
+        // Вызываем функцию открытия нашего нового окна Collection
+        if (typeof window.openCollectionModal === 'function') {
+            window.openCollectionModal();
         }
     };
 

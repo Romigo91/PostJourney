@@ -288,7 +288,7 @@ if (btnGenerateAI) {
         if (!promptText) return showAppAlert("Please enter a description!");
 
         if (state.energy < 100) {
-            return showAppAlert("Not enough energy! You need 100 energy to generate an AI image.");
+            return showToastNotification("⚡ Not enough energy (need 100)! Visit the Shop or wait for tomorrow.");
         }
 
         btnGenerateAI.disabled = true;
@@ -369,7 +369,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         const userPrompt = promptInput.value.trim();
         
         if (!userPrompt) return showAppAlert("Please describe what you want on your stamp.");
-        if (state.energy < 50) return showAppAlert("Not enough energy (need 50)!");
+        if (state.energy < 50) return showToastNotification("⚡ Not enough energy (need 50)! Visit the Shop or wait for tomorrow.");
 
         const progressContainer = document.getElementById('stamp-progress-container');
         const progressBar = document.getElementById('stamp-progress-bar');

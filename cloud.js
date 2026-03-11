@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnPull) {
         btnPull.onclick = () => {
             if (state.postcards <= 0) {
-                return showAppAlert("You don't have any blank postcards left! ✉️<br>Check the Travel Shop.");
+                return showToastNotification("📮 Out of postcards! Visit the Shop or wait for tomorrow's daily refill.");
             }
 
             if (!state.bots || state.bots.length === 0) {
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // В ОНЛАЙНЕ - ВЫТЯГИВАЕМ АДРЕС И ПРОВЕРЯЕМ ЛИМИТЫ
             const activeOutgoing = state.tracking ? state.tracking.filter(item => item.type === "outgoing").length : 0;
             if (activeOutgoing >= 10) {
-                return showAppAlert("Limit reached! ✈️<br>You already have 5 postcards traveling. Wait for them to be delivered.");
+                return showToastNotification("✈️ Travel limit reached (10/10)! Wait for some postcards to be delivered.");
             }
 
             const target = CloudSystem.generateProfile();

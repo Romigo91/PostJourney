@@ -84,39 +84,16 @@
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; align-items: start;">
             
-            <div class="section-block clickable-block" id="archive-block" style="display: none; margin: 0; min-width: 0;">
-              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
-                <span style="color: var(--text-main); font-weight: 600; font-size: 13px;">Collection</span>
-                <span class="expand-trigger">⬇️</span>
-              </div>
-              
-              <div class="extra-content">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="font-size: 11px; font-weight: bold; color: #d35400;">Sent</span>
-                  <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
-                </div>
-                <div class="postcard-carousel" id="sent-postcards-grid" style="margin-bottom: 15px; min-height: 20px;"></div>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 10px; margin-bottom: 10px;">
-                  <span style="font-size: 11px; font-weight: bold; color: #27ae60;">Received</span>
-                  <span id="received-count" style="background: #fff; color: #27ae60; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
-                </div>
-                <div class="postcard-carousel" id="received-postcards-grid" style="margin-bottom: 5px; min-height: 20px;"></div>
+            <div class="section-block" id="archive-block" style="display: none; margin: 0; min-width: 0; padding: 0;" onclick="openCollectionModal()">
+              <div style="display: flex; justify-content: center; align-items: center; height: 54px; width: 100%;">
+                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">Collection 🗂️</span>
               </div>
             </div>
 
-            <div class="section-block home-tracking clickable-block" id="tracking-block" style="display: none; margin: 0; min-width: 0;">
-              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; gap: 2px;">
-                <div style="display: flex; align-items: center; gap: 4px;">
-                  <span style="color: var(--text-main); font-weight: 600; font-size: 13px;">Tracking</span>
-                  <span id="tracking-count" style="background: #e67e22; color: #fff; padding: 2px 6px; border-radius: 12px; font-size: 10px; font-weight: bold;">0</span>
-                </div>
-                <span class="expand-trigger">⬇️</span> 
-              </div>
-              
-              <div class="extra-content">
-                <p id="tracking-empty-text" class="small-text" style="margin-bottom: 10px; font-size: 10px; line-height: 1.2;">Track cards in real-time. Wait for timer!</p>
-                <div class="tracking-list tracking-scroll-area" id="tracking-list"></div>
+            <div class="section-block home-tracking" id="tracking-block" style="display: none; margin: 0; min-width: 0; padding: 0;" onclick="openTrackingModal()">
+              <div style="display: flex; justify-content: center; align-items: center; gap: 8px; height: 54px; width: 100%;">
+                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">Tracking ✈️</span>
+                <span id="tracking-count" style="background: #e67e22; color: #fff; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: bold;">0</span>
               </div>
             </div>
 
@@ -283,17 +260,22 @@
               </div>
               
               <div class="extra-content">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; margin-top: 5px;">
-                  <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent postcards 📤</span>
+                <div class="world-progress-container" style="margin-top: 5px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
+                        <span>🌍 World Explorer</span>
+                        <span id="world-progress-text">0 / 195</span>
+                    </div>
+                    <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
+                        <div id="world-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+                    </div>
                 </div>
-                
-                <div id="sent-by-continent" style="margin-bottom: 20px;"></div>
 
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 15px;">
-                  <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received postcards 📥</span>
+                <div class="collection-tabs">
+                    <button class="col-tab active" data-tab="sent">Sent 📤</button>
+                    <button class="col-tab" data-tab="received">Received 📥</button>
                 </div>
-                
-                <div id="received-by-continent" style="margin-bottom: 5px;"></div>
+
+                <div id="continents-grid" class="continents-grid"></div>
               </div>
             </div>
             
@@ -424,6 +406,42 @@
             </div>
         </div>
 
+        <div id="modal-collection" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Collection 🗂️</h3>
+              <button onclick="closeCollectionModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+            
+            <div style="overflow-y: auto; padding-right: 5px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent</span>
+                <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
+              </div>
+              <div id="sent-postcards-grid" style="margin-bottom: 20px;"></div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 15px; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received</span>
+                <span id="received-count" style="background: #fff; color: #27ae60; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
+              </div>
+              <div id="received-postcards-grid" style="margin-bottom: 5px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-tracking" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Tracking ✈️</h3>
+              <button onclick="closeTrackingModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+            <div style="overflow-y: auto; padding-right: 5px;">
+              <p id="tracking-empty-text" class="small-text" style="margin-bottom: 10px; font-size: 12px; text-align: center;">No active deliveries.</p>
+              <div class="tracking-list" id="tracking-list"></div>
+            </div>
+          </div>
+        </div>
+
         <div id="modal-gallery" class="custom-alert-overlay" style="display: none; z-index: 10000;">
           <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 15px; display: flex; flex-direction: column; background: var(--bg-phone);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -433,6 +451,17 @@
               <div id="gallery-modal-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; min-height: 100px;">
               </div>
           </div>
+      </div>
+      <div id="modal-flags" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+        <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="modal-flags-title" style="margin: 0; color: var(--text-main); font-size: 20px; font-weight: 900;">Europe</h3>
+            <button onclick="closeFlagsModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+          </div>
+          <div style="overflow-y: auto; padding-right: 5px; padding-bottom: 10px;">
+            <div id="modal-flags-grid" class="flag-grid" style="gap: 12px; justify-content: center;"></div>
+          </div>
+        </div>
       </div>
       </main>
 

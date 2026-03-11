@@ -438,33 +438,18 @@ function refreshAllLists() {
         container.className = 'compact-collection-grid';
         container.style.display = dataArray.length > 0 ? 'grid' : 'none';
 
-        const latestCards = dataArray.slice(-4);
-        
-        // Вешаем onclick на каждую карточку
-        let html = latestCards.map((item, i) => {
+        // Выводим ВСЕ карточки, без ограничений! Разворачиваем массив, чтобы новые были сверху.
+        container.innerHTML = [...dataArray].reverse().map((item, i) => {
+            // Поскольку мы развернули массив, нам нужно сохранить оригинальный индекс для 3D открытия
+            const originalIndex = dataArray.length - 1 - i; 
             const flag = item.countryFlag || item.flag || '🌍';
             const bgImg = item.frontImage ? `background-image: url(${item.frontImage});` : `background: #eee;`;
+            
             return `
-            <div class="compact-postcard-thumb archive-card" onclick="openGalleryModal(${isReceived})" style="${bgImg}">
+            <div class="compact-postcard-thumb archive-card" data-index="${originalIndex}" style="${bgImg}">
                 <div class="compact-flag-badge">${flag}</div>
             </div>`;
         }).join('');
-        
-        if (dataArray.length > 4) {
-            const extraCount = dataArray.length - 4;
-            const lastCardHtml = `
-            <div class="compact-postcard-thumb archive-card" onclick="openGalleryModal(${isReceived})" style="${latestCards[3].frontImage ? `background-image: url(${latestCards[3].frontImage});` : `background: #eee;`}">
-                <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:16px;">
-                    +${extraCount}
-                </div>
-            </div>`;
-            
-            const htmlParts = html.split('<div class="compact-postcard-thumb archive-card"');
-            htmlParts.pop(); 
-            html = htmlParts.join('<div class="compact-postcard-thumb archive-card"') + lastCardHtml;
-        }
-
-        container.innerHTML = html;
     };
 
     renderArchiveList("sent-postcards-grid", state.sentPostcards, false);
@@ -524,63 +509,109 @@ window.closeGalleryModal = function() {
     }
 }
   
+let currentCollectionTab = 'sent'; // По умолчанию показываем отправленные
+
 function renderMapSections() {
+    // 1. Собираем уникальные флаги
     const validSentPostcards = state.sentPostcards.filter(card => {
         if (card.isOffline === true) return false;
-        
         const dest = (card.to || "").toLowerCase();
-        if (dest.includes("personal") || dest.includes("collection") || dest.includes("offline") || dest === "") {
-            return false;
-        }
-        return true;
+        return !(dest.includes("personal") || dest.includes("collection") || dest.includes("offline") || dest === "");
     });
 
-    const sentFlags = [...new Set(validSentPostcards.map(card => card.countryFlag || card.flag))];
-    const receivedFlags = [...new Set(state.receivedPostcards.map(card => card.countryFlag || card.flag))];
+    const sentFlags = [...new Set(validSentPostcards.map(c => c.countryFlag || c.flag))];
+    const receivedFlags = [...new Set(state.receivedPostcards.map(c => c.countryFlag || c.flag))];
 
-    const mapTemplate = (containerId, collectedFlags) => {
-        const container = document.getElementById(containerId);
-        if (!container) return;
+    // 2. Глобальная цель: собираем уникальные страны ИЗ ОБЕИХ категорий
+    const totalWorldFlags = 195;
+    const combinedWorldFlags = new Set([...sentFlags, ...receivedFlags]).size;
+    const worldPercent = (combinedWorldFlags / totalWorldFlags) * 100;
+    
+    const worldText = document.getElementById('world-progress-text');
+    const worldFill = document.getElementById('world-progress-fill');
+    if (worldText) worldText.textContent = `${combinedWorldFlags} / ${totalWorldFlags}`;
+    if (worldFill) worldFill.style.width = `${worldPercent}%`;
+
+    // 3. Логика переключения вкладок
+    const tabs = document.querySelectorAll('.col-tab');
+    tabs.forEach(tab => {
+        tab.onclick = (e) => {
+            tabs.forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentCollectionTab = e.target.getAttribute('data-tab');
+            renderContinentsGrid(); // Перерисовываем сетку при клике
+        };
+    });
+
+    // 4. Функция рендера карточек
+    function renderContinentsGrid() {
+        const grid = document.getElementById('continents-grid');
+        if (!grid) return;
         
-        container.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
-            const collectedInContinent = flags.filter(f => collectedFlags.includes(f)).length;
+        const activeFlags = currentCollectionTab === 'sent' ? sentFlags : receivedFlags;
+
+        grid.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
+            const collectedInContinent = flags.filter(f => activeFlags.includes(f)).length;
             const isCompleted = collectedInContinent === flags.length;
-            const color = collectedInContinent > 0 ? (isCompleted ? '#27ae60' : '#e67e22') : '#888';
+            const percent = (collectedInContinent / flags.length) * 100;
             
+            // Раскрашиваем текст и шкалу
+            const color = collectedInContinent > 0 ? (isCompleted ? '#27ae60' : '#e67e22') : '#a57a4d';
+            const fillClass = isCompleted ? 'delivered' : '';
+
             return `
-                <div class="continent-wrapper" style="margin-bottom: 8px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg-element); transition: all 0.3s ease;">
-                    <div class="continent-header" onclick="
-                        const parent = this.parentElement; 
-                        parent.classList.toggle('expanded'); 
-                        this.querySelector('.cont-arrow').textContent = parent.classList.contains('expanded') ? '⬆️' : '⬇️';
-                    " style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; cursor: pointer; transition: background 0.2s;">
-                        <span style="font-weight: bold; color: var(--text-main); font-size: 14px;">${continent}</span>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 13px; color: ${color}; font-weight: bold;">
-                                ${collectedInContinent} / ${flags.length}
-                            </span>
-                            <span class="cont-arrow" style="font-size: 12px; color: var(--text-sub);">⬇️</span>
-                        </div>
+                <div class="continent-card" onclick="openFlagsModal('${continent}', '${currentCollectionTab}')">
+                    <div class="cont-card-header">
+                        <span>${continent}</span>
+                        <span class="cont-card-stats" style="color: ${color};">${collectedInContinent} / ${flags.length}</span>
                     </div>
-                    
-                    <div class="continent-body" style="padding: 0 15px; background: var(--bg-card);">
-                        <div class="flag-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                            ${flags.map(f => {
-                                const isCollected = collectedFlags.includes(f);
-                                const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
-                                const opacity = isCollected ? '1' : '0.2';
-                                const filter = isCollected ? 'none' : 'grayscale(100%)';
-                                return `<div class="${flagClass}" title="${f}" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 20px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
-                            }).join('')}
-                        </div>
+                    <div class="minimal-progress-bg">
+                        <div class="minimal-progress-fill ${fillClass}" style="width: ${percent}%; ${isCompleted ? '' : 'background: ' + color + ';'}"></div>
                     </div>
                 </div>`;
         }).join("");
-    };
-    
-    mapTemplate("sent-by-continent", sentFlags);
-    mapTemplate("received-by-continent", receivedFlags);
+    }
+
+    // Рендерим сетку сразу при загрузке
+    renderContinentsGrid();
 }
+
+// === ФУНКЦИИ МОДАЛЬНОГО ОКНА ФЛАГОВ ===
+window.openFlagsModal = function(continent, tab) {
+    const modal = document.getElementById('modal-flags');
+    const grid = document.getElementById('modal-flags-grid');
+    const title = document.getElementById('modal-flags-title');
+    if (!modal || !grid || !title) return;
+
+    // Снова собираем актуальные списки при открытии
+    const validSentPostcards = state.sentPostcards.filter(c => c.isOffline !== true && c.to && !c.to.toLowerCase().includes("personal"));
+    const sentFlags = [...new Set(validSentPostcards.map(c => c.countryFlag || c.flag))];
+    const receivedFlags = [...new Set(state.receivedPostcards.map(c => c.countryFlag || c.flag))];
+    
+    const activeFlags = tab === 'sent' ? sentFlags : receivedFlags;
+    const continentFlags = COUNTRIES_BY_CONTINENT[continent];
+
+    // Ставим красивый заголовок
+    title.innerHTML = `${continent} ${tab === 'sent' ? '📤' : '📥'}`;
+
+    // Рендерим крупные кружочки флагов
+    grid.innerHTML = continentFlags.map(f => {
+        const isCollected = activeFlags.includes(f);
+        const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
+        const opacity = isCollected ? '1' : '0.2';
+        const filter = isCollected ? 'none' : 'grayscale(100%)';
+        
+        // Делаем иконки чуть крупнее, чем они были в аккордеоне
+        return `<div class="${flagClass}" title="${f}" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 26px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
+    }).join('');
+
+    modal.style.display = 'flex';
+};
+
+window.closeFlagsModal = function() {
+    const modal = document.getElementById('modal-flags');
+    if (modal) modal.style.display = 'none';
+};
   
 // ==========================================================================
 // 3. ЛОГИКА РЕДАКТИРОВАНИЯ И ВАЛИДАЦИЯ ONBOARDING'A
@@ -986,6 +1017,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const sentCountEl = document.getElementById("sent-count");
         if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
     };
+
+    // === ФУНКЦИИ ДЛЯ НОВЫХ ОКОН COLLECTION И TRACKING ===
+window.openCollectionModal = function() {
+    document.getElementById('modal-collection').style.display = 'flex';
+};
+window.closeCollectionModal = function() {
+    document.getElementById('modal-collection').style.display = 'none';
+};
+window.openTrackingModal = function() {
+    document.getElementById('modal-tracking').style.display = 'flex';
+};
+window.closeTrackingModal = function() {
+    document.getElementById('modal-tracking').style.display = 'none';
+};
     
     // Вызываем её один раз сразу, чтобы цифры подтянулись при загрузке
     window.syncAssets();

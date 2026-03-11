@@ -1313,17 +1313,17 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
 
    .compact-collection-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(3, 1fr); /* Выводим по 3 штуки в ряд */
+    gap: 8px;
   }
   
   .compact-postcard-thumb {
-    aspect-ratio: 1;
-    border-radius: 8px;
+    aspect-ratio: 3 / 2; /* Меняем квадрат на пропорции настоящей открытки */
+    border-radius: 6px; /* Чуть более аккуратные углы */
     background-size: cover;
     background-position: center;
     position: relative;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     border: 1px solid var(--border);
     cursor: pointer;
     transition: transform 0.2s;
@@ -1335,9 +1335,9 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   
   .compact-flag-badge {
     position: absolute;
-    bottom: 4px;
-    right: 4px;
-    font-size: 14px;
+    bottom: 3px;
+    right: 3px;
+    font-size: 11px; /* Чуть уменьшили флаг, чтобы не перекрывал картинку */
     background: rgba(255,255,255,0.9);
     border-radius: 50%;
     padding: 2px;
@@ -1399,3 +1399,75 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   .minimal-progress-fill.delivered {
     background: #27ae60;
   }
+  /* ==========================================================================
+   MICRO-UI: FLAG COLLECTION (Ачивки и Вкладки)
+   ========================================================================== */
+.collection-tabs { 
+  display: flex; 
+  background: var(--bg-flag-circle); 
+  border-radius: 8px; 
+  padding: 4px; 
+  margin-bottom: 15px; 
+}
+
+.col-tab { 
+  flex: 1; 
+  padding: 8px; 
+  border: none; 
+  background: transparent; 
+  border-radius: 6px; 
+  font-size: 13px; 
+  font-weight: 800; 
+  color: var(--text-sub); 
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+}
+
+.col-tab.active { 
+  background: var(--bg-card); 
+  color: var(--text-main); 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+}
+
+.continents-grid { 
+  display: grid; 
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 10px; 
+  margin-bottom: 5px; 
+}
+
+.continent-card { 
+  background: var(--bg-card); 
+  border: 1px solid var(--border); 
+  border-radius: 12px; 
+  padding: 12px; 
+  cursor: pointer; 
+  transition: transform 0.2s, box-shadow 0.2s; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03); 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+}
+
+.continent-card:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08); 
+}
+
+.continent-card:active { 
+  transform: scale(0.95); 
+}
+
+.cont-card-header { 
+  font-size: 13px; 
+  font-weight: 800; 
+  color: var(--text-main); 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+
+.cont-card-stats { 
+  font-size: 11px; 
+  font-weight: 900; 
+}
