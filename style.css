@@ -790,7 +790,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 /* ==========================================================================
    10. ВНУТРИИГРОВЫЕ УВЕДОМЛЕНИЯ (CUSTOM ALERTS)
    ========================================================================== */
-  .custom-alert-box {
+   .custom-alert-box {
     background: var(--bg-card);
     width: 80%;
     max-width: 320px;
@@ -802,6 +802,16 @@ input:checked + .slider:before { transform: translateX(14px); }
     flex-direction: column;
     gap: 20px;
     animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* === ИСПРАВЛЕНИЕ === */
+    /* Жестко ограничиваем высоту относительно телефона (%), перебивая старые vh */
+    max-height: 85% !important; 
+  }
+  
+  /* Магия Flexbox: заставляем внутренние списки правильно сжиматься и скроллиться */
+  .custom-alert-box > div[style*="overflow-y"] {
+      flex: 1;
+      min-height: 0;
   }
   
   .custom-alert-text {
@@ -1155,17 +1165,16 @@ input:checked + .slider:before { transform: translateX(14px); }
 /* 1. Затемнение для алертов и магазина */
 .custom-alert-overlay,
 .store-overlay {
-    position: fixed !important; 
+    position: absolute !important; /* Было fixed */
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    width: 100% !important; /* Было 100vw */
+    height: 100% !important; /* Было 100vh */
     z-index: 999999 !important; 
     display: flex;
     justify-content: center;
     align-items: center;
     
-    /* Единый стиль темного размытого фона */
     background: rgba(0, 0, 0, 0.85) !important;
     backdrop-filter: blur(5px) !important;
     -webkit-backdrop-filter: blur(5px) !important;
@@ -1173,12 +1182,12 @@ input:checked + .slider:before { transform: translateX(14px); }
 
 /* 2. Модалка 3D (Главный контейнер) */
 .modal-3d {
-    display: none; /* JS будет менять на flex */
-    position: fixed !important; 
+    display: none; 
+    position: absolute !important; /* Было fixed */
     top: 0 !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    width: 100% !important; /* Было 100vw */
+    height: 100% !important; /* Было 100vh */
     z-index: 999999 !important;
     align-items: center;
     justify-content: center;

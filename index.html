@@ -251,32 +251,14 @@
         <section class="screen" data-screen="games">
           <div id="games-menu-list">
             
-            <div class="section-block clickable-block" id="map-collection-block" style="margin-bottom: 15px;">
-              <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <span style="color: var(--text-main); font-weight: 600;">Flag Collection 🚩</span>
-                </div>
-                <span class="expand-trigger">⬇️</span>
+            <div class="section-block" id="map-collection-block" style="margin-bottom: 15px;">
+              <div class="section-header">
+                <span>Flag Collection 🚩</span>
               </div>
-              
-              <div class="extra-content">
-                <div class="world-progress-container" style="margin-top: 5px; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
-                        <span>🌍 World Explorer</span>
-                        <span id="world-progress-text">0 / 195</span>
-                    </div>
-                    <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
-                        <div id="world-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
-                    </div>
-                </div>
-
-                <div class="collection-tabs">
-                    <button class="col-tab active" data-tab="sent">Sent 📤</button>
-                    <button class="col-tab" data-tab="received">Received 📥</button>
-                </div>
-
-                <div id="continents-grid" class="continents-grid"></div>
-              </div>
+              <p class="small-text">
+                Track your worldwide postcard exchange progress and collect unique flags!
+              </p>
+              <button class="secondary-button" onclick="startFlagCollection()">Play</button>
             </div>
             
             <div class="section-block">

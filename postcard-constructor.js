@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === КАСТОМНЫЕ ВСПЛЫВАЮЩИЕ ОКНА (АЛЕРТЫ) ===
     function showAppAlert(message) {
-        const phoneFrame = document.body;
+        const phoneFrame = document.querySelector('.phone-frame') || document.body;
         
         const overlay = document.createElement('div');
         overlay.className = 'custom-alert-overlay';
@@ -503,9 +503,9 @@ if (btnView3D) {
         wrapper.style.opacity = '0';
         wrapper.style.transition = 'none'; 
 
-        const phoneFrame = document.body;
+        const phoneFrame = document.querySelector('.phone-frame') || document.body;
         if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
-        modal.style.zIndex = '999999';
+        modal.style.setProperty('z-index', '99999999', 'important');
 
         const originalSide = postcardData.currentSide;
 
@@ -870,15 +870,24 @@ if (btnSendPostcard) {
     });
 }
 
- // === УНИВЕРСАЛЬНАЯ ЛОГИКА ОТКРЫТИЯ 3D (БЕЗ СКАЧКОВ) ===
+// === УНИВЕРСАЛЬНАЯ ЛОГИКА ОТКРЫТИЯ 3D (БЕЗ СКАЧКОВ) ===
 document.addEventListener('click', (e) => {
     const cardEl = e.target.closest('.archive-card');
     if (!cardEl) return;
 
-    const isSent = cardEl.closest('#sent-postcards-grid') !== null;
+    // Умное определение: отправленная это или полученная открытка
+    let isSent;
+    if (cardEl.hasAttribute('data-is-sent')) {
+        isSent = cardEl.getAttribute('data-is-sent') === 'true'; // Читаем из новой галереи
+    } else {
+        isSent = cardEl.closest('#sent-postcards-grid') !== null; // Читаем со старого главного экрана
+    }
+
     const index = parseInt(cardEl.getAttribute('data-index'));
     const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
     if (!cardData) return;
+    
+    // ... остальной код модалки (const modal = document.getElementById('modal-3d'); и т.д.) остается без изменений!
 
     const modal = document.getElementById('modal-3d');
     const frontDiv = document.getElementById('3d-front');
@@ -890,9 +899,9 @@ document.addEventListener('click', (e) => {
     wrapper.style.opacity = '0';
     wrapper.style.transition = 'none';
 
-    const phoneFrame = document.body;
+    const phoneFrame = document.querySelector('.phone-frame') || document.body;
     if (modal.parentElement !== phoneFrame) phoneFrame.appendChild(modal);
-    modal.style.zIndex = '999999';
+    modal.style.setProperty('z-index', '99999999', 'important');
 
     const senderInfo = isSent ? null : {
         name: cardData.senderName || cardData.fromBot || "Stranger",

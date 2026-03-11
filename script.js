@@ -454,27 +454,47 @@ function refreshAllLists() {
 
     renderArchiveList("sent-postcards-grid", state.sentPostcards, false);
     renderArchiveList("received-postcards-grid", state.receivedPostcards, true);
-    // === ФУНКЦИИ ДЛЯ МОДАЛЬНОЙ ГАЛЕРЕИ ===
-window.openGalleryModal = function(isReceived) {
+
+// === ФУНКЦИИ ДЛЯ МОДАЛЬНОЙ ГАЛЕРЕИ (УМНАЯ ФИЛЬТРАЦИЯ) ===
+window.openGalleryModal = function(isReceived, filterFlag = null) {
     const modal = document.getElementById('modal-gallery');
     const grid = document.getElementById('gallery-modal-grid');
     const title = document.getElementById('gallery-modal-title');
     
     if (!modal || !grid || !title) return;
 
-    const dataArray = isReceived ? state.receivedPostcards : state.sentPostcards;
-    title.innerHTML = isReceived ? "Received 📥" : "Sent 📤";
+    const fullArray = isReceived ? state.receivedPostcards : state.sentPostcards;
+    const mappedArray = fullArray.map((card, index) => ({ card, originalIndex: index }));
 
-    // Рендерим ВСЕ открытки в сетку 3 колонок
-    grid.innerHTML = dataArray.map((card, index) => {
-        const flag = card.countryFlag || card.flag || '🌍';
-        const bgImg = card.frontImage ? `background-image: url(${card.frontImage});` : `background: #eee;`;
+    const filteredArray = filterFlag
+        ? mappedArray.filter(item => (item.card.countryFlag || item.card.flag) === filterFlag)
+        : mappedArray;
+
+    title.innerHTML = filterFlag 
+        ? `${filterFlag} ${isReceived ? "Received" : "Sent"} Archive` 
+        : (isReceived ? "Received 📥" : "Sent 📤");
+
+    // 1. ЖЕЛЕЗОБЕТОННАЯ СЕТКА (отвязываем от CSS полностью)
+    grid.className = ''; 
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // Строго 3 колонки
+    grid.style.gap = '8px';
+    grid.style.alignContent = 'start'; // Чтобы одиночная открытка не растягивалась по высоте
+
+    // 2. Рендерим карточки с ЖЕСТКИМИ стилями (пропорция 3:2)
+    grid.innerHTML = filteredArray.map(item => {
+        const flag = item.card.countryFlag || item.card.flag || '🌍';
+        const bgImg = item.card.frontImage ? `background-image: url(${item.card.frontImage});` : `background: #eee;`;
+        
+        // Обрати внимание: aspect-ratio: 3/2 прописан прямо сюда!
         return `
-        <div class="compact-postcard-thumb archive-card" data-index="${index}" style="${bgImg}">
-            <div class="compact-flag-badge">${flag}</div>
+        <div class="archive-card" data-index="${item.originalIndex}" data-is-sent="${!isReceived}" 
+             style="${bgImg} background-size: cover; background-position: center; border-radius: 6px; aspect-ratio: 3/2; box-shadow: 0 2px 5px rgba(0,0,0,0.15); border: 1px solid var(--border); position: relative; cursor: pointer;">
+            <div style="position: absolute; bottom: 3px; right: 3px; font-size: 11px; background: rgba(255,255,255,0.9); border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">${flag}</div>
         </div>`;
-    }).reverse().join(''); // reverse() чтобы новые были сверху
+    }).reverse().join(''); 
 
+    modal.style.setProperty('z-index', '9999999', 'important'); 
     modal.style.display = 'flex';
 };
 
@@ -510,6 +530,45 @@ window.closeGalleryModal = function() {
 }
   
 let currentCollectionTab = 'sent'; // По умолчанию показываем отправленные
+
+// === ЗАПУСК ИГРЫ FLAG COLLECTION ===
+window.startFlagCollection = function() {
+    document.getElementById('games-menu-list').style.display = 'none';
+    document.getElementById('active-game-zone').style.display = 'block';
+
+    const container = document.getElementById('game-content');
+    
+    // Вставляем структуру коллекции в игровую зону
+    container.innerHTML = `
+        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:#d35400; cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px; font-family:'Montserrat', sans-serif;">
+            <span style="font-size: 18px;">🏷️</span> Back to Menu
+        </button>
+        
+        <div style="text-align: left;">
+            <div class="world-progress-container" style="margin-top: 5px; margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
+                    <span>🌍 World Explorer</span>
+                    <span id="world-progress-text">0 / 195</span>
+                </div>
+                <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
+                    <div id="world-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+                </div>
+            </div>
+
+            <div class="collection-tabs">
+                <button class="col-tab active" data-tab="sent">Sent 📤</button>
+                <button class="col-tab" data-tab="received">Received 📥</button>
+            </div>
+
+            <div id="continents-grid" class="continents-grid"></div>
+        </div>
+    `;
+    
+    // Запускаем функцию рендера, чтобы она заполнила этот новый HTML данными
+    if (typeof renderMapSections === 'function') {
+        renderMapSections();
+    }
+};
 
 function renderMapSections() {
     // 1. Собираем уникальные флаги
@@ -594,15 +653,25 @@ window.openFlagsModal = function(continent, tab) {
     // Ставим красивый заголовок
     title.innerHTML = `${continent} ${tab === 'sent' ? '📤' : '📥'}`;
 
-    // Рендерим крупные кружочки флагов
+    // ИСПРАВЛЕНИЕ: Строгая сетка Grid ровно на 5 колонок
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(5, 1fr)'; // 5 одинаковых колонок
+    grid.style.gap = '12px 6px'; // Отступ: 12px по вертикали, 6px по горизонтали
+    grid.style.padding = '5px 0'; // Убрали лишние боковые отступы
+    grid.style.justifyItems = 'center'; // Выравниваем кружки строго по центру своих колонок
+
+    // Рендерим кружочки флагов
     grid.innerHTML = continentFlags.map(f => {
         const isCollected = activeFlags.includes(f);
         const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
         const opacity = isCollected ? '1' : '0.2';
         const filter = isCollected ? 'none' : 'grayscale(100%)';
         
-        // Делаем иконки чуть крупнее, чем они были в аккордеоне
-        return `<div class="${flagClass}" title="${f}" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: default; font-size: 26px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
+        const isReceived = tab === 'received';
+        const clickAction = isCollected ? `onclick="openGalleryModal(${isReceived}, '${f}')"` : '';
+
+        // НОВЫЕ РАЗМЕРЫ: ширина/высота 38px, размер шрифта 20px (идеально для 5 в ряд)
+        return `<div class="${flagClass}" ${clickAction} title="${f}" style="width: 38px; height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: ${isCollected ? 'pointer' : 'default'}; font-size: 20px; line-height: normal; padding-top: 2px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
     }).join('');
 
     modal.style.display = 'flex';
