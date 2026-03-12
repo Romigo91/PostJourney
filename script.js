@@ -17,7 +17,8 @@ const state = {
         avatar: null,
         avatarPosX: 50, 
         avatarPosY: 50, 
-        interests: []       // ПУСТО СТАРТ!
+        interests: [],       // ПУСТО СТАРТ!
+        userId: ""
     },
     postcards: 5,
     energy: 500,
@@ -26,6 +27,7 @@ const state = {
     sentPostcards: [],       
     receivedPostcards: [],   
     bots: [],
+    chats: {},
 };
 window.state = state;
 
@@ -104,6 +106,12 @@ function loadState() {
 }
 
 loadState();
+
+// === ГЕНЕРИРУЕМ УНИКАЛЬНЫЙ ID ДЛЯ ИГРОКА (ЕСЛИ ЕГО ЕЩЕ НЕТ) ===
+if (!state.profile.userId) {
+    state.profile.userId = 'PJ-' + Math.floor(1000 + Math.random() * 9000);
+    if (typeof saveState === 'function') saveState();
+}
   
 const COUNTRIES_BY_CONTINENT = {
     "Africa": ["🇩🇿","🇦🇴","🇧🇯","🇧🇼","🇧🇫","🇧🇮","🇨🇻","🇨🇲","🇨🇫","🇹🇩","🇰🇲","🇨🇩","🇨🇬","🇩🇯","🇪🇬","🇬🇶","🇪🇷","🇸🇿","🇪🇹","🇬🇦","🇬🇲","🇬🇭","🇬🇳","🇬🇼","🇨🇮","🇰🇪","🇱🇸","🇱🇷","🇱🇾","🇲🇬","🇲🇼","🇲🇱","🇲🇷","🇲🇺","🇲🇦","🇲🇿","🇳🇦","🇳🇪","🇳🇬","🇷🇼","🇸🇹","🇸🇳","🇸🇨","🇸🇱","🇸🇴","🇿🇦","🇸🇸","🇸🇩","🇹🇿","🇹🇬","🇹🇳","🇺🇬","🇿🇲","🇿🇼"],
@@ -197,7 +205,7 @@ function showToastNotification(message) {
         toast.style.opacity = '0';
         toast.style.top = '10px';
         setTimeout(() => toast.remove(), 300); 
-    }, 1500);
+    }, 3000);
 }
   
 function updateProfileUI() {
@@ -581,17 +589,7 @@ function renderMapSections() {
     const sentFlags = [...new Set(validSentPostcards.map(c => c.countryFlag || c.flag))];
     const receivedFlags = [...new Set(state.receivedPostcards.map(c => c.countryFlag || c.flag))];
 
-    // 2. Глобальная цель: собираем уникальные страны ИЗ ОБЕИХ категорий
-    const totalWorldFlags = 195;
-    const combinedWorldFlags = new Set([...sentFlags, ...receivedFlags]).size;
-    const worldPercent = (combinedWorldFlags / totalWorldFlags) * 100;
-    
-    const worldText = document.getElementById('world-progress-text');
-    const worldFill = document.getElementById('world-progress-fill');
-    if (worldText) worldText.textContent = `${combinedWorldFlags} / ${totalWorldFlags}`;
-    if (worldFill) worldFill.style.width = `${worldPercent}%`;
-
-    // 3. Логика переключения вкладок
+    // 2. Логика переключения вкладок
     const tabs = document.querySelectorAll('.col-tab');
     tabs.forEach(tab => {
         tab.onclick = (e) => {
@@ -602,12 +600,23 @@ function renderMapSections() {
         };
     });
 
-    // 4. Функция рендера карточек
+    // 3. Функция рендера карточек (и обновления прогресс-бара World Explorer)
     function renderContinentsGrid() {
         const grid = document.getElementById('continents-grid');
         if (!grid) return;
         
         const activeFlags = currentCollectionTab === 'sent' ? sentFlags : receivedFlags;
+
+        // === ДИНАМИЧЕСКИ ОБНОВЛЯЕМ ПРОГРЕСС-БАР WORLD EXPLORER ===
+        const totalWorldFlags = 195;
+        const currentWorldFlags = new Set(activeFlags).size;
+        const worldPercent = (currentWorldFlags / totalWorldFlags) * 100;
+        
+        const worldText = document.getElementById('world-progress-text');
+        const worldFill = document.getElementById('world-progress-fill');
+        if (worldText) worldText.textContent = `${currentWorldFlags} / ${totalWorldFlags}`;
+        if (worldFill) worldFill.style.width = `${worldPercent}%`;
+        // ==========================================================
 
         grid.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
             const collectedInContinent = flags.filter(f => activeFlags.includes(f)).length;

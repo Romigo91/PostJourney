@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Dancing+Script:wght@500;700&family=Montserrat:wght@500&family=Playfair+Display:ital,wght@0,500;1,500&family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="chat.css">
 </head>
 <body>
   <div class="app-root">
@@ -111,8 +112,45 @@
           </div>
         </section>
 
-        <section class="screen" data-screen="map">
-          </section>
+        <section class="screen" data-screen="chat">
+      
+          <div id="chat-list-view">
+            <div class="section-block">
+              <div class="section-header">
+                <span>Messages 💬</span>
+              </div>
+              <p class="small-text" style="margin-bottom: 15px;">
+                You can only chat with travelers you've exchanged postcards with.
+              </p>
+              <div id="chat-list-container">
+                <div style="text-align: center; color: #aaa; padding: 20px 0; font-size: 14px;">
+                  No active chats yet.<br>Send or receive postcards to unlock!
+                </div>
+              </div>
+            </div>
+          </div>
+    
+          <div id="active-chat-view" style="display: none; height: 100%; flex-direction: column;">
+            
+            <div class="chat-header" style="display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px;">
+              <button onclick="closeChat()" style="background: none; border: none; font-size: 20px; cursor: pointer;">⬅️</button>
+              <div id="active-chat-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+              <div>
+                <div id="active-chat-name" style="font-weight: 900; color: var(--text-main); font-size: 16px;">Name</div>
+                <div id="active-chat-status" style="font-size: 11px; color: #27ae60; font-weight: bold;">Online</div>
+              </div>
+            </div>
+    
+            <div id="chat-messages-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 5px; margin-bottom: 10px;">
+              </div>
+    
+            <div style="display: flex; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 20px; box-shadow: 0 -4px 10px rgba(0,0,0,0.02);">
+              <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; border: 1px solid var(--border); border-radius: 20px; padding: 10px 15px; background: var(--bg-input); font-family: 'Montserrat', sans-serif;">
+              <button onclick="handleSendMessage()" class="primary-button" style="padding: 10px 20px; border-radius: 20px;">Send</button>
+            </div>
+    
+          </div>
+        </section>
 
         <section class="screen" data-screen="create">
           <div id="cloud-address-section" class="section-block" style="text-align: center; padding: 30px 15px;">
@@ -453,13 +491,13 @@
             <span>Home</span>
         </button>
 
-        <button class="nav-item" data-target="map">
-            <span style="position: relative; display: inline-block;">
-                🗺️
-                <div id="map-badge" class="nav-badge" style="display: none;">0</div>
-            </span>
-            <span>Map</span>
-        </button>
+        <button class="nav-item" data-target="chat">
+          <span style="position: relative; display: inline-block;">
+              💬
+              <div id="chat-badge" class="nav-badge" style="display: none;">0</div>
+          </span>
+          <span>Chat</span>
+      </button>
         <button class="nav-item" data-target="create">
           <span>➕</span>
           <span>Create</span>
@@ -482,5 +520,6 @@
   <script src="games.js"></script>
   <script src="bots.js"></script>
   <script src="cloud.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>
