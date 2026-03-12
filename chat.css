@@ -54,3 +54,55 @@
     margin-top: 4px;
     text-align: right;
 }
+
+/* ==========================================================================
+   TRANSLATION STYLES
+   ========================================================================== */
+
+/* Подсказка под сообщением */
+.chat-translate-hint {
+    font-size: 10px;
+    color: var(--text-status);
+    margin-top: 2px;
+    margin-left: 12px;
+    opacity: 0.6;
+    font-style: italic;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Эффект кликабельности для чужих сообщений */
+.chat-bubble.theirs {
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+.chat-bubble.theirs:active {
+    transform: scale(0.98);
+    background-color: var(--bg-flag-circle); /* Легкая подсветка при тапе */
+}
+/* Кнопка редактирования под своим сообщением */
+.chat-edit-hint {
+    font-size: 10px;
+    color: var(--text-status);
+    margin-top: 2px;
+    margin-right: 12px;
+    opacity: 0.6;
+    font-style: italic;
+    cursor: pointer;
+    user-select: none;
+    text-align: right;
+    transition: opacity 0.2s;
+}
+
+.chat-edit-hint:hover {
+    opacity: 1;
+    color: var(--primary);
+}
+
+/* Пометка (edited) рядом со временем */
+.chat-edited-mark {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-left: 4px;
+}

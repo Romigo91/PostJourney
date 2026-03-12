@@ -2,12 +2,26 @@
 // СИСТЕМА ИСКУССТВЕННОГО ИНТЕЛЛЕКТА (БОТЫ)
 // ==========================================================================
 
+// === БАЗА АВАТАРОВ ДЛЯ БОТОВ ===
+const BOT_AVATARS = ['👨', '👩', '👱‍♂️', '👱‍♀️', '👨‍🦰', '👩‍🦰', '👨‍🦳', '👩‍🦳', '🧔', '👦', '👧', '👲', '👳‍♂️', '👳‍♀️', '👮‍♂️', '👮‍♀️', '👩‍⚕️', '👨‍⚕️', '👨‍🎓', '👩‍🎓', '👨‍🏫', '👩‍🏫', '👨‍💻', '👩‍💻', '🤖', '👽', '👾', '🤠', '😎', '🤓', '😸', '🦊', '🐻', '🐼', '🐯'];
+
+// Функция подбирает уникальное лицо на основе имени
+window.getBotAvatar = function(name) {
+    if (!name) return '👤'; // Заглушка на случай ошибки
+    let hash = 0;
+    for(let i = 0; i < name.length; i++) {
+        hash = (hash << 5) - hash + name.charCodeAt(i);
+    }
+    return BOT_AVATARS[Math.abs(hash) % BOT_AVATARS.length];
+};
+
 const BOT_SETTINGS = {
     ACTIVITY_INTERVAL: 10000, 
     CHANCE_TO_SEND: 0.15,     
 };
 
 // 1. ГЛАВНЫЙ ЦИКЛ ЖИЗНИ БОТОВ (ОБЪЕДИНЕННАЯ УМНАЯ ЛОГИКА)
+// ... дальше идет твой старый код ...
 function simulateBotActivity() {
     if (!state.bots || state.bots.length === 0) return;
 
@@ -257,143 +271,3 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 });
-
-// === 6. ПОЛУЧЕНИЕ СООБЩЕНИЯ (ОТ БОТА) ===
-function receiveMessage(botId, text) {
-    if (!state.chats[botId]) return;
-
-    const now = new Date();
-    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    state.chats[botId].messages.push({
-        sender: 'bot',
-        text: text,
-        time: timeStr
-    });
-
-    if (currentActiveChatId === botId) {
-        renderMessages(); // Если мы прямо сейчас в этом чате - обновляем экран
-    } else {
-        state.chats[botId].hasUnread = true; // <--- ПОМЕЧАЕМ ЧАТ КАК НЕПРОЧИТАННЫЙ
-        renderChatList(); // Иначе обновляем превью в списке
-    }
-    
-    updateChatBadge(); // <--- ОБНОВЛЯЕМ ЦИФРУ НАД МЕНЮ
-    if (typeof saveState === 'function') saveState();
-}
-
-// === 1. РАЗБЛОКИРОВКА НОВОГО ЧАТА ===
-window.unlockChat = function(botId, botName, botFlag, botCountry) {
-    if (!state.chats) state.chats = {};
-    
-    // Если чата еще нет, создаем его
-    if (!state.chats[botId]) {
-        state.chats[botId] = {
-            id: botId,
-            name: botName,
-            flag: botFlag,
-            country: botCountry,
-            messages: []
-        };
-        
-        // Заставляем ИИ сгенерировать ПЕРВОЕ приветственное сообщение на родном языке
-        setTimeout(() => {
-            if (typeof generateAIResponse === 'function') {
-                generateAIResponse(botId, "I just received your postcard! Say hello to me and tell me you got it.");
-            } else {
-                receiveMessage(botId, `Hello from ${botCountry} ${botFlag}!`);
-            }
-        }, 2000);
-        
-        if (typeof saveState === 'function') saveState();
-        if (typeof renderChatList === 'function') renderChatList();
-        
-        if (typeof showToastNotification === 'function') {
-            showToastNotification(`💬 New chat unlocked with ${botName}!`);
-        }
-    }
-};
-
-
-// === 7. 🤖 МОДУЛЬ AI (ИНТЕГРАЦИЯ С POLLINATIONS) ===
-async function generateAIResponse(botId, userText) {
-    const chat = state.chats[botId];
-    const API_KEY = 'sk_pnErfGbnDfLxDEytQqoAc0iioMQrgJl8'; 
-    
-    const statusEl = document.getElementById('active-chat-status');
-    if (statusEl) statusEl.textContent = "typing...";
-
-    try {
-        const recentMessages = chat.messages.slice(-8).map(msg => ({
-            role: msg.sender === 'me' ? 'user' : 'assistant',
-            content: msg.text
-        }));
-
-        const botCountry = chat.country || chat.flag;
-
-        const systemPrompt = {
-            role: 'system',
-            content: `You are a real person living in ${botCountry}. Your name is ${chat.name}. 
-            CRITICAL INSTRUCTION: You MUST write your response ENTIRELY in the official native language of ${botCountry}. 
-            For example: if ${botCountry} is Japan, reply ONLY in Japanese. If ${botCountry} is Russia, reply ONLY in Russian. If ${botCountry} is Germany, reply ONLY in German.
-            NEVER use English unless English is the absolute primary official language of ${botCountry}. 
-            Keep it short (1-2 sentences), like a mobile text message. Add a little bit of local cultural flavor or national emojis.`
-        };
-
-        const apiMessages = [systemPrompt, ...recentMessages];
-
-        const response = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'openai', 
-                messages: apiMessages,
-                max_tokens: 150,
-                temperature: 0.7 
-            })
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            console.error("Детали ошибки API:", errText);
-            throw new Error(`Ошибка сервера: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        const botReply = data.choices[0].message.content;
-        receiveMessage(botId, botReply);
-
-    } catch (error) {
-        console.error("Ошибка при генерации AI-ответа:", error);
-        receiveMessage(botId, "Sorry, my internet connection is a bit unstable right now! 🌍 Give me a second.");
-    } finally {
-        if (statusEl) statusEl.textContent = "Online";
-    }
-}
-// === 8. ОБНОВЛЕНИЕ БЕЙДЖА НЕПРОЧИТАННЫХ СООБЩЕНИЙ ===
-window.updateChatBadge = function() {
-    if (!state.chats) return;
-    
-    const badge = document.getElementById('chat-badge');
-    if (!badge) return;
-
-    let unreadChatsCount = 0;
-    
-    // Перебираем все чаты и ищем флаг hasUnread
-    Object.values(state.chats).forEach(chat => {
-        if (chat.hasUnread) {
-            unreadChatsCount++;
-        }
-    });
-
-    if (unreadChatsCount > 0) {
-        badge.textContent = unreadChatsCount;
-        badge.style.display = 'flex'; // Показываем кружочек
-    } else {
-        badge.style.display = 'none'; // Прячем, если всё прочитано
-    }
-};
