@@ -312,7 +312,7 @@ if (btnGenerateAI) {
             const uniquePrompt = `${promptText} (variation: ${randomSeed})`;
             const encodedPrompt = encodeURIComponent(uniquePrompt);
             
-            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=klein&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodedPrompt}?width=1200&height=800&model=zimage&nologo=true&seed=${randomSeed}`;
 
             const response = await fetch(url, {
                 method: "GET",
@@ -396,7 +396,7 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             
             const finalPromptForAI = `${userPrompt}, highly detailed vintage postage stamp style, intricate engraving, muted philatelic colors, official postal look (variation: ${randomSeed})`;
             
-            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=klein&nologo=true&seed=${randomSeed}`;
+            const url = `https://gen.pollinations.ai/image/${encodeURIComponent(finalPromptForAI)}?width=400&height=500&model=zimage&nologo=true&seed=${randomSeed}`;
             
             const response = await fetch(url, {
                 method: "GET",

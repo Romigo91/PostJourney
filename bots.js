@@ -209,19 +209,19 @@ setInterval(checkBotDeliveries, 1000);
 // ==========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     const botToggle = document.getElementById('bot-toggle');
-    const botSettingsRow = document.getElementById('bot-settings-row');
-    const botSlider = document.getElementById('bot-count-slider');
-    const botCountDisplay = document.getElementById('bot-count-display');
-    const btnApplyBots = document.getElementById('btn-apply-bots'); 
-
     const botNames = ["Traveler", "PostX", "Nomad", "Wanderlust", "GlobeTrotter", "StampLover", "MailBird", "LetterFan", "PostcardKing", "PenPal", "OceanView", "MountainPeak"];
 
     function generateBots(count) {
         state.bots = []; 
-        const allCountries = typeof countryList !== 'undefined' ? countryList : [{flag: '🌍', name: 'Unknown'}];
+        // Создаем копию базы стран, чтобы не сломать оригинал
+        const allCountries = typeof countryList !== 'undefined' ? [...countryList] : [{flag: '🌍', name: 'Unknown'}];
+        
+        // ПЕРЕМЕШИВАЕМ СТРАНЫ, чтобы каждый раз был случайный уникальный набор
+        allCountries.sort(() => 0.5 - Math.random());
         
         for(let i = 0; i < count; i++) {
-            const randomCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
+            // Берем страны по порядку из перемешанного массива (гарантия уникальности)
+            const randomCountry = allCountries[i % allCountries.length];
             const nameBase = botNames[Math.floor(Math.random() * botNames.length)];
             
             state.bots.push({
@@ -229,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 flag: randomCountry.flag,
                 countryName: randomCountry.name,
                 sent: 0,
-                userId: 'PJ-' + Math.floor(1000 + Math.random() * 9000) // <--- ДОБАВИЛИ СЮДА
+                userId: 'PJ-' + Math.floor(1000 + Math.random() * 9000)
             });
         }
         
@@ -237,33 +237,163 @@ document.addEventListener("DOMContentLoaded", () => {
         if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI(); 
     }
 
-    if (botToggle && botSettingsRow && botSlider && btnApplyBots) {
+    if (botToggle) {
         botToggle.onchange = (e) => {
             if (e.target.checked) {
-                botSettingsRow.style.display = 'block';
+                // ТУМБЛЕР ВКЛЮЧЕН -> Сразу создаем 10 ботов
+                generateBots(10); 
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification("🤖 10 local postcrossers joined the world!");
+                }
             } else {
-                botSettingsRow.style.display = 'none';
+                // ТУМБЛЕР ВЫКЛЮЧЕН -> Сбрасываем ботов
                 state.bots = []; 
                 if (typeof refreshAllLists === 'function') refreshAllLists();
                 if (typeof updateCloudScreenUI === 'function') updateCloudScreenUI();
+                if (typeof showToastNotification === 'function') {
+                    showToastNotification("🤖 Bots removed from the world.");
+                }
             }
-        };
-
-        botSlider.oninput = (e) => botCountDisplay.textContent = e.target.value;
-
-        btnApplyBots.onclick = () => {
-            generateBots(parseInt(botSlider.value)); 
-            
-            const originalText = btnApplyBots.textContent;
-            btnApplyBots.textContent = "✅ Applied!";
-            btnApplyBots.style.background = "#d35400";
-            btnApplyBots.style.color = "white";
-            
-            setTimeout(() => {
-                btnApplyBots.textContent = originalText;
-                btnApplyBots.style.background = "transparent";
-                btnApplyBots.style.color = "#d35400";
-            }, 1000);
         };
     }
 });
+
+// === 6. ПОЛУЧЕНИЕ СООБЩЕНИЯ (ОТ БОТА) ===
+function receiveMessage(botId, text) {
+    if (!state.chats[botId]) return;
+
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    state.chats[botId].messages.push({
+        sender: 'bot',
+        text: text,
+        time: timeStr
+    });
+
+    if (currentActiveChatId === botId) {
+        renderMessages(); // Если мы прямо сейчас в этом чате - обновляем экран
+    } else {
+        state.chats[botId].hasUnread = true; // <--- ПОМЕЧАЕМ ЧАТ КАК НЕПРОЧИТАННЫЙ
+        renderChatList(); // Иначе обновляем превью в списке
+    }
+    
+    updateChatBadge(); // <--- ОБНОВЛЯЕМ ЦИФРУ НАД МЕНЮ
+    if (typeof saveState === 'function') saveState();
+}
+
+// === 1. РАЗБЛОКИРОВКА НОВОГО ЧАТА ===
+window.unlockChat = function(botId, botName, botFlag, botCountry) {
+    if (!state.chats) state.chats = {};
+    
+    // Если чата еще нет, создаем его
+    if (!state.chats[botId]) {
+        state.chats[botId] = {
+            id: botId,
+            name: botName,
+            flag: botFlag,
+            country: botCountry,
+            messages: []
+        };
+        
+        // Заставляем ИИ сгенерировать ПЕРВОЕ приветственное сообщение на родном языке
+        setTimeout(() => {
+            if (typeof generateAIResponse === 'function') {
+                generateAIResponse(botId, "I just received your postcard! Say hello to me and tell me you got it.");
+            } else {
+                receiveMessage(botId, `Hello from ${botCountry} ${botFlag}!`);
+            }
+        }, 2000);
+        
+        if (typeof saveState === 'function') saveState();
+        if (typeof renderChatList === 'function') renderChatList();
+        
+        if (typeof showToastNotification === 'function') {
+            showToastNotification(`💬 New chat unlocked with ${botName}!`);
+        }
+    }
+};
+
+
+// === 7. 🤖 МОДУЛЬ AI (ИНТЕГРАЦИЯ С POLLINATIONS) ===
+async function generateAIResponse(botId, userText) {
+    const chat = state.chats[botId];
+    const API_KEY = 'sk_pnErfGbnDfLxDEytQqoAc0iioMQrgJl8'; 
+    
+    const statusEl = document.getElementById('active-chat-status');
+    if (statusEl) statusEl.textContent = "typing...";
+
+    try {
+        const recentMessages = chat.messages.slice(-8).map(msg => ({
+            role: msg.sender === 'me' ? 'user' : 'assistant',
+            content: msg.text
+        }));
+
+        const botCountry = chat.country || chat.flag;
+
+        const systemPrompt = {
+            role: 'system',
+            content: `You are a real person living in ${botCountry}. Your name is ${chat.name}. 
+            CRITICAL INSTRUCTION: You MUST write your response ENTIRELY in the official native language of ${botCountry}. 
+            For example: if ${botCountry} is Japan, reply ONLY in Japanese. If ${botCountry} is Russia, reply ONLY in Russian. If ${botCountry} is Germany, reply ONLY in German.
+            NEVER use English unless English is the absolute primary official language of ${botCountry}. 
+            Keep it short (1-2 sentences), like a mobile text message. Add a little bit of local cultural flavor or national emojis.`
+        };
+
+        const apiMessages = [systemPrompt, ...recentMessages];
+
+        const response = await fetch('https://gen.pollinations.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'openai', 
+                messages: apiMessages,
+                max_tokens: 150,
+                temperature: 0.7 
+            })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("Детали ошибки API:", errText);
+            throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        const botReply = data.choices[0].message.content;
+        receiveMessage(botId, botReply);
+
+    } catch (error) {
+        console.error("Ошибка при генерации AI-ответа:", error);
+        receiveMessage(botId, "Sorry, my internet connection is a bit unstable right now! 🌍 Give me a second.");
+    } finally {
+        if (statusEl) statusEl.textContent = "Online";
+    }
+}
+// === 8. ОБНОВЛЕНИЕ БЕЙДЖА НЕПРОЧИТАННЫХ СООБЩЕНИЙ ===
+window.updateChatBadge = function() {
+    if (!state.chats) return;
+    
+    const badge = document.getElementById('chat-badge');
+    if (!badge) return;
+
+    let unreadChatsCount = 0;
+    
+    // Перебираем все чаты и ищем флаг hasUnread
+    Object.values(state.chats).forEach(chat => {
+        if (chat.hasUnread) {
+            unreadChatsCount++;
+        }
+    });
+
+    if (unreadChatsCount > 0) {
+        badge.textContent = unreadChatsCount;
+        badge.style.display = 'flex'; // Показываем кружочек
+    } else {
+        badge.style.display = 'none'; // Прячем, если всё прочитано
+    }
+};
