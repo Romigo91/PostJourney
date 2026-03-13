@@ -887,7 +887,24 @@ document.addEventListener('click', (e) => {
     const cardData = isSent ? state.sentPostcards[index] : state.receivedPostcards[index];
     if (!cardData) return;
     
-    // ... остальной код модалки (const modal = document.getElementById('modal-3d'); и т.д.) остается без изменений!
+    // === МАГИЯ 1: СНИМАЕМ СТАТУС "НОВИНКА" ПРИ ФИЗИЧЕСКОМ ОТКРЫТИИ ОТКРЫТКИ ===
+    if (!isSent && cardData.isNew) {
+        cardData.isNew = false; // Открытка прочитана!
+        if (typeof saveState === 'function') saveState();
+
+        // 1. Моментально снимаем пульсацию с самой карточки в галерее
+        cardEl.classList.remove('card-pulse');
+
+        // 2. Тихо обновляем карту континентов на заднем фоне (чтобы погасить континент)
+        if (typeof renderMapSections === 'function') renderMapSections();
+
+        // 3. Тихо обновляем окно флагов (УМНЫЙ ПОИСК КОНТИНЕНТА)
+        const flagsTitle = document.getElementById('modal-flags-title');
+        if (flagsTitle && document.getElementById('modal-flags').style.display === 'flex') {
+            const continent = flagsTitle.textContent.replace('📥', '').replace('📤', '').trim();
+            if (typeof openFlagsModal === 'function') openFlagsModal(continent, 'received');
+        }
+    }
 
     const modal = document.getElementById('modal-3d');
     const frontDiv = document.getElementById('3d-front');
@@ -919,14 +936,34 @@ document.addEventListener('click', (e) => {
     postcardData.font = cardData.font || "'Caveat', cursive";
     postcardData.color = cardData.color || '#1e3799';
 
+    // РИСУЕМ ЛИЦЕВУЮ СТОРОНУ
     postcardData.currentSide = 'front';
     updateDisplay(true, senderInfo); 
     frontDiv.innerHTML = '';
     let fCanvasClone = document.getElementById('postcard-canvas').cloneNode(true);
     frontDiv.appendChild(fCanvasClone);
 
+    // РИСУЕМ ОБОРОТНУЮ СТОРОНУ
     postcardData.currentSide = 'back';
     updateDisplay(true, senderInfo);
+    
+    // === МАГИЯ 2: ПРАВИЛЬНАЯ АВАТАРКА НА ОБОРОТЕ (ПЕРЕНЕСЛИ СЮДА!) ===
+    // Ищем аватарку прямо внутри только что нарисованного холста
+    const miniAvatarEl = document.getElementById('postcard-canvas').querySelector('.sender-mini-avatar');
+    if (miniAvatarEl) {
+        if (!isSent) {
+            const botName = cardData.fromBot || cardData.senderName || 'Bot';
+            miniAvatarEl.textContent = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(botName) : botName.charAt(0).toUpperCase();
+            miniAvatarEl.style.fontSize = '26px';
+            miniAvatarEl.style.background = 'var(--bg-flag-circle)';
+        } else {
+            const myName = (typeof state !== 'undefined' && state.profile) ? state.profile.name : 'Me';
+            miniAvatarEl.textContent = myName.charAt(0).toUpperCase();
+            miniAvatarEl.style.fontSize = '18px';
+        }
+    }
+
+    // Копируем уже исправленный холст с рожицей в 3D-окно
     backDiv.innerHTML = '';
     let bCanvasClone = document.getElementById('postcard-canvas').cloneNode(true);
     backDiv.appendChild(bCanvasClone);
@@ -941,7 +978,7 @@ document.addEventListener('click', (e) => {
 
     modal.style.display = 'flex';
     
-    // 2. Сразу применяем масштаб (используем бОльшую задержку для надежности рендера)
+    // 2. Сразу применяем масштаб
     setTimeout(() => {
         const rect = wrapper.getBoundingClientRect();
         const w = rect.width > 0 ? rect.width : Math.min(window.innerWidth * 0.9, 500); 
@@ -956,7 +993,7 @@ document.addEventListener('click', (e) => {
         // 3. Плавное появление
         wrapper.style.transition = 'opacity 0.3s ease';
         wrapper.style.opacity = '1';
-    }, 60); // 60мс достаточно, чтобы браузер «проглотил» новые элементы
+    }, 60);
 });
 // === КНОПКА ОТМЕНЫ (НАЗАД К ГЛОБУСУ) ===
     const btnCancelCard = document.getElementById('cancel-card-btn');

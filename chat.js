@@ -90,6 +90,12 @@ window.openChat = function(botId) {
     // Ставим имя и флаг рядом
     document.getElementById('active-chat-name').innerHTML = `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
     
+    // === 🛠 МАГИЯ ИНТЕРФЕЙСА: ПРЯЧЕМ МЕНЮ ===
+    const nav = document.querySelector('.bottom-nav');
+    const screen = document.getElementById('screen-container');
+    if (nav) nav.style.display = 'none'; // Скрываем нижний бар
+    if (screen) screen.style.setProperty('padding-bottom', '20px', 'important'); // Убираем огромный отступ снизу
+    
     renderMessages();
 };
 
@@ -97,6 +103,13 @@ window.closeChat = function() {
     currentActiveChatId = null;
     document.getElementById('chat-list-view').style.display = 'block';
     document.getElementById('active-chat-view').style.display = 'none';
+    
+    // === 🛠 ВОЗВРАЩАЕМ МЕНЮ НА МЕСТО ===
+    const nav = document.querySelector('.bottom-nav');
+    const screen = document.getElementById('screen-container');
+    if (nav) nav.style.display = 'flex'; // Показываем бар
+    if (screen) screen.style.removeProperty('padding-bottom'); // Возвращаем дефолтный отступ из CSS
+    
     renderChatList(); 
 };
 
@@ -466,7 +479,7 @@ window.showChatUserProfile = function() {
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <div style="font-size: 26px; background: var(--bg-flag-circle); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div onclick="showLargeAvatar('${avatarFace}')" style="cursor: pointer; font-size: 26px; background: var(--bg-flag-circle); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                         ${avatarFace}
                     </div>
                     <div>
@@ -503,5 +516,35 @@ window.showChatUserProfile = function() {
         </div>
     `;
 
+    phoneFrame.appendChild(overlay);
+};
+// === 11. ПРОСМОТР АВАТАРКИ В ПОЛНОМ РАЗМЕРЕ ===
+window.showLargeAvatar = function(content) {
+    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    
+    // Создаем окно-оверлей
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-alert-overlay';
+    overlay.style.zIndex = '9999999'; // Поверх всего (даже карточки профиля)
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.cursor = 'pointer'; // Указываем, что можно кликнуть
+    
+    // Закрываем при клике куда угодно
+    overlay.onclick = () => overlay.remove();
+
+    // Задел на будущее: если когда-нибудь у ботов будут не эмодзи, а реальные фото-ссылки
+    const isImage = content.startsWith('http') || content.startsWith('data:');
+
+    // Формируем HTML (либо огромный кружок с эмодзи, либо тег <img>)
+    const innerContent = isImage 
+        ? `<img src="${content}" style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">`
+        : `<div style="width: 200px; height: 200px; background: var(--bg-flag-circle); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 100px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">${content}</div>`;
+
+    // Вставляем только контент, без лишних надписей
+    overlay.innerHTML = innerContent;
+    
     phoneFrame.appendChild(overlay);
 };

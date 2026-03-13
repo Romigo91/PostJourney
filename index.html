@@ -83,19 +83,19 @@
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; align-items: start;">
+          <div class="section-block home-tracking" id="tracking-block" style="display: block; margin-bottom: 14px; padding: 14px; cursor: pointer; background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-flag-circle) 100%); border: 1px solid var(--border); position: relative; overflow: hidden;" onclick="openTrackingModal()">
             
-            <div class="section-block" id="archive-block" style="display: none; margin: 0; min-width: 0; padding: 0;" onclick="openCollectionModal()">
-              <div style="display: flex; justify-content: center; align-items: center; height: 54px; width: 100%;">
-                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">Collection 🗂️</span>
-              </div>
-            </div>
+            <div style="position: absolute; right: -15px; top: -15px; font-size: 90px; opacity: 0.1; transform: rotate(45deg); pointer-events: none;">✈️</div>
 
-            <div class="section-block home-tracking" id="tracking-block" style="display: none; margin: 0; min-width: 0; padding: 0;" onclick="openTrackingModal()">
-              <div style="display: flex; justify-content: center; align-items: center; gap: 8px; height: 54px; width: 100%;">
-                <span style="color: var(--text-main); font-weight: 600; font-size: 14px;">Tracking ✈️</span>
-                <span id="tracking-count" style="background: #e67e22; color: #fff; padding: 2px 6px; border-radius: 12px; font-size: 11px; font-weight: bold;">0</span>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; position: relative; z-index: 2;">
+              <div>
+                <span style="color: var(--text-main); font-weight: 900; font-size: 16px;">Live Tracking</span>
               </div>
+              <div id="tracking-count" style="background: var(--primary); color: white; padding: 0 10px; border-radius: 16px; font-size: 14px; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; box-sizing: border-box;">0</div>
+            </div>
+            
+            <div id="tracking-preview-list" style="position: relative; z-index: 2; display: flex; flex-direction: column; gap: 6px;">
+              <div style="background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit</div>
             </div>
 
           </div>
@@ -130,9 +130,9 @@
             </div>
           </div>
     
-          <div id="active-chat-view" style="display: none; height: 100%; flex-direction: column;">
+          <div id="active-chat-view" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-phone); z-index: 500; flex-direction: column; padding: 40px 16px 20px 16px; box-sizing: border-box;">
             
-            <div class="chat-header" style="display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px;">
+            <div class="chat-header" style="display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px; flex-shrink: 0;">
               <button onclick="closeChat()" style="background: none; border: none; font-size: 20px; cursor: pointer;">⬅️</button>
               
               <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="showChatUserProfile()">
@@ -142,14 +142,14 @@
                       <div id="active-chat-status" style="font-size: 11px; color: #27ae60; font-weight: bold;">Online</div>
                   </div>
               </div>
-          </div>
+            </div>
     
             <div id="chat-messages-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 5px; margin-bottom: 10px;">
-              </div>
+            </div>
     
-            <div style="display: flex; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 20px; box-shadow: 0 -4px 10px rgba(0,0,0,0.02);">
-              <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; border: 1px solid var(--border); border-radius: 20px; padding: 10px 15px; background: var(--bg-input); font-family: 'Montserrat', sans-serif;">
-              <button onclick="handleSendMessage()" class="primary-button" style="padding: 10px 20px; border-radius: 20px;">Send</button>
+            <div style="display: flex; gap: 10px; background: var(--bg-card); padding: 12px; border-radius: 24px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); align-items: center; flex-shrink: 0;">
+              <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; background: var(--bg-input); font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none;">
+              <button onclick="handleSendMessage()" class="primary-button" style="padding: 12px 20px; border-radius: 20px; margin-top: 0; width: auto;">Send</button>
             </div>
     
           </div>

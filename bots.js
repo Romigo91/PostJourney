@@ -126,7 +126,8 @@ async function processIncomingDelivery(item) {
             frontImage: URL.createObjectURL(frontBlob), 
             message: `Hello friend!\n\nI am sending you warm greetings from ${item.countryName}! I generated this photo specially for you to show the beauty of my homeland.\n\nBest wishes,\n${item.fromBot}`,
             stampType: "ai",
-            stampImage: URL.createObjectURL(stampBlob) 
+            stampImage: URL.createObjectURL(stampBlob),
+            isNew: true
         });
 
     } catch (e) {
@@ -140,7 +141,8 @@ async function processIncomingDelivery(item) {
             frontImage: `https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&q=80&random=${seed}`,
             message: `Hello friend!\n\nWarm greetings from ${item.countryName}!\n\nBest wishes,\n${item.fromBot}`,
             stampType: "emoji",
-            stampData: "💌"
+            stampData: "💌",
+            isNew: true
         });
     }
     

@@ -482,24 +482,24 @@ window.openGalleryModal = function(isReceived, filterFlag = null) {
         ? `${filterFlag} ${isReceived ? "Received" : "Sent"} Archive` 
         : (isReceived ? "Received 📥" : "Sent 📤");
 
-    // 1. ЖЕЛЕЗОБЕТОННАЯ СЕТКА (отвязываем от CSS полностью)
     grid.className = ''; 
     grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // Строго 3 колонки
+    grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
     grid.style.gap = '8px';
-    grid.style.alignContent = 'start'; // Чтобы одиночная открытка не растягивалась по высоте
+    grid.style.alignContent = 'start'; 
 
-    // 2. Рендерим карточки с ЖЕСТКИМИ стилями (пропорция 3:2)
     grid.innerHTML = filteredArray.map(item => {
         const flag = item.card.countryFlag || item.card.flag || '🌍';
         const bgImg = item.card.frontImage ? `background-image: url(${item.card.frontImage});` : `background: #eee;`;
         
-        // Обрати внимание: aspect-ratio: 3/2 прописан прямо сюда!
-        return `
-        <div class="archive-card" data-index="${item.originalIndex}" data-is-sent="${!isReceived}" 
-             style="${bgImg} background-size: cover; background-position: center; border-radius: 6px; aspect-ratio: 3/2; box-shadow: 0 2px 5px rgba(0,0,0,0.15); border: 1px solid var(--border); position: relative; cursor: pointer;">
-            <div style="position: absolute; bottom: 3px; right: 3px; font-size: 11px; background: rgba(255,255,255,0.9); border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">${flag}</div>
-        </div>`;
+// === МАГИЯ: Вешаем класс пульсации, если открытка не прочитана ===
+const pulseClass = (isReceived && item.card.isNew) ? 'card-pulse' : '';
+        
+return `
+<div class="archive-card ${pulseClass}" data-index="${item.originalIndex}" data-is-sent="${!isReceived}" 
+     style="${bgImg} background-size: cover; background-position: center; position: relative; cursor: pointer;">
+    <div style="position: absolute; bottom: 3px; right: 3px; font-size: 11px; background: rgba(255,255,255,0.9); border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">${flag}</div>
+</div>`;
     }).reverse().join(''); 
 
     modal.style.setProperty('z-index', '9999999', 'important'); 
@@ -579,7 +579,6 @@ window.startFlagCollection = function() {
 };
 
 function renderMapSections() {
-    // 1. Собираем уникальные флаги
     const validSentPostcards = state.sentPostcards.filter(card => {
         if (card.isOffline === true) return false;
         const dest = (card.to || "").toLowerCase();
@@ -589,25 +588,22 @@ function renderMapSections() {
     const sentFlags = [...new Set(validSentPostcards.map(c => c.countryFlag || c.flag))];
     const receivedFlags = [...new Set(state.receivedPostcards.map(c => c.countryFlag || c.flag))];
 
-    // 2. Логика переключения вкладок
     const tabs = document.querySelectorAll('.col-tab');
     tabs.forEach(tab => {
         tab.onclick = (e) => {
             tabs.forEach(t => t.classList.remove('active'));
             e.target.classList.add('active');
             currentCollectionTab = e.target.getAttribute('data-tab');
-            renderContinentsGrid(); // Перерисовываем сетку при клике
+            renderContinentsGrid(); 
         };
     });
 
-    // 3. Функция рендера карточек (и обновления прогресс-бара World Explorer)
     function renderContinentsGrid() {
         const grid = document.getElementById('continents-grid');
         if (!grid) return;
         
         const activeFlags = currentCollectionTab === 'sent' ? sentFlags : receivedFlags;
 
-        // === ДИНАМИЧЕСКИ ОБНОВЛЯЕМ ПРОГРЕСС-БАР WORLD EXPLORER ===
         const totalWorldFlags = 195;
         const currentWorldFlags = new Set(activeFlags).size;
         const worldPercent = (currentWorldFlags / totalWorldFlags) * 100;
@@ -616,19 +612,23 @@ function renderMapSections() {
         const worldFill = document.getElementById('world-progress-fill');
         if (worldText) worldText.textContent = `${currentWorldFlags} / ${totalWorldFlags}`;
         if (worldFill) worldFill.style.width = `${worldPercent}%`;
-        // ==========================================================
 
         grid.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT).map(([continent, flags]) => {
             const collectedInContinent = flags.filter(f => activeFlags.includes(f)).length;
             const isCompleted = collectedInContinent === flags.length;
             const percent = (collectedInContinent / flags.length) * 100;
             
-            // Раскрашиваем текст и шкалу
             const color = collectedInContinent > 0 ? (isCompleted ? '#27ae60' : '#e67e22') : '#a57a4d';
             const fillClass = isCompleted ? 'delivered' : '';
 
+            // === МАГИЯ: ПРОВЕРКА НА НОВЫЕ ОТКРЫТКИ ДЛЯ КОНТИНЕНТА ===
+            const hasNewInContinent = currentCollectionTab === 'received' && flags.some(f => 
+                state.receivedPostcards.some(c => (c.countryFlag === f || c.flag === f) && c.isNew)
+            );
+            const pulseClass = hasNewInContinent ? 'continent-pulse' : '';
+
             return `
-                <div class="continent-card" onclick="openFlagsModal('${continent}', '${currentCollectionTab}')">
+                <div class="continent-card ${pulseClass}" onclick="openFlagsModal('${continent}', '${currentCollectionTab}')">
                     <div class="cont-card-header">
                         <span>${continent}</span>
                         <span class="cont-card-stats" style="color: ${color};">${collectedInContinent} / ${flags.length}</span>
@@ -640,7 +640,6 @@ function renderMapSections() {
         }).join("");
     }
 
-    // Рендерим сетку сразу при загрузке
     renderContinentsGrid();
 }
 
@@ -651,7 +650,6 @@ window.openFlagsModal = function(continent, tab) {
     const title = document.getElementById('modal-flags-title');
     if (!modal || !grid || !title) return;
 
-    // Снова собираем актуальные списки при открытии
     const validSentPostcards = state.sentPostcards.filter(c => c.isOffline !== true && c.to && !c.to.toLowerCase().includes("personal"));
     const sentFlags = [...new Set(validSentPostcards.map(c => c.countryFlag || c.flag))];
     const receivedFlags = [...new Set(state.receivedPostcards.map(c => c.countryFlag || c.flag))];
@@ -659,27 +657,28 @@ window.openFlagsModal = function(continent, tab) {
     const activeFlags = tab === 'sent' ? sentFlags : receivedFlags;
     const continentFlags = COUNTRIES_BY_CONTINENT[continent];
 
-    // Ставим красивый заголовок
     title.innerHTML = `${continent} ${tab === 'sent' ? '📤' : '📥'}`;
 
-    // ИСПРАВЛЕНИЕ: Строгая сетка Grid ровно на 5 колонок
     grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = 'repeat(5, 1fr)'; // 5 одинаковых колонок
-    grid.style.gap = '12px 6px'; // Отступ: 12px по вертикали, 6px по горизонтали
-    grid.style.padding = '5px 0'; // Убрали лишние боковые отступы
-    grid.style.justifyItems = 'center'; // Выравниваем кружки строго по центру своих колонок
+    grid.style.gridTemplateColumns = 'repeat(5, 1fr)'; 
+    grid.style.gap = '12px 6px'; 
+    grid.style.padding = '5px 0'; 
+    grid.style.justifyItems = 'center'; 
 
-    // Рендерим кружочки флагов
     grid.innerHTML = continentFlags.map(f => {
         const isCollected = activeFlags.includes(f);
-        const flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
+        const isReceived = tab === 'received';
+        
+        // === МАГИЯ: ПРОВЕРКА НА НОВУЮ ОТКРЫТКУ ДЛЯ КОНКРЕТНОГО ФЛАГА ===
+        const isNewFlag = isReceived && state.receivedPostcards.some(c => (c.countryFlag === f || c.flag === f) && c.isNew);
+        
+        let flagClass = isCollected ? 'flag-circle flag-collected' : 'flag-circle flag-locked';
+        if (isNewFlag) flagClass += ' flag-pulse'; // Вешаем анимацию!
+
         const opacity = isCollected ? '1' : '0.2';
         const filter = isCollected ? 'none' : 'grayscale(100%)';
-        
-        const isReceived = tab === 'received';
         const clickAction = isCollected ? `onclick="openGalleryModal(${isReceived}, '${f}')"` : '';
 
-        // НОВЫЕ РАЗМЕРЫ: ширина/высота 38px, размер шрифта 20px (идеально для 5 в ряд)
         return `<div class="${flagClass}" ${clickAction} title="${f}" style="width: 38px; height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: ${isCollected ? 'pointer' : 'default'}; font-size: 20px; line-height: normal; padding-top: 2px; background: rgba(0,0,0,0.05); opacity: ${opacity}; filter: ${filter}; transition: all 0.3s ease;">${f}</div>`;
     }).join('');
 
@@ -1420,3 +1419,69 @@ window.syncAssets = function() {
     const sentCountEl = document.getElementById("sent-count");
     if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
 };
+
+// === ОБНОВЛЕНИЕ МИНИ-ВИДЖЕТА ТРЕКИНГА (TOP 3) ===
+window.updateTrackingPreviewWidget = function() {
+    const previewList = document.getElementById('tracking-preview-list');
+    const countBadge = document.getElementById('tracking-count');
+    
+    if (!previewList || !state || !state.tracking) return;
+    
+    if (countBadge) countBadge.textContent = state.tracking.length;
+    
+    if (state.tracking.length === 0) {
+        previewList.innerHTML = `<div style="background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit 🌍</div>`;
+        return;
+    }
+
+    // Сортируем: кто прилетит раньше всех — тот первый
+    const sortedTracking = [...state.tracking].sort((a, b) => (a.arrivalAt || 0) - (b.arrivalAt || 0));
+    const top3 = sortedTracking.slice(0, 3);
+    const now = new Date().getTime();
+
+    previewList.innerHTML = top3.map(item => {
+        // === ТОЧНЫЕ ПЕРЕМЕННЫЕ ИЗ ТВОЕЙ БАЗЫ ===
+        const arrival = item.arrivalAt || 0;
+        const departure = item.sentAt || (arrival - 24 * 60 * 60 * 1000);
+        
+        const isIncoming = item.type === "incoming";
+        let flag = isIncoming ? "🌍" : (item.flag || item.countryFlag || "");
+        let dest = isIncoming ? "Mystery Card" : (item.toCountry || "Unknown");
+        
+        // Повторяем логику из твоего модального окна для точного названия страны
+        if (!isIncoming && item.to && !item.toCountry) {
+            const parts = item.to.split(", ");
+            dest = parts[0];
+        }
+
+        const timeLeft = Math.max(0, arrival - now);
+        const totalDuration = Math.max(1, arrival - departure);
+        
+        let progress = 100 - (timeLeft / totalDuration) * 100;
+        if (progress < 0) progress = 0;
+        if (progress > 100) progress = 100;
+        
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        
+        let timeString = `${hours}h ${minutes}m`;
+        if (timeLeft <= 0) timeString = "Delivered!";
+
+        return `
+        <div style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                <span style="font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${flag} ${dest}</span>
+                <span style="color: var(--primary); font-weight: 800;">${timeString}</span>
+            </div>
+            <div style="height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; overflow: hidden;">
+                <div style="height: 100%; width: ${progress}%; background: var(--primary); border-radius: 2px; transition: width 1s linear;"></div>
+            </div>
+        </div>`;
+    }).join('');
+};
+
+// Запускаем автоматическое обновление виджета каждую секунду, чтобы полоски ползли, а таймер тикал
+setInterval(window.updateTrackingPreviewWidget, 1000);
+
+// Вызываем один раз сразу при загрузке страницы
+document.addEventListener('DOMContentLoaded', window.updateTrackingPreviewWidget);
