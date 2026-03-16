@@ -77,14 +77,21 @@ window.openChat = function(botId) {
     const chat = state.chats[botId];
     
     chat.hasUnread = false;
-    updateChatBadge();
+    if (typeof updateChatBadge === 'function') updateChatBadge();
     
     document.getElementById('chat-list-view').style.display = 'none';
     
-    // Делаем сам контейнер чата "резиновым"
+    // Растягиваем контейнер чата
     const chatView = document.getElementById('active-chat-view');
     chatView.style.display = 'flex';
+    chatView.style.flexDirection = 'column';
     chatView.style.flex = '1';
+    chatView.style.height = '100%';
+    
+    const messagesBox = document.getElementById('chat-messages-container'); // Исправил ID на правильный
+    if (messagesBox) {
+        messagesBox.style.flex = '1';
+    }
     
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
@@ -94,39 +101,51 @@ window.openChat = function(botId) {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    // 🛠 МАГИЯ ДЛЯ МОБИЛОК: Жестко растягиваем экран на всю высоту
+    // === ИСПРАВЛЕНИЕ ТУТ: Убираем "подушку" в 120px у главного экрана ===
+    const screenContainer = document.getElementById('screen-container');
+    if (screenContainer) {
+        // Ставим 20px, чтобы инпут был ровно на той же высоте, где было меню
+        screenContainer.style.setProperty('padding-bottom', '20px', 'important');
+    }
+    
     const chatScreen = document.querySelector('.screen[data-screen="chat"]');
     if (chatScreen) {
         chatScreen.style.setProperty('display', 'flex', 'important');
         chatScreen.style.setProperty('flex-direction', 'column', 'important');
         chatScreen.style.setProperty('height', '100%', 'important');
-        chatScreen.style.setProperty('flex', '1', 'important'); // Заставляем вытянуться до самого низа
-        chatScreen.style.setProperty('padding-bottom', '15px', 'important');
+        chatScreen.style.setProperty('padding-bottom', '0px', 'important'); // Обнулили для плотного прилегания
     }
     
-    renderMessages();
+    if (typeof renderMessages === 'function') renderMessages();
 };
 
 window.closeChat = function() {
     currentActiveChatId = null;
     document.getElementById('chat-list-view').style.display = 'block';
-    document.getElementById('active-chat-view').style.display = 'none';
+    
+    const chatView = document.getElementById('active-chat-view');
+    chatView.style.display = 'none';
+    if (chatView.lastElementChild) chatView.lastElementChild.style.removeProperty('margin-top');
     
     // Возвращаем меню
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'flex';
     
-    // 🛠 Возвращаем экрану исходные стили
+    // === ИСПРАВЛЕНИЕ ТУТ: Возвращаем "подушку" для меню ===
+    const screenContainer = document.getElementById('screen-container');
+    if (screenContainer) {
+        screenContainer.style.removeProperty('padding-bottom');
+    }
+    
     const chatScreen = document.querySelector('.screen[data-screen="chat"]');
     if (chatScreen) {
-        chatScreen.style.setProperty('display', 'block', 'important');
+        chatScreen.style.removeProperty('display'); 
         chatScreen.style.removeProperty('flex-direction');
         chatScreen.style.removeProperty('height');
-        chatScreen.style.removeProperty('flex');
         chatScreen.style.removeProperty('padding-bottom');
     }
     
-    renderChatList(); 
+    if (typeof renderChatList === 'function') renderChatList(); 
 };
 
 // === 4. РЕНДЕР СООБЩЕНИЙ ===
