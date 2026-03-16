@@ -79,48 +79,44 @@ window.openChat = function(botId) {
     chat.hasUnread = false;
     if (typeof updateChatBadge === 'function') updateChatBadge();
     
-    // Прячем список чатов и нижнее меню
+    // Прячем списки чатов и меню
     document.getElementById('chat-list-view').style.display = 'none';
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    // 1. Главный контейнер телефона (делаем его гибким)
-    const screenContainer = document.getElementById('screen-container');
-    if (screenContainer) {
-        screenContainer.style.setProperty('display', 'flex', 'important');
-        screenContainer.style.setProperty('flex-direction', 'column', 'important');
-        screenContainer.style.setProperty('padding-bottom', '15px', 'important'); // Воздух снизу
-        screenContainer.style.setProperty('overflow-y', 'hidden', 'important'); // Запрещаем двойной скролл
-    }
-    
-    // 2. Вкладка Chat (заставляем занять 100% высоты)
-    const chatScreen = document.querySelector('.screen[data-screen="chat"]');
-    if (chatScreen) {
-        chatScreen.style.setProperty('display', 'flex', 'important');
-        chatScreen.style.setProperty('flex-direction', 'column', 'important');
-        chatScreen.style.setProperty('flex', '1', 'important');
-        chatScreen.style.setProperty('padding-top', '0px', 'important'); // Убираем стандартный отступ сверху
-    }
-    
-    // 3. Само окно активного диалога
+    // === ЭКСТРЕМАЛЬНО ЖЕСТКИЙ ФИКС ДЛЯ МОБИЛОК ===
     const chatView = document.getElementById('active-chat-view');
-    if (chatView) {
-        chatView.style.setProperty('display', 'flex', 'important');
-        chatView.style.setProperty('flex-direction', 'column', 'important');
-        chatView.style.setProperty('flex', '1', 'important');
-        if (chatView.lastElementChild) {
-            chatView.lastElementChild.style.removeProperty('margin-top'); // Убираем тот самый костыль!
-        }
-    }
     
-    // 4. Контейнер с историей сообщений (он заберет всё свободное место и вытолкнет инпут вниз)
+    // ОТРЫВАЕМ окно чата и фиксируем его по краям физического экрана
+    chatView.style.setProperty('position', 'fixed', 'important');
+    chatView.style.setProperty('top', '0', 'important');
+    chatView.style.setProperty('left', '0', 'important');
+    chatView.style.setProperty('right', '0', 'important');
+    chatView.style.setProperty('bottom', '0', 'important');
+    chatView.style.setProperty('z-index', '99999', 'important'); // Поверх всего
+    chatView.style.setProperty('background', 'var(--bg-phone)', 'important');
+    
+    // Делаем его гибким контейнером
+    chatView.style.setProperty('display', 'flex', 'important');
+    chatView.style.setProperty('flex-direction', 'column', 'important');
+    
+    // ДОБАВЛЯЕМ ВОЗДУХ (твои 15px по кругу)
+    chatView.style.setProperty('padding', '15px', 'important');
+    chatView.style.setProperty('box-sizing', 'border-box', 'important');
+    
+    // Жестко заставляем контейнер с сообщениями занять всё свободное место посередине
     const messagesBox = document.getElementById('chat-messages-container');
     if (messagesBox) {
         messagesBox.style.setProperty('flex', '1', 'important');
         messagesBox.style.setProperty('overflow-y', 'auto', 'important');
     }
     
-    // Подставляем аватарку и имя
+    // Убираем старые костыли инпута, если они есть
+    if (chatView.lastElementChild) {
+        chatView.lastElementChild.style.removeProperty('margin-top');
+    }
+    
+    // Подтягиваем имя и аватар
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
     document.getElementById('active-chat-name').innerHTML = `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
@@ -133,29 +129,22 @@ window.closeChat = function() {
     document.getElementById('chat-list-view').style.display = 'block';
     
     const chatView = document.getElementById('active-chat-view');
-    if (chatView) chatView.style.display = 'none';
+    
+    // ОЧИЩАЕМ ВСЕ ЖЕСТКИЕ СТИЛИ ПРИ ВЫХОДЕ ИЗ ЧАТА
+    chatView.style.display = 'none';
+    chatView.style.removeProperty('position');
+    chatView.style.removeProperty('top');
+    chatView.style.removeProperty('left');
+    chatView.style.removeProperty('right');
+    chatView.style.removeProperty('bottom');
+    chatView.style.removeProperty('z-index');
+    chatView.style.removeProperty('background');
+    chatView.style.removeProperty('padding');
+    chatView.style.removeProperty('box-sizing');
     
     // Возвращаем меню
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'flex';
-    
-    // Очищаем стили главного контейнера
-    const screenContainer = document.getElementById('screen-container');
-    if (screenContainer) {
-        screenContainer.style.removeProperty('display');
-        screenContainer.style.removeProperty('flex-direction');
-        screenContainer.style.removeProperty('padding-bottom');
-        screenContainer.style.removeProperty('overflow-y');
-    }
-    
-    // Возвращаем вкладку Chat в обычный режим
-    const chatScreen = document.querySelector('.screen[data-screen="chat"]');
-    if (chatScreen) {
-        chatScreen.style.setProperty('display', 'block', 'important'); 
-        chatScreen.style.removeProperty('flex-direction');
-        chatScreen.style.removeProperty('flex');
-        chatScreen.style.removeProperty('padding-top');
-    }
     
     if (typeof renderChatList === 'function') renderChatList(); 
 };
