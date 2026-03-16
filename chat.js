@@ -76,25 +76,25 @@ window.openChat = function(botId) {
     currentActiveChatId = botId;
     const chat = state.chats[botId];
     
-    // СНИМАЕМ СТАТУС НЕПРОЧИТАННОГО
+    // Снимаем бейдж непрочитанных
     chat.hasUnread = false;
     updateChatBadge();
     
     document.getElementById('chat-list-view').style.display = 'none';
     document.getElementById('active-chat-view').style.display = 'flex';
     
-    // Ставим лицо в кружок
+    // Подтягиваем аватарку и имя
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
-    
-    // Ставим имя и флаг рядом
     document.getElementById('active-chat-name').innerHTML = `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
     
-    // === 🛠 МАГИЯ ИНТЕРФЕЙСА: ПРЯЧЕМ МЕНЮ ===
+    // === 🛠 МАГИЯ ДЛЯ МОБИЛОК: ПРЯЧЕМ МЕНЮ И ОТСТУП ===
     const nav = document.querySelector('.bottom-nav');
-    const screen = document.getElementById('screen-container');
     if (nav) nav.style.display = 'none'; // Скрываем нижний бар
-    if (screen) screen.style.setProperty('padding-bottom', '20px', 'important'); // Убираем огромный отступ снизу
+    
+    // Ищем контейнер экрана чата и жестко стираем у него нижний отступ, чтобы инпут упал вниз
+    const chatScreen = document.querySelector('.screen[data-screen="chat"]');
+    if (chatScreen) chatScreen.style.setProperty('padding-bottom', '10px', 'important');
     
     renderMessages();
 };
@@ -106,9 +106,11 @@ window.closeChat = function() {
     
     // === 🛠 ВОЗВРАЩАЕМ МЕНЮ НА МЕСТО ===
     const nav = document.querySelector('.bottom-nav');
-    const screen = document.getElementById('screen-container');
-    if (nav) nav.style.display = 'flex'; // Показываем бар
-    if (screen) screen.style.removeProperty('padding-bottom'); // Возвращаем дефолтный отступ из CSS
+    if (nav) nav.style.display = 'flex'; // Возвращаем нижний бар
+    
+    // Возвращаем отступ экрану
+    const chatScreen = document.querySelector('.screen[data-screen="chat"]');
+    if (chatScreen) chatScreen.style.removeProperty('padding-bottom');
     
     renderChatList(); 
 };
