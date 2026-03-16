@@ -101,10 +101,9 @@ window.openChat = function(botId) {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    // === ЛЕЧИМ ВОЗДУШНЫЙ ИНПУТ ДЛЯ МОБИЛОК ===
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
-        // Делаем главный экран гибким и запрещаем ему скроллиться (скроллится только чат)
+        // Делаем главный экран резиновым (flex) и запрещаем ему прокручиваться (скролл будет только внутри чата)
         screenContainer.style.setProperty('display', 'flex', 'important');
         screenContainer.style.setProperty('flex-direction', 'column', 'important');
         screenContainer.style.setProperty('overflow-y', 'hidden', 'important');
@@ -115,7 +114,8 @@ window.openChat = function(botId) {
     if (chatScreen) {
         chatScreen.style.setProperty('display', 'flex', 'important');
         chatScreen.style.setProperty('flex-direction', 'column', 'important');
-        chatScreen.style.setProperty('flex', '1', 'important'); // Заставляем экран заполнить всю пустоту!
+        // flex: 1 - вот эта магия прижмет инпут ко дну на мобилках!
+        chatScreen.style.setProperty('flex', '1', 'important'); 
         chatScreen.style.setProperty('height', '100%', 'important');
         chatScreen.style.setProperty('padding-bottom', '0px', 'important'); 
     }
@@ -135,7 +135,7 @@ window.closeChat = function() {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'flex';
     
-    // === ВОЗВРАЩАЕМ КАК БЫЛО ПРИ ВЫХОДЕ ИЗ ЧАТА ===
+    // Возвращаем экрану исходные настройки
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
         screenContainer.style.removeProperty('display');
