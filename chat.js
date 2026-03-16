@@ -75,7 +75,6 @@ window.renderChatList = function() {
 window.openChat = function(botId) {
     currentActiveChatId = botId;
     const chat = state.chats[botId];
-    
     chat.hasUnread = false;
     if (typeof updateChatBadge === 'function') updateChatBadge();
     
@@ -84,44 +83,32 @@ window.openChat = function(botId) {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    // === ЭКСТРЕМАЛЬНО ЖЕСТКИЙ ФИКС ДЛЯ МОБИЛОК ===
+    // Показываем окно активного чата
     const chatView = document.getElementById('active-chat-view');
+    chatView.style.display = 'flex';
     
-    // ОТРЫВАЕМ окно чата и фиксируем его по краям физического экрана
-    chatView.style.setProperty('position', 'fixed', 'important');
-    chatView.style.setProperty('top', '0', 'important');
-    chatView.style.setProperty('left', '0', 'important');
-    chatView.style.setProperty('right', '0', 'important');
-    chatView.style.setProperty('bottom', '0', 'important');
-    chatView.style.setProperty('z-index', '99999', 'important'); // Поверх всего
-    chatView.style.setProperty('background', 'var(--bg-phone)', 'important');
-    
-    // Делаем его гибким контейнером
-    chatView.style.setProperty('display', 'flex', 'important');
-    chatView.style.setProperty('flex-direction', 'column', 'important');
-    
-    // ДОБАВЛЯЕМ ВОЗДУХ (твои 15px по кругу)
-    chatView.style.setProperty('padding', '15px', 'important');
-    chatView.style.setProperty('box-sizing', 'border-box', 'important');
-    
-    // Жестко заставляем контейнер с сообщениями занять всё свободное место посередине
-    const messagesBox = document.getElementById('chat-messages-container');
-    if (messagesBox) {
-        messagesBox.style.setProperty('flex', '1', 'important');
-        messagesBox.style.setProperty('overflow-y', 'auto', 'important');
-    }
-    
-    // Убираем старые костыли инпута, если они есть
-    if (chatView.lastElementChild) {
-        chatView.lastElementChild.style.removeProperty('margin-top');
-    }
-    
-    // Подтягиваем имя и аватар
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
     document.getElementById('active-chat-name').innerHTML = `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
     
     if (typeof renderMessages === 'function') renderMessages();
+};
+
+window.closeChat = function() {
+    currentActiveChatId = null;
+    
+    // Возвращаем список чатов
+    document.getElementById('chat-list-view').style.display = 'block';
+    
+    // Прячем окно диалога
+    const chatView = document.getElementById('active-chat-view');
+    chatView.style.display = 'none';
+    
+    // Возвращаем меню
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) nav.style.display = 'flex';
+    
+    if (typeof renderChatList === 'function') renderChatList(); 
 };
 
 window.closeChat = function() {

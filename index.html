@@ -90,18 +90,23 @@
             </div>
             
             <div id="tracking-preview-list" style="display: flex; flex-direction: column; gap: 6px;">
-              <div style="background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit</div>
+              <div style="background: var(--bg-input); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit</div>
             </div>
           </div>
         
-          <div class="section-block clickable-block" style="margin-top: 15px;">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: var(--text-main); font-weight: 600;">Leaderboard 🏆</span>
-              <span class="expand-trigger">⬇️</span>
+          <div class="section-block clickable-block" id="leaderboard-block" style="display: block; margin-top: 15px; margin-bottom: 15px; cursor: pointer; padding: 14px;" onclick="openLeaderboardModal()">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: var(--text-main); font-weight: 900; font-size: 16px;">Leaderboard 🏆</span>
+              <span style="background: var(--bg-flag-circle); color: var(--text-sub); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase;">Top 3</span>
             </div>
-            <div class="extra-content">
-              <p class="small-text" style="margin-bottom: 10px;">Top postcrossers around the world. Send more postcards to climb the ranks!</p>
-              <ol class="leaderboard" id="leaderboard-list"></ol>
+            
+            <div id="mini-leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+              <div style="text-align: center; color: #aaa; font-size: 12px; padding: 10px;">Loading ranks...</div>
+            </div>
+            
+            <div style="border-top: 1px dashed var(--border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; font-weight: bold; color: var(--text-sub);">Your Rank:</span>
+              <span id="my-mini-rank" style="font-size: 14px; font-weight: 900; color: var(--primary); background: #fff5eb; padding: 2px 8px; border-radius: 8px;">#?</span>
             </div>
           </div>
         </section>
@@ -464,6 +469,19 @@
           </div>
           <div style="overflow-y: auto; padding-right: 5px; padding-bottom: 10px;">
             <div id="modal-flags-grid" class="flag-grid" style="gap: 12px; justify-content: center;"></div>
+          </div>
+        </div>
+      </div>
+      <div id="modal-leaderboard" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+        <div class="custom-alert-box" style="width: 90%; max-height: 90vh !important; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
+            <h3 style="margin: 0; color: var(--text-main); font-size: 18px; font-weight: 900;">Global Rank 🏆</h3>
+            <button onclick="closeLeaderboardModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+            <div id="full-leaderboard-list" style="display: flex; flex-direction: column; gap: 6px;">
+              </div>
           </div>
         </div>
       </div>

@@ -375,57 +375,81 @@ function refreshAllLists() {
 
     const playerIndex = combinedLeaderboard.findIndex(p => p.isUser);
     const playerRank = playerIndex + 1;
-    const top10 = combinedLeaderboard.slice(0, 10);
 
-    const listContainer = document.getElementById("leaderboard-list");
-    if (listContainer) {
-        let html = top10.map((player, index) => {
+    // === 1. ВЫВОДИМ ТОП-3 НА ГЛАВНЫЙ ЭКРАН (ПЬЕДЕСТАЛ) ===
+    const miniContainer = document.getElementById("mini-leaderboard-list");
+    if (miniContainer) {
+        const top3 = combinedLeaderboard.slice(0, 3);
+        miniContainer.innerHTML = top3.map((player, index) => {
+            const medals = ["🥇", "🥈", "🥉"];
+            const isUserStr = player.isUser ? 'font-weight: 900; color: var(--primary);' : 'font-weight: 600; color: var(--text-main);';
+            return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-phone); border-radius: 8px; border: 1px solid var(--border-input);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px; width: 20px; text-align: center;">${medals[index]}</span>
+                    <span style="${isUserStr} font-size: 13px;">${player.name} <span style="font-size: 11px;">${player.flag || ''}</span></span>
+                </div>
+                <span style="font-size: 12px; font-weight: bold; color: var(--text-sub);">${player.score} pt</span>
+            </div>`;
+        }).join('');
+    }
+
+    // Обновляем твой ранг на плашке
+    const myMiniRank = document.getElementById("my-mini-rank");
+    if (myMiniRank) myMiniRank.textContent = `#${playerRank}`;
+
+    // === 2. ВЫВОДИМ ПОЛНЫЙ ТОП-10 В МОДАЛЬНОЕ ОКНО ===
+    const fullContainer = document.getElementById("full-leaderboard-list");
+    if (fullContainer) {
+        const top10 = combinedLeaderboard.slice(0, 10);
+        let fullHtml = top10.map((player, index) => {
             const rank = index + 1;
             let rankBadge = `${rank}.`;
             if (rank === 1) rankBadge = "🥇";
             if (rank === 2) rankBadge = "🥈";
             if (rank === 3) rankBadge = "🥉";
 
-            const bgStyle = player.isUser ? 'background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px solid #f39c12;' : 'padding: 8px 0; border-bottom: 1px solid #eee;';
-            const nameWeight = player.isUser ? 'font-weight: 900; color: #d35400;' : 'font-weight: 600; color: #333;';
+            const bgStyle = player.isUser ? 'background: #ffebd6; border-radius: 10px; padding: 10px; border: 1px solid #f39c12;' : 'padding: 10px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);';
+            const nameWeight = player.isUser ? 'font-weight: 900; color: #d35400;' : 'font-weight: 600; color: var(--text-main);';
 
             return `
-                <li class="leaderboard-item" style="${bgStyle} display: flex; justify-content: space-between; align-items: center; list-style: none;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
-                        <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ''}</span>
-                    </div>
-                    <div style="text-align: right; display: flex; flex-direction: column;">
-                        <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
-                            ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
-                        </span>
-                        <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
-                            ${player.sent} sent • ${player.countries} countries
-                        </span>
-                    </div>
-                </li>`;
+            <div style="${bgStyle} display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
+                    <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ''}</span>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="color: #e67e22; font-weight: bold; font-size: 13px;">
+                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
+                    </span>
+                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
+                        ${player.sent} sent • ${player.countries} countries
+                    </span>
+                </div>
+            </div>`;
         }).join('');
 
+        // Если игрок не вошел в Топ-10, приклеиваем его в самый низ
         if (playerRank > 10) {
             const player = combinedLeaderboard[playerIndex];
-            html += `
-                <li style="text-align: center; color: #aaa; font-size: 14px; margin: 4px 0; list-style: none;">•••</li>
-                <li class="leaderboard-item" style="background: #ffebd6; border-radius: 8px; padding: 8px; border: 1px dashed #f39c12; display: flex; justify-content: space-between; align-items: center; list-style: none;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${playerRank}.</span>
-                        <span style="font-weight: 900; color: #d35400; font-size: 14px;">${player.name} ${player.flag || ''}</span>
-                    </div>
-                    <div style="text-align: right; display: flex; flex-direction: column;">
-                        <span class="leaderboard-stats" style="color: #e67e22; font-weight: bold; font-size: 13px;">
-                            ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
-                        </span>
-                        <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
-                            ${player.sent} sent • ${player.countries} countries
-                        </span>
-                    </div>
-                </li>`;
+            fullHtml += `
+            <div style="text-align: center; color: #aaa; font-size: 14px; margin: 4px 0;">•••</div>
+            <div style="background: #ffebd6; border-radius: 10px; padding: 10px; border: 1px dashed #f39c12; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${playerRank}.</span>
+                    <span style="font-weight: 900; color: #d35400; font-size: 14px;">${player.name} ${player.flag || ''}</span>
+                </div>
+                <div style="text-align: right; display: flex; flex-direction: column;">
+                    <span style="color: #e67e22; font-weight: bold; font-size: 13px;">
+                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
+                    </span>
+                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
+                        ${player.sent} sent • ${player.countries} countries
+                    </span>
+                </div>
+            </div>`;
         }
-        listContainer.innerHTML = html;
+        fullContainer.innerHTML = fullHtml;
     }
 
     // === MICRO-UI КОЛЛЕКЦИЯ ===
@@ -482,11 +506,12 @@ window.openGalleryModal = function(isReceived, filterFlag = null) {
         ? `${filterFlag} ${isReceived ? "Received" : "Sent"} Archive` 
         : (isReceived ? "Received 📥" : "Sent 📤");
 
-    grid.className = ''; 
-    grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
-    grid.style.gap = '8px';
-    grid.style.alignContent = 'start'; 
+        grid.className = ''; 
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
+        grid.style.gap = '12px'; // Увеличил отступ между самими карточками
+        grid.style.alignContent = 'start'; 
+        grid.style.padding = '8px'; // ДОБАВИЛИ ВОЗДУХ по краям для пульсации 
 
     grid.innerHTML = filteredArray.map(item => {
         const flag = item.card.countryFlag || item.card.flag || '🌍';
@@ -1485,3 +1510,17 @@ setInterval(window.updateTrackingPreviewWidget, 1000);
 
 // Вызываем один раз сразу при загрузке страницы
 document.addEventListener('DOMContentLoaded', window.updateTrackingPreviewWidget);
+
+window.openLeaderboardModal = function() {
+    const modal = document.getElementById('modal-leaderboard');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+};
+
+window.closeLeaderboardModal = function() {
+    const modal = document.getElementById('modal-leaderboard');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};

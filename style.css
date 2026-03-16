@@ -1357,8 +1357,8 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   }
   
   .minimal-tracking-item {
-    background: var(--bg-phone);
-    border: 1px solid var(--border);
+    background: var(--bg-input); /* Умный фон плашки */
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     padding: 8px;
     margin-bottom: 8px;
@@ -1386,8 +1386,8 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   .minimal-tracking-time {
     font-size: 10px;
     font-weight: 700;
-    color: #e67e22;
-    background: #fff5eb;
+    color: var(--primary); /* Умный цвет текста */
+    background: var(--bg-flag-circle); /* Умный цвет подложки времени */
     padding: 2px 6px;
     border-radius: 6px;
   }
@@ -1395,7 +1395,7 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   .minimal-progress-bg {
     width: 100%;
     height: 4px;
-    background: var(--border);
+    background: var(--border-input); /* Умный фон пустой полоски прогресса */
     border-radius: 2px;
     overflow: hidden;
   }
@@ -1509,4 +1509,10 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   animation: breathingGlow 2s infinite ease-in-out !important;
   border-color: var(--primary) !important;
   z-index: 10;
+}
+/* Принудительно чиним цвета для пустой плашки в Live Tracking */
+#tracking-preview-list > div {
+  background: var(--bg-phone) !important; 
+  color: var(--text-main) !important;
+  border-color: var(--border) !important;
 }

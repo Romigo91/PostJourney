@@ -375,8 +375,10 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
         const progressBar = document.getElementById('stamp-progress-bar');
         const progressPercent = document.getElementById('stamp-progress-percent');
 
+        // === ИСПРАВЛЕНИЕ ЗДЕСЬ: Меняем текст самой кнопки, а не ищем несуществующий span ===
         btnGenerateStamp.disabled = true;
-        btnGenerateStamp.querySelector('span').textContent = "⌛ Painting...";
+        btnGenerateStamp.textContent = "⌛ Painting..."; 
+        
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
         progressPercent.innerText = "0%";
@@ -428,8 +430,9 @@ if (stampGrid && aiStampConstructor && btnGenerateStamp) {
             clearInterval(progressInterval);
             showAppAlert("Generation failed: " + e.message);
         } finally {
+            // === ИСПРАВЛЕНИЕ ЗДЕСЬ ТОЖЕ ===
             btnGenerateStamp.disabled = false;
-            btnGenerateStamp.querySelector('span').textContent = "🎨 Generate Stamp (50 Energy)";
+            btnGenerateStamp.textContent = "🎨 Generate Stamp (50⚡)";
             setTimeout(() => progressContainer.style.display = 'none', 1000);
         }
     });
