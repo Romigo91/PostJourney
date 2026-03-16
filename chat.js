@@ -101,11 +101,11 @@ window.openChat = function(botId) {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    // === ИСПРАВЛЕНИЕ ТУТ: Убираем "подушку" в 120px у главного экрана ===
+    
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
-        // Ставим 20px, чтобы инпут был ровно на той же высоте, где было меню
-        screenContainer.style.setProperty('padding-bottom', '20px', 'important');
+        // Убираем гигантский отступ и оставляем аккуратные 15px
+        screenContainer.style.setProperty('padding-bottom', '15px', 'important');
     }
     
     const chatScreen = document.querySelector('.screen[data-screen="chat"]');
@@ -131,9 +131,9 @@ window.closeChat = function() {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'flex';
     
-    // === ИСПРАВЛЕНИЕ ТУТ: Возвращаем "подушку" для меню ===
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
+        // Удаляем наше правило, чтобы вернулся стандартный отступ для меню
         screenContainer.style.removeProperty('padding-bottom');
     }
     
