@@ -76,25 +76,33 @@ window.openChat = function(botId) {
     currentActiveChatId = botId;
     const chat = state.chats[botId];
     
-    // Снимаем бейдж непрочитанных
     chat.hasUnread = false;
     updateChatBadge();
     
     document.getElementById('chat-list-view').style.display = 'none';
-    document.getElementById('active-chat-view').style.display = 'flex';
     
-    // Подтягиваем аватарку и имя
+    // Делаем сам контейнер чата "резиновым"
+    const chatView = document.getElementById('active-chat-view');
+    chatView.style.display = 'flex';
+    chatView.style.flex = '1';
+    
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
     document.getElementById('active-chat-name').innerHTML = `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
     
-    // === 🛠 МАГИЯ ДЛЯ МОБИЛОК: ПРЯЧЕМ МЕНЮ И ОТСТУП ===
+    // Прячем меню
     const nav = document.querySelector('.bottom-nav');
-    if (nav) nav.style.display = 'none'; // Скрываем нижний бар
+    if (nav) nav.style.display = 'none'; 
     
-    // Ищем контейнер экрана чата и жестко стираем у него нижний отступ, чтобы инпут упал вниз
+    // 🛠 МАГИЯ ДЛЯ МОБИЛОК: Жестко растягиваем экран на всю высоту
     const chatScreen = document.querySelector('.screen[data-screen="chat"]');
-    if (chatScreen) chatScreen.style.setProperty('padding-bottom', '10px', 'important');
+    if (chatScreen) {
+        chatScreen.style.setProperty('display', 'flex', 'important');
+        chatScreen.style.setProperty('flex-direction', 'column', 'important');
+        chatScreen.style.setProperty('height', '100%', 'important');
+        chatScreen.style.setProperty('flex', '1', 'important'); // Заставляем вытянуться до самого низа
+        chatScreen.style.setProperty('padding-bottom', '15px', 'important');
+    }
     
     renderMessages();
 };
@@ -104,13 +112,19 @@ window.closeChat = function() {
     document.getElementById('chat-list-view').style.display = 'block';
     document.getElementById('active-chat-view').style.display = 'none';
     
-    // === 🛠 ВОЗВРАЩАЕМ МЕНЮ НА МЕСТО ===
+    // Возвращаем меню
     const nav = document.querySelector('.bottom-nav');
-    if (nav) nav.style.display = 'flex'; // Возвращаем нижний бар
+    if (nav) nav.style.display = 'flex';
     
-    // Возвращаем отступ экрану
+    // 🛠 Возвращаем экрану исходные стили
     const chatScreen = document.querySelector('.screen[data-screen="chat"]');
-    if (chatScreen) chatScreen.style.removeProperty('padding-bottom');
+    if (chatScreen) {
+        chatScreen.style.setProperty('display', 'block', 'important');
+        chatScreen.style.removeProperty('flex-direction');
+        chatScreen.style.removeProperty('height');
+        chatScreen.style.removeProperty('flex');
+        chatScreen.style.removeProperty('padding-bottom');
+    }
     
     renderChatList(); 
 };
