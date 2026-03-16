@@ -88,7 +88,7 @@ window.openChat = function(botId) {
     chatView.style.flex = '1';
     chatView.style.height = '100%';
     
-    const messagesBox = document.getElementById('chat-messages-container'); // Исправил ID на правильный
+    const messagesBox = document.getElementById('chat-messages-container');
     if (messagesBox) {
         messagesBox.style.flex = '1';
     }
@@ -101,10 +101,13 @@ window.openChat = function(botId) {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'none'; 
     
-    
+    // === ЛЕЧИМ ВОЗДУШНЫЙ ИНПУТ ДЛЯ МОБИЛОК ===
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
-        // Убираем гигантский отступ и оставляем аккуратные 15px
+        // Делаем главный экран гибким и запрещаем ему скроллиться (скроллится только чат)
+        screenContainer.style.setProperty('display', 'flex', 'important');
+        screenContainer.style.setProperty('flex-direction', 'column', 'important');
+        screenContainer.style.setProperty('overflow-y', 'hidden', 'important');
         screenContainer.style.setProperty('padding-bottom', '15px', 'important');
     }
     
@@ -112,8 +115,9 @@ window.openChat = function(botId) {
     if (chatScreen) {
         chatScreen.style.setProperty('display', 'flex', 'important');
         chatScreen.style.setProperty('flex-direction', 'column', 'important');
+        chatScreen.style.setProperty('flex', '1', 'important'); // Заставляем экран заполнить всю пустоту!
         chatScreen.style.setProperty('height', '100%', 'important');
-        chatScreen.style.setProperty('padding-bottom', '0px', 'important'); // Обнулили для плотного прилегания
+        chatScreen.style.setProperty('padding-bottom', '0px', 'important'); 
     }
     
     if (typeof renderMessages === 'function') renderMessages();
@@ -131,9 +135,12 @@ window.closeChat = function() {
     const nav = document.querySelector('.bottom-nav');
     if (nav) nav.style.display = 'flex';
     
+    // === ВОЗВРАЩАЕМ КАК БЫЛО ПРИ ВЫХОДЕ ИЗ ЧАТА ===
     const screenContainer = document.getElementById('screen-container');
     if (screenContainer) {
-        // Удаляем наше правило, чтобы вернулся стандартный отступ для меню
+        screenContainer.style.removeProperty('display');
+        screenContainer.style.removeProperty('flex-direction');
+        screenContainer.style.removeProperty('overflow-y');
         screenContainer.style.removeProperty('padding-bottom');
     }
     
@@ -141,6 +148,7 @@ window.closeChat = function() {
     if (chatScreen) {
         chatScreen.style.removeProperty('display'); 
         chatScreen.style.removeProperty('flex-direction');
+        chatScreen.style.removeProperty('flex'); 
         chatScreen.style.removeProperty('height');
         chatScreen.style.removeProperty('padding-bottom');
     }
