@@ -61,7 +61,7 @@
 /* ==========================================================================
    ФИКС ДЛЯ ДЕСКТОПА: МАКСИМАЛЬНАЯ ШИРИНА 1200px
    ========================================================================== */
-   @media (min-width: 400px) {
+   @media (min-width: 300px) {
   
     /* 1. Настраиваем фон за пределами приложения (по бокам) */
     body {
@@ -71,13 +71,14 @@
   
     /* 2. Ограничиваем само приложение */
     .app-root {
-      width: 100% !important;
-      max-width: 1200px !important; /* ЖЕСТКИЙ ЛИМИТ ШИРИНЫ */
-      min-height: 100vh !important;
-      padding: 0 !important;
-      background: var(--bg-phone) !important; /* Возвращаем родной цвет фона приложения */
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.05) !important; /* Легкая тень, чтобы отделить от полей */
-      position: relative !important;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%; /* Полный вертикальный филл */
+      width: 100%;
+      padding: 0; /* Убираем отступы вокруг приложения на телефоне */
+      box-sizing: border-box;
+      overflow: hidden;
     }
   }
   
