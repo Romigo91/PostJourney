@@ -64,7 +64,7 @@ function backToGames() {
 }
 
 // ==========================================
-// 3. ИГРА 1: GEO QUIZ (ВИНТАЖНЫЙ ДИЗАЙН)
+// 3. ИГРА 1: GEO QUIZ (ЧИСТЫЙ ДИЗАЙН)
 // ==========================================
 let quizScore = 0;
 let quizCombo = 0;
@@ -75,27 +75,24 @@ function startQuizGame() {
     
     const container = document.getElementById('game-content');
     
-    // Рисуем новый винтажный интерфейс
+    // Рисуем новый чистый интерфейс в стиле приложения
     container.innerHTML = `
-        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:#d35400; cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px; font-family:'Montserrat', sans-serif;">
-            <span style="font-size: 18px;">🏷️</span> Back to Menu
+        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px;">
+            <span style="font-size: 18px;">⬅️</span> Back to Menu
         </button>
         
-        <div class="quiz-game-wrapper" id="quiz-game-container">
+        <div id="quiz-game-container">
             
-            <div class="luggage-tags-container">
-                <div class="luggage-tag">SCORE: <span id="quiz-score">0</span></div>
-                <div class="luggage-tag combo">COMBO: <span id="quiz-combo">0</span>🔥</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px;">
+                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">SCORE: <span id="quiz-score" style="color: var(--primary);">0</span></div>
+                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">COMBO: <span id="quiz-combo" style="color: #e74c3c;">0</span>🔥</div>
             </div>
 
-            <div id="quiz-question-area" class="vintage-stamp-card">
-                <span class="stamp-decor decor-plane">✈️</span>
-                <span class="stamp-decor decor-globe">🌍</span>
-                
+            <div id="quiz-question-area">
                 <div id="quiz-question-content" style="z-index: 2;"></div>
             </div>
             
-            <div id="quiz-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 5px;"></div>
+            <div id="quiz-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 20px; padding-bottom: 5px;"></div>
         </div>
     `;
     
@@ -105,53 +102,70 @@ function startQuizGame() {
 }
 
 function nextQuizRound() {
+    // Выбираем случайную страну
     const correct = countryList[Math.floor(Math.random() * countryList.length)];
-    const isFlagQuestion = Math.random() > 0.5; 
     
-    let alternates;
-    if (isFlagQuestion) {
-        alternates = countryList.filter(c => c.name !== correct.name).sort(() => 0.5 - Math.random()).slice(0, 3);
-    } else {
-        alternates = countryList.filter(c => c.capital !== correct.capital).sort(() => 0.5 - Math.random()).slice(0, 3);
-    }
+    // МАГИЯ: 0 = Флаги, 1 = Столицы, 2 = Континенты
+    const questionType = Math.floor(Math.random() * 3); 
     
-    const options = [correct, ...alternates].sort(() => 0.5 - Math.random());
+    let optionsStrings = []; // Здесь будут лежать 4 варианта ответов (текстом)
+    let correctAnswerText = ""; // Правильный ответ (текстом)
     
     const questionCard = document.getElementById('quiz-question-area');
     const questionContent = document.getElementById('quiz-question-content');
     const grid = document.getElementById('quiz-options-grid');
     
-    // Анимация появления новой марки
-    questionCard.className = 'vintage-stamp-card';
+    // Анимация появления новой карточки (без винтажных классов)
+    questionCard.className = '';
     void questionCard.offsetWidth;
-    questionCard.className = 'vintage-stamp-card slide-in';
+    questionCard.className = 'slide-in';
     
-    // Рисуем вопрос
-    if (isFlagQuestion) {
-        // Заметка: если ОС не поддерживает эмодзи флага (как на твоем скрине с "TO"), 
-        // стилизация ниже сделает буквы красивыми и крупными.
+    if (questionType === 0) {
+        // === 1. ВОПРОС ПРО ФЛАГ ===
+        correctAnswerText = correct.name;
+        // Ищем 3 случайные неправильные страны
+        const alternates = countryList.filter(c => c.name !== correct.name).sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.name);
+        optionsStrings = [correctAnswerText, ...alternates].sort(() => 0.5 - Math.random());
+        
         questionContent.innerHTML = `
-            <div style="font-size: 90px; line-height: 1; text-shadow: 2px 2px 4px rgba(0,0,0,0.1); letter-spacing: -4px;">${correct.flag}</div>
-            <p class="quiz-question-title">Which country?</p>
+            <div style="font-size: 90px; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">${correct.flag}</div>
+            <div class="quiz-question-title">Which country?</div>
         `;
-    } else {
+
+    } else if (questionType === 1) {
+        // === 2. ВОПРОС ПРО СТОЛИЦУ ===
+        correctAnswerText = correct.capital;
+        // Ищем 3 случайные неправильные столицы
+        const alternates = countryList.filter(c => c.capital !== correct.capital).sort(() => 0.5 - Math.random()).slice(0, 3).map(c => c.capital);
+        optionsStrings = [correctAnswerText, ...alternates].sort(() => 0.5 - Math.random());
+        
         questionContent.innerHTML = `
-            <div style="font-size: 40px; line-height: 1; margin-bottom: 5px; opacity: 0.8;">📍</div>
-            <h2 style="margin: 0 0 5px 0; font-family: 'Playfair Display', serif; color: #3e2723; font-size: 26px;">${correct.name}</h2>
-            <p class="quiz-question-title" style="margin:0;">What is the capital?</p>
+            <div style="font-size: 40px; line-height: 1; margin-bottom: 10px;">📍</div>
+            <h2 style="margin: 0 0 5px 0; font-size: 22px; color: var(--text-main);">${correct.name}</h2>
+            <div class="quiz-question-title">What is the capital?</div>
+        `;
+
+    } else {
+        // === 3. ВОПРОС ПРО КОНТИНЕНТ ===
+        correctAnswerText = correct.continent;
+        const allContinents = ["Europe", "Asia", "Africa", "North America", "South America", "Oceania"];
+        // Ищем 3 случайных неправильных континента
+        const alternates = allContinents.filter(c => c !== correct.continent).sort(() => 0.5 - Math.random()).slice(0, 3);
+        optionsStrings = [correctAnswerText, ...alternates].sort(() => 0.5 - Math.random());
+        
+        questionContent.innerHTML = `
+            <div style="font-size: 60px; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 5px;">${correct.flag}</div>
+            <h2 style="margin: 0 0 5px 0; font-size: 20px; color: var(--text-main);">${correct.name}</h2>
+            <div class="quiz-question-title">Which continent?</div>
         `;
     }
     
     grid.innerHTML = '';
     
-    // Генерируем "деревянные" кнопки с ответами
-    options.forEach(opt => {
+    // Генерируем 4 чистые кнопки с ответами
+    optionsStrings.forEach(answerText => {
         const btn = document.createElement('button');
-        btn.className = 'wooden-stamp-btn';
-        
-        const answerText = isFlagQuestion ? opt.name : opt.capital;
-        const correctAnswerText = isFlagQuestion ? correct.name : correct.capital;
-        
+        btn.className = 'quiz-option-btn'; // <-- Используем наш новый CSS-класс
         btn.innerText = answerText;
         
         btn.onclick = () => {
@@ -159,9 +173,8 @@ function nextQuizRound() {
             btns.forEach(b => b.style.pointerEvents = 'none'); 
             
             if (answerText === correctAnswerText) {
-                // ПРАВИЛЬНО (Кнопка становится зеленой)
+                // ПРАВИЛЬНО
                 btn.classList.add('correct');
-                
                 quizScore += 1;
                 quizCombo += 1;
                 
@@ -180,18 +193,15 @@ function nextQuizRound() {
                 document.getElementById('quiz-score').innerText = quizScore;
                 document.getElementById('quiz-combo').innerText = quizCombo;
             } else {
-                // ОШИБКА (Кнопка краснеет, марка трясется)
+                // ОШИБКА
                 btn.classList.add('wrong');
-                
                 quizCombo = 0;
                 document.getElementById('quiz-combo').innerText = "0";
                 questionCard.classList.add('error-shake');
                 
-                // Подсвечиваем правильный ответ зеленым
+                // Подсвечиваем правильную кнопку
                 btns.forEach(b => {
-                    if (b.innerText === correctAnswerText) {
-                        b.classList.add('correct');
-                    }
+                    if (b.innerText === correctAnswerText) b.classList.add('correct');
                 });
             }
             setTimeout(nextQuizRound, 800);
@@ -200,143 +210,7 @@ function nextQuizRound() {
     });
 }
 
-// ==========================================
-// 5. ИГРА 2: POST OFFICE SORTER (ВИНТАЖНЫЙ ДИЗАЙН)
-// ==========================================
-let currentSorterContinent = "";
-let sorterScore = 0;
-let sorterCombo = 0;
-
-function startSorterGame() {
-    document.getElementById('games-menu-list').style.display = 'none';
-    document.getElementById('active-game-zone').style.display = 'block';
-
-    const container = document.getElementById('game-content');
-    
-    // ИСПРАВЛЕНИЕ: Добавили data-continent каждой кнопке, чтобы скрипт мог их находить
-    container.innerHTML = `
-        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:#d35400; cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px; font-family:'Montserrat', sans-serif;">
-            <span style="font-size: 18px;">🏷️</span> Back to Menu
-        </button>
-        
-        <div class="quiz-game-wrapper" id="sorter-game-container">
-            <div class="luggage-tags-container">
-                <div class="luggage-tag">SCORE: <span id="sorter-score">0</span></div>
-                <div class="luggage-tag combo">COMBO: <span id="sorter-combo">0</span>🔥</div>
-            </div>
-
-            <div id="sorter-letter" class="vintage-stamp-card" style="margin-bottom: 20px; min-height: 140px; padding: 15px;">
-                <span class="stamp-decor decor-plane">✉️</span>
-                <div id="sorter-destination" style="z-index: 2;">Loading...</div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 5px;">
-                <button class="wooden-stamp-btn" data-continent="Europe" onclick="checkSorterBin('Europe', this)">Europe</button>
-                <button class="wooden-stamp-btn" data-continent="Asia" onclick="checkSorterBin('Asia', this)">Asia</button>
-                <button class="wooden-stamp-btn" data-continent="Africa" onclick="checkSorterBin('Africa', this)">Africa</button>
-                <button class="wooden-stamp-btn" data-continent="North America" onclick="checkSorterBin('North America', this)">N. America</button>
-                <button class="wooden-stamp-btn" data-continent="South America" onclick="checkSorterBin('South America', this)">S. America</button>
-                <button class="wooden-stamp-btn" data-continent="Oceania" onclick="checkSorterBin('Oceania', this)">Oceania</button>
-            </div>
-        </div>
-    `;
-    
-    sorterScore = 0;
-    sorterCombo = 0;
-    nextSorterLetter();
-}
-
-function nextSorterLetter() {
-    const randomCountry = countryList[Math.floor(Math.random() * countryList.length)];
-    currentSorterContinent = randomCountry.continent;
-    
-    const letter = document.getElementById('sorter-letter');
-    
-    // ИСПРАВЛЕНИЕ: Жестко сбрасываем цвета (зеленый/красный) от прошлого ответа
-    letter.style.backgroundColor = '';
-    letter.style.borderColor = '';
-    
-    letter.className = 'vintage-stamp-card'; 
-    void letter.offsetWidth; 
-    letter.className = 'vintage-stamp-card slide-in'; 
-    
-    document.getElementById('sorter-destination').innerHTML = `
-        <div style="font-size: 50px; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">${randomCountry.flag}</div>
-        <div class="quiz-question-title" style="margin-top: 5px; font-size: 18px;">${randomCountry.name}</div>
-    `;
-
-    const btns = document.querySelectorAll('#sorter-game-container .wooden-stamp-btn');
-    btns.forEach(b => {
-        b.style.pointerEvents = 'auto';
-        b.classList.remove('correct', 'wrong');
-    });
-}
-
-function checkSorterBin(selectedContinent, btnElement) {
-    const letter = document.getElementById('sorter-letter');
-    const btns = document.querySelectorAll('#sorter-game-container .wooden-stamp-btn');
-    
-    // Блокируем кнопки
-    btns.forEach(b => b.style.pointerEvents = 'none');
-    
-    if (selectedContinent === currentSorterContinent) {
-        // === ПРАВИЛЬНЫЙ ОТВЕТ ===
-        if(btnElement) btnElement.classList.add('correct'); 
-        
-        sorterScore += 1;
-        sorterCombo += 1;
-        
-        let earnedEnergy = 5;
-        if (sorterCombo > 0 && sorterCombo % 5 === 0) {
-            earnedEnergy += 15;
-            showFloatingText("COMBO! +" + earnedEnergy + "⚡", "#e67e22", "sorter-game-container");
-        } else {
-            showFloatingText("+" + earnedEnergy + "⚡", "#27ae60", "sorter-game-container");
-        }
-        
-        state.energy += earnedEnergy;
-        const energyEl = document.getElementById('energy-display');
-        if(energyEl) energyEl.textContent = state.energy;
-        
-        document.getElementById('sorter-score').innerText = sorterScore;
-        document.getElementById('sorter-combo').innerText = sorterCombo;
-        
-        // Карточка зеленеет
-        letter.style.backgroundColor = '#e8f8f5';
-        letter.style.borderColor = '#27ae60';
-        
-        setTimeout(() => {
-            letter.className = 'vintage-stamp-card success-out';
-            setTimeout(() => {
-                nextSorterLetter(); // Сброс цветов теперь происходит внутри этой функции
-            }, 600);
-        }, 600);
-        
-    } else {
-        // === НЕПРАВИЛЬНЫЙ ОТВЕТ ===
-        if(btnElement) btnElement.classList.add('wrong'); 
-        
-        // Подсвечиваем правильную кнопку зеленым
-        btns.forEach(b => {
-            if (b.getAttribute('data-continent') === currentSorterContinent) {
-                b.classList.add('correct');
-            }
-        });
-
-        sorterCombo = 0; 
-        document.getElementById('sorter-combo').innerText = "0";
-        
-        // ИСПРАВЛЕНИЕ: Карточка краснеет! 🔴
-        letter.style.backgroundColor = '#fdedec';
-        letter.style.borderColor = '#e74c3c';
-        letter.className = 'vintage-stamp-card error-shake';
-
-        setTimeout(nextSorterLetter, 600);
-    }
-}
-
-
-
+// === БОНУС: Очищенная от винтажных шрифтов мини-игра Customs ===
 function nextCustomsRound() {
     currentCustomsAnswer = Math.random() > 0.5;
     
@@ -357,35 +231,37 @@ function nextCustomsRound() {
     const oldStamps = card.querySelectorAll('.stamp-effect');
     oldStamps.forEach(stamp => stamp.remove());
 
-    card.className = 'vintage-stamp-card';
+    // Убираем винтажную анимацию, оставляем простое появление
+    card.className = '';
     void card.offsetWidth;
-    card.className = 'vintage-stamp-card slide-in';
+    card.className = 'slide-in';
 
     const isFlagQuestion = Math.random() > 0.5;
 
+    // Используем системные шрифты и цвета из CSS переменных
     if (isFlagQuestion) {
         content.innerHTML = `
-            <div style="font-size: 70px; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);">${actualCountry.flag}</div>
-            <div style="font-size: 13px; color: var(--text-sub); margin-top: 5px; font-family: 'Montserrat', sans-serif;">This is the flag of</div>
-            <div style="font-size: 22px; font-weight: 900; color: #3e2723; margin-top: 2px; font-family: 'Playfair Display', serif;">${displayCountry.name}</div>
+            <div style="font-size: 70px; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">${actualCountry.flag}</div>
+            <div style="font-size: 13px; color: var(--text-sub); margin-top: 5px;">This is the flag of</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-top: 2px;">${displayCountry.name}</div>
         `;
     } else {
         content.innerHTML = `
-            <div style="font-size: 22px; font-weight: 900; color: #3e2723; margin-bottom: 5px; font-family: 'Playfair Display', serif;">${actualCountry.name}</div>
-            <div style="font-size: 13px; color: var(--text-sub); font-family: 'Montserrat', sans-serif;">Capital city is</div>
-            <div style="font-size: 26px; font-weight: bold; color: #d35400; margin-top: 2px; font-family: 'Playfair Display', serif;">${displayCountry.capital}</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text-main); margin-bottom: 5px;">${actualCountry.name}</div>
+            <div style="font-size: 13px; color: var(--text-sub);">Capital city is</div>
+            <div style="font-size: 26px; font-weight: 800; color: var(--primary); margin-top: 2px;">${displayCountry.capital}</div>
         `;
     }
 
     const btnReject = document.getElementById('btn-customs-reject');
     const btnApprove = document.getElementById('btn-customs-approve');
     
-    btnReject.disabled = false;
-    btnApprove.disabled = false;
+    if(btnReject) btnReject.disabled = false;
+    if(btnApprove) btnApprove.disabled = false;
     
     // Сбрасываем цвета кнопок
-    btnReject.classList.remove('correct', 'wrong');
-    btnApprove.classList.remove('correct', 'wrong');
+    if(btnReject) btnReject.classList.remove('correct', 'wrong');
+    if(btnApprove) btnApprove.classList.remove('correct', 'wrong');
 }
 
 function checkCustomsAnswer(playerAnswer, btnElement) {
@@ -399,7 +275,7 @@ function checkCustomsAnswer(playerAnswer, btnElement) {
     stamp.className = 'stamp-effect';
 
     if (isCorrect) {
-        if(btnElement) btnElement.classList.add('correct'); // Красим нажатую кнопку в зеленый
+        if(btnElement) btnElement.classList.add('correct'); 
         
         customsScore += 1;
         customsCombo += 1;
@@ -423,7 +299,7 @@ function checkCustomsAnswer(playerAnswer, btnElement) {
         stamp.innerText = playerAnswer ? "APPROVED" : "REJECTED";
         
     } else {
-        if(btnElement) btnElement.classList.add('wrong'); // Красим нажатую кнопку в красный
+        if(btnElement) btnElement.classList.add('wrong');
         customsCombo = 0;
         document.getElementById('customs-combo').innerText = "0";
         card.classList.add('error-shake'); 
