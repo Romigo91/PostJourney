@@ -139,7 +139,7 @@ function renderListComponent(containerId, items, templateFn) {
 }
 
 function showCustomAlert(icon, title, text, color = "#2980b9", onConfirm = null) {
-    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    const phoneFrame = document.body;
     const overlay = document.createElement('div');
     overlay.className = 'custom-alert-overlay';
     overlay.style.zIndex = '9999'; 
@@ -165,7 +165,7 @@ function showCustomAlert(icon, title, text, color = "#2980b9", onConfirm = null)
 
 // === ВСПЛЫВАЮЩАЯ ПЛАШКА СВЕРХУ (TOAST NOTIFICATION) ===
 function showToastNotification(message) {
-    const phoneFrame = document.querySelector('.phone-frame') || document.body;
+    const phoneFrame = document.body;
     
     const existingToast = document.querySelector('.custom-toast');
     if (existingToast) existingToast.remove();
@@ -1069,7 +1069,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnClearData) {
         btnClearData.addEventListener('click', () => {
-            const phoneFrame = document.querySelector('.phone-frame') || document.body;
+            const phoneFrame = document.body;
             const overlay = document.createElement('div');
             overlay.className = 'custom-alert-overlay';
             overlay.style.zIndex = '9999';
@@ -1139,7 +1139,7 @@ window.closeTrackingModal = function() {
 
     function checkOnboarding() {
         if (!state.profile.name || state.profile.name === "") {
-            const phoneFrame = document.querySelector('.phone-frame') || document.body;
+            const phoneFrame = document.body;
             const overlay = document.createElement('div');
             overlay.className = 'custom-alert-overlay';
             overlay.style.zIndex = '9999'; 
@@ -1228,7 +1228,7 @@ window.closeTrackingModal = function() {
             localStorage.setItem('lastRefillDate', today);
             syncAssets();
 
-            const phoneFrame = document.querySelector('.phone-frame') || document.body;
+            const phoneFrame = document.body;
             const overlay = document.createElement('div');
             overlay.className = 'custom-alert-overlay';
             overlay.innerHTML = `
@@ -1260,7 +1260,7 @@ window.closeTrackingModal = function() {
     }
 
     function openStoreModal() {
-        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const phoneFrame = document.body;
         const overlay = document.createElement('div');
         overlay.className = 'custom-alert-overlay store-overlay';
 
@@ -1331,7 +1331,7 @@ window.closeTrackingModal = function() {
             syncAssets();
         }
 
-        const phoneFrame = document.querySelector('.phone-frame') || document.body;
+        const phoneFrame = document.body;
         const successOverlay = document.createElement('div');
         successOverlay.className = 'custom-alert-overlay';
         
