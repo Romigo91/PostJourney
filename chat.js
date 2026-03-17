@@ -86,6 +86,11 @@ window.openChat = function(botId) {
     // Показываем окно активного чата
     const chatView = document.getElementById('active-chat-view');
     chatView.style.display = 'flex';
+
+    // === МАГИЯ РАСТЯЖЕНИЯ ===
+    // Вешаем класс, который растянет чат и уберет отступ меню
+    document.getElementById('screen-container').classList.add('chat-active-mode');
+    // ==========================
     
     const avatarFace = typeof window.getBotAvatar === 'function' ? window.getBotAvatar(chat.name) : chat.flag;
     document.getElementById('active-chat-avatar').textContent = avatarFace;
@@ -104,30 +109,13 @@ window.closeChat = function() {
     const chatView = document.getElementById('active-chat-view');
     chatView.style.display = 'none';
     
-    // Возвращаем меню
-    const nav = document.querySelector('.bottom-nav');
-    if (nav) nav.style.display = 'flex';
+    // === ОТКЛЮЧАЕМ МАГИЮ ===
+    // Убираем класс, чтобы вернуть отступы для нижнего меню
+    document.getElementById('screen-container').classList.remove('chat-active-mode');
     
-    if (typeof renderChatList === 'function') renderChatList(); 
-};
-
-window.closeChat = function() {
-    currentActiveChatId = null;
-    document.getElementById('chat-list-view').style.display = 'block';
-    
-    const chatView = document.getElementById('active-chat-view');
-    
-    // ОЧИЩАЕМ ВСЕ ЖЕСТКИЕ СТИЛИ ПРИ ВЫХОДЕ ИЗ ЧАТА
-    chatView.style.display = 'none';
+    // Очищаем жесткие стили (защита от багов)
     chatView.style.removeProperty('position');
-    chatView.style.removeProperty('top');
-    chatView.style.removeProperty('left');
-    chatView.style.removeProperty('right');
-    chatView.style.removeProperty('bottom');
     chatView.style.removeProperty('z-index');
-    chatView.style.removeProperty('background');
-    chatView.style.removeProperty('padding');
-    chatView.style.removeProperty('box-sizing');
     
     // Возвращаем меню
     const nav = document.querySelector('.bottom-nav');

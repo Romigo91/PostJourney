@@ -53,7 +53,7 @@
     background: var(--bg-body);
     min-height: 100vh;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* ВАЖНО: Прибиваем к верху вместо center */
     justify-content: center;
   }
 
@@ -61,15 +61,15 @@
   /* ==========================================================================
      2. ОБОЛОЧКА ТЕЛЕФОНА И ЭКРАНЫ (LAYOUT)
      ========================================================================== */
-  .app-root {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    width: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-  }
+     .app-root {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start; /* ВАЖНО: Прибиваем к верху вместо center */
+      min-height: 100vh;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
   
   
   @media (max-width: 450px) {
@@ -1505,3 +1505,30 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
   border-color: var(--border) !important;
 }
 
+/* ==========================================================================
+   ФИКС ДЛЯ АКТИВНОГО ЧАТА (Растягивание на 100% экрана)
+   ========================================================================== */
+   #screen-container.chat-active-mode {
+    padding-bottom: 12px !important; /* Убиваем фантомный отступ от спрятанного меню */
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 40px); /* 40px - это внешние отступы у app-root */
+}
+
+/* Прокидываем растяжение внутрь секции чата */
+#screen-container.chat-active-mode > section[data-screen="chat"] {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#active-chat-view {
+    flex: 1; /* Заставляем чат заполнить всё свободное пространство до низа */
+}
+
+/* На мобильных телефонах у app-root нет отступов, поэтому там чистые 100vh */
+@media (max-width: 450px) {
+    #screen-container.chat-active-mode {
+        min-height: 100vh; 
+    }
+}
