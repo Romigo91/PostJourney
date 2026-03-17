@@ -72,7 +72,7 @@
     /* 2. Ограничиваем само приложение */
     .app-root {
       width: 100% !important;
-      max-width: 1200px !important; /* ЖЕСТКИЙ ЛИМИТ ШИРИНЫ */
+      max-width: 1600px !important; /* ЖЕСТКИЙ ЛИМИТ ШИРИНЫ */
       min-height: 100vh !important;
       padding: 0 !important;
       background: var(--bg-phone) !important; /* Возвращаем родной цвет фона приложения */
