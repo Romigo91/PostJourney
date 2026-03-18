@@ -1,0 +1,64 @@
+/* ==========================================================================
+   HOME.CSS - ГЛАВНЫЙ ЭКРАН (ПРОФИЛЬ, АССЕТЫ, ЛИДЕРБОРД)
+   ========================================================================== */
+   .profile-card { 
+      display: flex; 
+      flex-direction: column; 
+      padding: 12px; 
+      position: relative; 
+      
+      /* Возвращаем пропавший визуал */
+      background: var(--bg-card);
+      border-radius: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+      transition: all 0.3s ease;
+    }
+   .profile-header-top { display: flex; align-items: center; gap: 12px; width: 100%; }
+   
+   /* Аватарка */
+   .avatar-circle { width: 48px; height: 48px; border-radius: 50%; background-color: var(--bg-accent); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-main); overflow: hidden !important; touch-action: none; user-select: none; -webkit-user-drag: none; background-size: cover; background-position: center; background-repeat: no-repeat; cursor: pointer; }
+   
+   /* Имя и страна */
+   .profile-info { display: block; margin: 0; padding: 0; }
+   .profile-name { margin: 0; line-height: 1; font-weight: 600; color: var(--text-main); font-size: 16px; }
+   .profile-country { display: inline-flex; align-items: center; justify-content: center; margin: 0; font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--primary); background: var(--bg-flag-circle); padding: 3px 8px; border-radius: 6px; letter-spacing: 0.5px; line-height: 1; }
+   
+   /* Теги (Интересы) */
+   .tags-full-width-container { display: flex; flex-wrap: nowrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 8px; padding: 0; overflow: hidden; }
+   .tag-mini { font-size: 9.5px; letter-spacing: -0.3px; font-weight: normal; color: var(--text-sub); background: transparent; border: none; padding: 0; box-shadow: none; white-space: nowrap; }
+   .tag-mini:not(:last-child)::after { content: "•"; color: var(--border); margin: 0 2px; }
+   
+   .tags-container-edit { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; }
+   .tag-selectable { font-size: 11px; padding: 4px 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 999px; cursor: pointer; color: var(--text-main); transition: all 0.2s ease; }
+   .tag-selectable.selected { background: var(--primary); color: #fff; border-color: var(--primary); transform: scale(1.05); }
+   
+   /* Выбор флага в профиле */
+   #input-country { width: 35px; height: 22px; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; touch-action: manipulation; outline: none; border: 1px solid var(--border); background: var(--bg-card); border-radius: 4px; caret-color: transparent; text-align: center; font-size: 12px; color: var(--text-main); }
+   #flag-picker-container { display: none; width: 100%; max-width: 100%; box-sizing: border-box; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 8px; }
+   .flag-grid-picker-style { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; padding: 8px; background: var(--bg-flag-picker); border: 1px solid var(--border); border-radius: 12px; max-height: 140px; overflow-y: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+   .flag-grid-picker-style::-webkit-scrollbar { display: none; }
+   #flag-grid-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; width: 100%; box-sizing: border-box; touch-action: pan-y; overflow-y: auto; max-height: 220px; -webkit-overflow-scrolling: touch; }
+   #flag-grid-picker span { cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; aspect-ratio: 1 / 1; -webkit-tap-highlight-color: transparent; user-select: none; border-radius: 6px; transition: transform 0.1s ease; min-width: 0; }
+   #flag-grid-picker span:active { transform: scale(1.2); background: rgba(216, 194, 165, 0.3); border-radius: 4px; }
+   
+   /* Ассеты и Трекинг на Главной */
+   .assets-row { display: flex; gap: 10px; margin-bottom: 16px; }
+   .asset-card { flex: 1; padding: 10px; border-radius: 14px; background: var(--bg-accent); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04); }
+   .asset-label { font-size: 12px; color: var(--text-sub); }
+   .asset-value { margin-top: 4px; font-size: 18px; font-weight: 700; color: var(--text-main); }
+   
+   .tracking-list { display: flex; flex-direction: column; gap: 8px; }
+   .tracking-card { padding: 10px 12px; border-radius: 14px; background: var(--bg-accent); display: flex; align-items: center; justify-content: space-between; }
+   .tracking-info { display: flex; flex-direction: column; gap: 2px; }
+   .tracking-title { font-size: 13px; font-weight: 600; color: var(--text-main); }
+   .tracking-subtitle { font-size: 11px; color: var(--text-status); }
+   .tracking-status { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--bg-card); color: var(--text-main); }
+   
+   #tracking-preview-list > div { background: var(--bg-phone) !important; color: var(--text-main) !important; border-color: var(--border) !important; }
+   
+   /* Лидерборд на Главной */
+   .leaderboard { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin-top: 4px; }
+   .leaderboard-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+   .leaderboard-name { font-weight: 600; color: var(--text-main); }
+   .leaderboard-stats { font-size: 11px; color: var(--text-sub); }

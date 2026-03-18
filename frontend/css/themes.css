@@ -1,0 +1,41 @@
+/* ==========================================================================
+   0. ПЕРЕМЕННЫЕ ТЕМ (ЦВЕТА)
+   ========================================================================== */
+   :root {
+    --bg-body: #f8e9d9;
+    --bg-phone: #fff7ec;
+    --bg-card: #ffffff;
+    --bg-accent: #ffd49b;
+    --bg-input: #fffaf2;
+    --bg-flag-picker: #fdfaf5;
+    --bg-flag-circle: #ffe7c8;
+    --text-main: #7b4d28;
+    --text-sub: #a57a4d;
+    --text-title: #5d4037;
+    --text-status: #8b6b4b;
+    --primary: #f28b68;
+    --border: #d8c2a5;
+    --border-input: #f0caa0;
+    --nav-bg: #ffffff;
+    --nav-border: rgba(0, 0, 0, 0.05);
+  }
+  
+  [data-theme="dark"] {
+    --bg-body: #121212;
+    --bg-phone: #1e1e1e;
+    --bg-card: #2d2d2d;
+    --bg-accent: #3d3d3d;
+    --bg-input: #252525;
+    --bg-flag-picker: #252525;
+    --bg-flag-circle: #3d3d3d;
+    --text-main: #e0e0e0;
+    --text-sub: #b0b0b0;
+    --text-title: #ffffff;
+    --text-status: #a0a0a0;
+    --primary: #ff9d7d;
+    --border: #444444;
+    --border-input: #555555;
+    --nav-bg: #1e1e1e;
+    --nav-border: rgba(255, 255, 255, 0.1);
+  }
+  

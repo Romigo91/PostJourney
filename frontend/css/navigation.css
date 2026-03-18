@@ -1,0 +1,53 @@
+/* ==========================================================================
+   NAVIGATION.CSS - НИЖНЕЕ МЕНЮ И УВЕДОМЛЕНИЯ
+   ========================================================================== */
+   .bottom-nav {
+    position: absolute; 
+    bottom: 20px; 
+    left: 16px; 
+    right: 16px; 
+    height: 65px;
+    border-radius: 40px; 
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    display: flex; 
+    z-index: 1000;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  
+  [data-theme="dark"] .bottom-nav {
+    background: rgba(30, 30, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  }
+  
+  @media (max-width: 450px) { 
+    .bottom-nav { 
+      position: fixed; 
+      bottom: calc(20px + env(safe-area-inset-bottom));
+    } 
+  }
+  
+  .nav-item {
+    flex: 1; border: none; background: none; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; font-size: 11px;
+    color: var(--text-sub); cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-item span:first-child { font-size: 20px; }
+  .nav-active { color: var(--primary); font-weight: 700; }
+  .nav-item:active { transform: scale(0.9); }
+  
+  .nav-badge {
+    position: absolute; top: -5px; right: -8px; background: #e74c3c; color: white;
+    font-size: 10px; font-weight: 900; padding: 2px 5px; border-radius: 10px;
+    min-width: 14px; text-align: center; box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
+    border: 2px solid var(--nav-bg); pointer-events: none; z-index: 10;
+    animation: popBadge 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes popBadge { 0% { transform: scale(0); } 100% { transform: scale(1); } }

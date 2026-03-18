@@ -1,0 +1,66 @@
+/* ==========================================================================
+   COLLECTION.CSS - АРХИВЫ, ФЛАГИ И КОНТИНЕНТЫ
+   ========================================================================== */
+   .continent-list { display: flex; flex-direction: column; gap: 8px; }
+   .continent-row { display: flex; flex-direction: column; gap: 4px; }
+   .continent-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); }
+   .continent-name { font-weight: 600; }
+   .continent-progress { font-size: 11px; color: var(--text-sub); }
+   
+   /* Сетка флагов (World Map) */
+   .flag-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+   .flag-circle { width: 30px; height: 30px; border-radius: 999px; background: var(--bg-flag-circle); display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--text-main); }
+   .flag-locked { filter: grayscale(100%) opacity(30%); transition: filter 0.3s ease, transform 0.2s ease; }
+   .flag-collected { filter: grayscale(0%) opacity(100%); transform: scale(1.15); background: #fff; box-shadow: 0 2px 8px rgba(230, 126, 34, 0.4); border: 1px solid rgba(230, 126, 34, 0.5); z-index: 2; transition: all 0.3s ease; }
+   
+   /* Плавное раскрытие континентов */
+   .continent-body { max-height: 0; overflow: hidden; padding-top: 0 !important; padding-bottom: 0 !important; opacity: 0; border-top: 1px dashed transparent !important; transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); }
+   .continent-wrapper.expanded .continent-body { max-height: 1500px; padding-top: 15px !important; padding-bottom: 15px !important; opacity: 1; border-top: 1px dashed var(--border) !important; }
+   
+   /* Сетка архива открыток */
+   .postcard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 5px; }
+   .archive-card { width: 100%; border-radius: 12px; border: 1px solid var(--border); aspect-ratio: 3 / 2; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+   .archive-card:hover { box-shadow: 0 6px 15px rgba(0,0,0,0.2) !important; transform: translateY(-2px); }
+   .archive-card:active { transform: scale(0.95); box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important; }
+   
+   .postcard-card { border-radius: 12px; background: var(--bg-flag-circle); display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+   .postcard-card-header { display: flex; justify-content: space-between; align-items: center; }
+   .postcard-destination { font-weight: 600; color: var(--text-main); }
+   
+   /* Горизонтальная карусель для открыток в Архиве */
+   .postcard-carousel { display: flex; overflow-x: auto; gap: 8px; -ms-overflow-style: none; scrollbar-width: none; scroll-snap-type: x mandatory; }
+   .postcard-carousel::-webkit-scrollbar { display: none; }
+   .postcard-carousel .postcard-card { flex: 0 0 90px; scroll-snap-align: start; }
+   
+   /* MICRO-UI: COLLECTION & TRACKING (Сплит-Блок) */
+   .compact-collection-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+   .compact-postcard-thumb { aspect-ratio: 3 / 2; border-radius: 6px; background-size: cover; background-position: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.15); border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s; }
+   .compact-postcard-thumb:hover { transform: scale(1.05); }
+   .compact-flag-badge { position: absolute; bottom: 3px; right: 3px; font-size: 11px; background: rgba(255,255,255,0.9); border-radius: 50%; padding: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); line-height: 1; }
+   
+   .minimal-tracking-item { background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+   .minimal-tracking-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+   .minimal-tracking-title { font-size: 11px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+   .minimal-tracking-time { font-size: 10px; font-weight: 700; color: var(--primary); background: var(--bg-flag-circle); padding: 2px 6px; border-radius: 6px; }
+   
+   .minimal-progress-bg { width: 100%; height: 4px; background: var(--border-input); border-radius: 2px; overflow: hidden; }
+   .minimal-progress-fill { height: 100%; background: linear-gradient(90deg, #f39c12, #e67e22); border-radius: 2px; transition: width 1s linear; }
+   .minimal-progress-fill.delivered { background: #27ae60; }
+   
+   /* MICRO-UI: FLAG COLLECTION (Вкладки) */
+   .collection-tabs { display: flex; background: var(--bg-flag-circle); border-radius: 8px; padding: 4px; margin-bottom: 15px; }
+   .col-tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 6px; font-size: 13px; font-weight: 800; color: var(--text-sub); cursor: pointer; transition: all 0.2s ease; }
+   .col-tab.active { background: var(--bg-card); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+   
+   .continents-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 5px; }
+   .continent-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 10px; }
+   .continent-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
+   .continent-card:active { transform: scale(0.95); }
+   .cont-card-header { font-size: 13px; font-weight: 800; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+   .cont-card-stats { font-size: 11px; font-weight: 900; }
+   
+   /* Кастомный скроллбар для трекинга */
+   .tracking-scroll-area { max-height: 220px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; }
+   .tracking-scroll-area::-webkit-scrollbar { width: 4px; }
+   .tracking-scroll-area::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.02); border-radius: 10px; }
+   .tracking-scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }

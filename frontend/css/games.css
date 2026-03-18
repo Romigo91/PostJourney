@@ -1,0 +1,144 @@
+
+/* ==========================================================================
+ МИНИ-ИГРА: GEO QUIZ (ЧИСТЫЙ ДИЗАЙН)
+   ========================================================================== */
+   #quiz-game-container {
+    position: relative;
+    overflow-x: hidden; /* Заодно страхуем прокрутку прямо внутри игры */
+}
+
+#quiz-question-area {
+  background: var(--bg-card); 
+  padding: 30px;
+  border-radius: 16px; 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.quiz-question-title {
+    color: var(--text-sub);
+    font-weight: 800;
+    font-size: 14px;
+    margin-top: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Чистые стили кнопок */
+.quiz-option-btn {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.quiz-option-btn:active {
+    transform: scale(0.96);
+}
+
+/* Подсветка ответов */
+.quiz-option-btn.correct {
+    background: #e6fdf1 !important; 
+    color: #27ae60 !important;
+    border-color: #a3e9c4 !important;
+}
+
+.quiz-option-btn.wrong {
+    background: #ffebe6 !important; 
+    color: #c0392b !important;
+    border-color: #f7b2a9 !important;
+}
+/* ==========================================================================
+14. ВНУТРИИГРОВОЙ МАГАЗИН (TRAVEL SHOP)
+========================================================================== */
+.store-modal-box {
+ width: 90%;
+ max-width: 360px;
+ padding: 20px;
+ text-align: left;
+ background: #fdf6e3; 
+}
+
+.store-header {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 20px;
+ font-weight: 900;
+ font-size: 20px;
+ color: var(--text-title);
+ border-bottom: 2px dashed #d8c2a5;
+ padding-bottom: 10px;
+}
+
+.store-close {
+ background: none;
+ border: none;
+ font-size: 22px;
+ cursor: pointer;
+ color: var(--text-sub);
+ transition: transform 0.2s;
+}
+.store-close:active { transform: scale(0.8); }
+
+.store-category {
+ margin-bottom: 20px;
+}
+
+.store-category-title {
+ font-size: 15px;
+ font-weight: bold;
+ margin-bottom: 12px;
+ color: var(--text-main);
+ display: flex;
+ align-items: center;
+ gap: 6px;
+}
+
+.store-grid {
+ display: grid;
+ grid-template-columns: repeat(3, 1fr);
+ gap: 10px;
+}
+
+.store-item {
+ background: #fffdf9;
+ border: 2px solid #e0d4c3;
+ border-radius: 12px;
+ padding: 12px 5px;
+ text-align: center;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 6px;
+ box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.store-item-icon { font-size: 26px; }
+.store-item-amount { font-weight: 900; font-size: 15px; color: var(--text-title); }
+
+.store-item-btn {
+ background: linear-gradient(180deg, #e67e22, #d35400);
+ color: white;
+ border: none;
+ padding: 6px 0;
+ width: 100%;
+ border-radius: 8px;
+ font-size: 13px;
+ font-weight: bold;
+ cursor: pointer;
+ margin-top: 4px;
+ box-shadow: 0 3px 0 #a04000;
+}
+.store-item-btn:active {
+ transform: translateY(3px);
+ box-shadow: 0 0 0 #a04000;
+}
