@@ -3,333 +3,492 @@
 <head>
   <meta charset="UTF-8" />
   <title>Postcard Exchange</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Dancing+Script:wght@500;700&family=Montserrat:wght@500&family=Playfair+Display:ital,wght@0,500;1,500&family=Special+Elite&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="chat.css">
 </head>
 <body>
   <div class="app-root">
-    <div class="phone-frame">
-      <header class="status-bar">
-        <span>9:41</span>
-        <span>📶 🔋</span>
-      </header>
-
-      <!-- MAIN CONTENT -->
       <main id="screen-container">
-        <!-- HOME SCREEN -->
+        
         <section class="screen screen-active" data-screen="home" id="home-screen">
-            <!-- 1. Блок о пользователе -->
-            <div class="profile-card clickable-block" id="profile-block">
-              <div class="profile-header-top">
-                <div class="avatar-container" style="position: relative; cursor: pointer;">
-                  <div class="avatar-circle" id="profile-avatar">A</div>              
-                  <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
-                  <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 0px; padding: 0px 0 10px;">
+            <h2 class="screen-title" style="margin: 0;">PostJourney</h2>
+            <div class="day-badge" id="days-in-app-badge">DAY 1</div>
+          </div>
+          
+          <div class="profile-card clickable-block" id="profile-block">
+            <div class="profile-header-main" style="display: flex; align-items: center; width: 100%; position: relative;">
+              <div class="avatar-container" style="position: relative; cursor: pointer; flex-shrink: 0; margin-right: 12px;">
+                <div class="avatar-circle" id="profile-avatar">?</div>
+                <div id="avatar-edit-hint" style="display: none; position: absolute; bottom: -4px; right: -4px; background: #fff; border: 1px solid #d8c2a5; border-radius: 50%; padding: 2px; font-size: 10px;">📷</div>
+                <input type="file" id="avatar-upload" accept="image/*" style="display:none;">
+              </div>
+          
+              <div class="profile-info" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 1; min-width: 0; gap: 4px;">
+                <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
+                  <div class="profile-name" id="display-name" style="font-size: 15px; font-weight: 600; color: var(--text-main);"></div>
+                  <div class="profile-country" id="display-country"></div>
                 </div>
             
-                <div class="profile-info">
-                  <div id="profile-display-name-row" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="profile-name" id="display-name">@Alex</div>
-                    <div class="profile-country" id="display-country">🇫🇷</div>
-                  </div>
-            
-                  <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
-                    <input type="text" id="input-name" style="width: 80px; font-size: 12px;">
-                    <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center;" readonly>
-                  </div>
-                  
-                  <div class="profile-membership">In app for: 124 days</div>
+                <div id="profile-edit-name-row" style="display: none; align-items: center; gap: 4px;">
+                    <input type="text" id="input-name" style="width: 100px; font-size: 12px; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);">
+                    <input type="text" id="input-country" style="width: 35px; font-size: 12px; text-align: center; border-radius: 4px; border: 1px solid var(--border-input); padding: 4px; background: var(--bg-input); color: var(--text-main);" readonly>
                 </div>
+
+                <div class="tags-full-width-container" id="display-tags-minimal" style="margin: 0; padding: 0; width: 100%;"></div>
               </div>
+          
+              <span class="expand-trigger" style="flex-shrink: 0; margin-left: 12px;">⬇️</span>
+            </div> 
             
-              <div id="flag-picker-container" style="display: none; margin: 10px 0; border-top: 1px solid #eee; padding-top: 10px;">
-                <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
-                <div id="flag-grid-picker" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-height: 120px; overflow-y: auto; padding: 5px; background: #fdfaf5; border-radius: 8px;">
-                  </div>
-              </div>
-              
-              <span class="expand-trigger">⬇️</span> 
-            
-              <div class="extra-content">
-                <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here. You can also edit your status.</p>
-                <textarea id="input-bio" style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px;"></textarea>
-                
-                <button class="secondary-button" id="edit-profile-btn">Edit Profile</button>
-              </div>
+            <div id="flag-picker-container" style="display: none; margin-bottom: 10px; border-top: 1px dashed var(--border); padding-top: 10px;">
+              <div style="font-size: 11px; color: #888; margin-bottom: 8px;">Select your country:</div>
+              <div id="flag-grid-picker" class="flag-grid-picker-style"></div>
             </div>
 
-  <!-- 2. Блок состояния активов -->
-  <div class="section-block home-assets clickable-block">
-    <div class="section-header">
-      <span>My Assets</span>
-      <span class="expand-trigger">⬇️</span> </div>
-    <div class="assets-row">
-      <div class="asset-card">
-        <div class="asset-label">Available postcards</div>
-        <div class="asset-value">5</div>
-      </div>
-      <div class="asset-card">
-        <div class="asset-label">Available energy</div>
-        <div class="asset-value">500</div>
-      </div>
-    </div>
-    <div class="extra-content">
-      <p class="small-text">Energy refills every 24 hours. You can earn more postcards by completing daily challenges or playing games.</p>
-      <button class="primary-button">Refill Energy</button>
-    </div>
-  </div>
+            <div class="extra-content">
+              <p class="small-text" id="display-bio">Detailed statistics and recent achievements will be shown here.</p>
+              <textarea id="input-bio" placeholder="Detailed statistics and recent achievements..." style="display: none; width: 100%; height: 50px; font-size: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--border-input); padding: 6px; background: var(--bg-input); color: var(--text-main);"></textarea>
+              
+              <div id="edit-tags-wrapper" style="display: none; margin-bottom: 15px;">
+                <div id="tags-hint-text" style="font-size: 11px; color: #8b6b4b; margin-bottom: 8px;">Select exactly 3 interests:</div>
+                <div id="edit-tags-list" class="tags-container-edit"></div>
+              </div>
+              
+              <button class="secondary-button" id="edit-profile-btn">Edit Profile</button>
+            </div>
+          </div>
 
-  <div class="section-block home-tracking clickable-block">
-    <div class="section-header">
-      <span>Tracking Board</span>
-      <span class="expand-trigger">⬇️</span> </div>
-    <div class="tracking-list" id="tracking-list">
-      </div>
-    <div class="extra-content">
-      <p class="small-text">Full history of your sent and received postcards. Click on a specific item to see delivery details.</p>
-    </div>
-  </div>
-</section>
+          <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px;">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-main); font-weight: 600;">My Assets</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fad7a1;">
+                  <span id="postcard-display">0</span> ✉️
+                </div>
+                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fdebd0;">
+                  <span id="energy-display">0</span> ⚡
+                </div>
+                <span class="expand-trigger">⬇️</span>
+              </div>
+            </div>
+            
+            <div class="extra-content">
+              <div style="padding-top: 10px;">
+                <button class="primary-button" style="width: 100%; background: #f39c12; border-color: #e67e22;">🛒 Open Store</button>
+              </div>
+            </div>
+          </div>
 
-        <!-- MAP SCREEN -->
-<section class="screen" data-screen="map">
-    <h2 class="screen-title">World Map</h2>
-  
-    <!-- Блок отправленных -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Sent postcards</span>
-      </div>
-      <div class="continent-list" id="sent-by-continent">
-        <!-- Заполним через JS -->
-      </div>
-    </div>
-  
-    <!-- Блок полученных -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Received postcards</span>
-      </div>
-      <div class="continent-list" id="received-by-continent">
-        <!-- Заполним через JS -->
-      </div>
-    </div>
-  
-    <!-- Таблица лидеров -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Leaderboard</span>
-      </div>
-      <ol class="leaderboard" id="leaderboard-list">
-        <!-- Заполним через JS -->
-      </ol>
-    </div>
-  </section>
+          <div class="section-block clickable-block" id="tracking-block" style="display: block; margin-bottom: 15px;" onclick="openTrackingModal()">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: var(--text-main); font-weight: 600;">Live Tracking</span>
+              <div id="tracking-count" style="background: var(--primary); color: white; padding: 0 10px; border-radius: 16px; font-size: 14px; font-weight: 900; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; box-sizing: border-box;">0</div>
+            </div>
+            
+            <div id="tracking-preview-list" style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="background: var(--bg-input); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit</div>
+            </div>
+          </div>
+        
+          <div class="section-block clickable-block" id="leaderboard-block" style="display: block; margin-top: 15px; margin-bottom: 15px; cursor: pointer; padding: 14px;" onclick="openLeaderboardModal()">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="color: var(--text-main); font-weight: 900; font-size: 16px;">Leaderboard 🏆</span>
+              <span style="background: var(--bg-flag-circle); color: var(--text-sub); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase;">Top 3</span>
+            </div>
+            
+            <div id="mini-leaderboard-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+              <div style="text-align: center; color: #aaa; font-size: 12px; padding: 10px;">Loading ranks...</div>
+            </div>
+            
+            <div style="border-top: 1px dashed var(--border); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; font-weight: bold; color: var(--text-sub);">Your Rank:</span>
+              <span id="my-mini-rank" style="font-size: 14px; font-weight: 900; color: var(--primary); background: #fff5eb; padding: 2px 8px; border-radius: 8px;">#?</span>
+            </div>
+          </div>
+        </section>
 
-<!-- CREATE / POSTCARDS MENU -->
-<section class="screen" data-screen="create">
-    <h2 class="screen-title">Postcards</h2>
-  
-    <!-- 1. Блок создания открыток (конструктор) -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Create postcard</span>
-      </div>
-  
-      <p class="small-text">
-        AI postcard costs <strong>50 energy</strong> and <strong>1 postcard</strong>.<br />
-        Uploading your own image costs only <strong>1 postcard</strong>.
-      </p>
-  
-      <div class="assets-row">
-        <div class="asset-card">
-          <div class="asset-label">Available postcards</div>
-          <div class="asset-value" id="create-postcards">5</div>
+        <section class="screen" data-screen="chat">
+      
+          <div id="chat-list-view">
+            <div class="section-block">
+              <div class="section-header">
+                <span>Messages 💬</span>
+              </div>
+              <p class="small-text" style="margin-bottom: 15px;">
+                You can only chat with travelers you've exchanged postcards with.
+              </p>
+              <div id="chat-list-container">
+                <div style="text-align: center; color: #aaa; padding: 20px 0; font-size: 14px;">
+                  No active chats yet.<br>Send or receive postcards to unlock!
+                </div>
+              </div>
+            </div>
+          </div>
+    
+          <div id="active-chat-view" style="display: none; height: 100%; flex-direction: column;">            
+            <div class="chat-header" style="display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 10px; flex-shrink: 0;">
+              <button onclick="closeChat()" style="background: none; border: none; font-size: 20px; cursor: pointer;">⬅️</button>
+              
+              <div style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;" onclick="showChatUserProfile()">
+                  <div id="active-chat-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+                  <div>
+                      <div id="active-chat-name" style="font-weight: 900; color: var(--text-main); font-size: 16px;">Name</div>
+                      <div id="active-chat-status" style="font-size: 11px; color: #27ae60; font-weight: bold;">Online</div>
+                  </div>
+              </div>
+            </div>
+    
+            <div id="chat-messages-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 5px; margin-bottom: 10px;">
+            </div>
+    
+            <div style="display: flex; gap: 10px; background: var(--bg-card); padding: 12px; border-radius: 24px; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); align-items: center; flex-shrink: 0;">
+              <input type="text" id="chat-input" placeholder="Type a message..." style="flex: 1; border: 1px solid var(--border); border-radius: 20px; padding: 12px 15px; background: var(--bg-input); font-family: 'Montserrat', sans-serif; font-size: 14px; outline: none;">
+              <button onclick="handleSendMessage()" class="primary-button" style="padding: 12px 20px; border-radius: 20px; margin-top: 0; width: auto;">Send</button>
+            </div>
+    
+          </div>
+        </section>
+
+        <section class="screen" data-screen="create">
+          <div id="cloud-address-section" class="section-block" style="text-align: center; padding: 30px 15px;">
+            <div style="font-size: 60px; margin-bottom: 10px;">🌍</div>
+            <h3 id="cloud-title" style="margin-bottom: 10px; color: var(--text-main);">Who is next?</h3>
+            <p id="cloud-desc" style="color: var(--text-sub); font-size: 14px; margin-bottom: 20px;">
+              Pull a random address from the PostJourney Cloud and discover a new friend's interests!
+            </p>
+            <button id="btn-pull-address" class="primary-button" style="padding: 15px 30px; font-size: 16px; width: 100%;">
+              ✉️ Pull Address (-1 Postcard)
+            </button>
+            <div id="pulled-profile-container" style="margin-top: 20px; text-align: left; display: none;"></div>
+          </div>
+    
+          <div id="postcard-constructor-section" style="display: none;">
+            <div id="cancel-card-btn" style="display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #d35400; cursor: pointer; margin-bottom: 15px; padding-left: 4px; transition: transform 0.2s;">
+              🏷️ Back to Menu
+            </div>
+
+            <div id="offline-banner" style="display: none; background: #fff5eb; border: 1px dashed #d35400; color: #d35400; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 12px;">
+              📴 Offline Mode. Creating for Personal Collection.
+            </div>
+
+            <div id="postcard-preview-container" style="position: relative; width: 100%; aspect-ratio: 3/2; background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: block;">
+                <div id="stamp-area" style="position: absolute; top: 10px; right: 10px; width: 45px; height: 55px; border: 2px dashed var(--border); display: none; align-items: center; justify-content: center; background: rgba(250, 250, 250, 0.8); z-index: 10; pointer-events: none;">
+                    <span style="font-size: 24px; opacity: 0.5;">✉️</span>
+                </div>
+                <div id="preview-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 1;">
+                    <span>Your postcard preview will appear here.</span>
+                </div>
+
+                <div id="btn-view-3d" class="icon-3d disabled" title="View 3D View" style="position: absolute; bottom: 10px; left: 10px; z-index: 20; background: rgba(255, 255, 255, 0.9); border-radius: 50%; padding: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16.06V7.94a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 7.94v8.12a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </div>
+            </div>
+
+            <div class="section-block" style="padding: 12px;">
+              <div style="background: var(--bg-flag-circle); border-radius: 8px; padding: 4px; display: flex; margin-bottom: 12px;">
+                <button class="constructor-mode constructor-mode-active" id="btn-front-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Front Side</button>
+                <button class="constructor-mode" id="btn-back-side" style="flex:1; border-radius: 6px; padding: 6px; font-weight: 600;">Back Side</button>
+              </div>
+
+              <div id="panel-front">
+                <div class="constructor-toggle" style="display: flex; gap: 6px; margin-bottom: 10px;">
+                  <button class="constructor-mode constructor-mode-active" data-mode="ai" style="flex:1; padding: 6px; font-size: 11px;">✨ AI (100⚡)</button>
+                  <button class="constructor-mode" data-mode="upload" style="flex:1; padding: 6px; font-size: 11px;">📂 Upload</button>
+                </div>
+              
+                <div class="constructor-panel" data-panel="ai">
+                  <textarea id="ai-prompt" placeholder="Describe your image... (e.g. cozy winter cabin)" style="width: 100%; height: 50px; border-radius: 8px; border: 1px solid var(--border-input); padding: 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); resize: none; margin-bottom: 8px;"></textarea>
+                  <button id="btn-generate-ai" class="primary-button" style="width: 100%; font-size: 13px; padding: 10px; background: #e67e22; border: none; color: white; margin-top: 0;">Generate Image</button>
+              
+                  <div id="ai-progress-container" style="display: none; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                      <span style="font-size: 10px; color: #888; font-weight: 500;">AI is painting...</span>
+                      <span id="ai-progress-percent" style="font-size: 10px; color: #e67e22; font-weight: bold;">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #eee; border-radius: 10px; overflow: hidden;">
+                      <div id="ai-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"></div>
+                    </div>
+                  </div>
+                </div>
+              
+                <div class="constructor-panel constructor-panel-hidden" data-panel="upload" style="display: none;">
+                  <div class="upload-field" style="margin-top: 4px;">
+                    <input type="file" id="front-upload" accept="image/*" style="font-size: 12px; width: 100%;"/>
+                  </div>
+                </div>
+              </div>
+
+              <div id="panel-back" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; color: var(--text-sub); font-weight: 600;">Message</span>
+                  <span id="char-count" style="font-size: 10px; color: #e74c3c; font-weight: bold;">0 / 150</span>
+                </div>
+                <textarea id="card-message" maxlength="150" placeholder="Write your message here..." style="width: 100%; height: 60px; border-radius: 8px; border: 1px solid var(--border-input); padding: 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); resize: none; margin-bottom: 12px;"></textarea>
+              
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                  <div style="flex: 1;">
+                    <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Font Style</span>
+                    <select id="font-select" style="width: 100%; padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-main); font-size: 11px;">
+                      <option value="'Caveat', cursive">Casual Pen</option>
+                      <option value="'Dancing Script', cursive">Elegant</option>
+                      <option value="'Special Elite', monospace">Typewriter</option>
+                      <option value="'Playfair Display', serif">Classic</option>
+                      <option value="'Montserrat', sans-serif">Modern</option>
+                    </select>
+                  </div>
+                  <div>
+                    <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Ink Color</span>
+                    <div id="ink-colors" style="display: flex; gap: 6px;">
+                      <button class="ink-btn active" data-color="#1e3799" style="background-color: #1e3799; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#2f3640" style="background-color: #2f3640; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#b33939" style="background-color: #b33939; width: 22px; height: 22px;"></button>
+                      <button class="ink-btn" data-color="#8d6e63" style="background-color: #8d6e63; width: 22px; height: 22px;"></button>
+                    </div>
+                  </div>
+                </div>
+              
+                <div>
+                  <span style="font-size: 11px; color: var(--text-sub); font-weight: 600; display: block; margin-bottom: 4px;">Select Postage Stamp</span>
+                  <div id="stamp-select-grid" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+                    <button class="stamp-btn active" data-stamp="🌲" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🌲</button>
+                    <button class="stamp-btn" data-stamp="⛰️" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">⛰️</button>
+                    <button class="stamp-btn" data-stamp="🌊" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🌊</button>
+                    <button class="stamp-btn" data-stamp="🏛️" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🏛️</button>
+                    <button class="stamp-btn" data-stamp="🚀" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">🚀</button>
+                    <button class="stamp-btn premium" data-stamp="💎" title="Premium" style="width: 34px; height: 34px; min-width: 34px; font-size: 16px;">💎</button>
+                  </div>
+                  
+                  <div id="ai-stamp-constructor" style="display: none; margin-top: 10px; border: 1px dashed var(--border); padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.3);">
+                    <textarea id="ai-stamp-prompt" placeholder="E.g., tiny steampunk owl..." style="width: 100%; height: 35px; font-size: 11px; resize: none; border: 1px solid var(--border-input); border-radius: 6px; padding: 6px; margin-bottom: 6px;"></textarea>
+                    <button id="btn-generate-stamp" class="primary-button" style="width: 100%; font-size: 11px; padding: 6px; background: #f39c12; border: none; color: white; margin-top: 0;">🎨 Generate Stamp (50⚡)</button>
+                    <div id="stamp-progress-container" style="display: none; margin-top: 8px;">
+                      <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 9px; color: #888;">AI is painting...</span>
+                        <span id="stamp-progress-percent" style="font-size: 9px; color: #e67e22; font-weight: bold;">0%</span>
+                      </div>
+                      <div style="width: 100%; height: 4px; background: #eee; border-radius: 10px; overflow: hidden;">
+                        <div id="stamp-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="primary-button" id="send-card-btn" style="width: 100%; margin-top: 15px; font-size: 15px; padding: 12px; background: #27ae60; border: none;">🚀 Send Postcard</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="games">
+          <div id="games-menu-list">
+            
+            <div class="section-block" id="map-collection-block" style="margin-bottom: 15px;">
+              <div class="section-header">
+                <span>Flag Collection 🚩</span>
+              </div>
+              <p class="small-text">
+                Track your worldwide postcard exchange progress and collect unique flags!
+              </p>
+              <button class="secondary-button" onclick="startFlagCollection()">Play</button>
+            </div>
+            
+            <div class="section-block">
+                <div class="section-header">
+                    <span>Geo Quiz 🌍</span>
+                </div>
+                <p class="small-text">
+                    Test your knowledge of flags, capitals, and continents! Correct answers earn you energy.
+                </p>
+                <button class="secondary-button" onclick="startQuizGame()">Play</button>
+            </div>
+            
+            </div>
+          
+          <div id="active-game-zone" class="section-block" style="display: none; text-align: center; padding-top: 10px;">
+              <div id="game-content"></div>
+          </div>
+        </section>
+
+        <section class="screen" data-screen="settings">
+          <div class="section-block">
+            <div class="section-header">
+              <span>Theme</span>
+            </div>
+            <div class="toggle-row">
+              <span class="small-text">Light / Dark</span>
+              <label class="switch">
+                <input type="checkbox" id="theme-toggle" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="section-block">
+            <div class="section-header">
+              <span>Notifications</span>
+            </div>
+            <div class="toggle-row">
+              <span class="small-text">Email notifications</span>
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <span class="small-text">In‑app notifications</span>
+              <label class="switch">
+                <input type="checkbox" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-header">
+              <span>Developer / Testing 🛠️</span>
+            </div>
+            
+            <div class="toggle-row">
+              <span class="small-text">Simulate World (Bots)</span>
+              <label class="switch">
+                <input type="checkbox" id="bot-toggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            
+            <div class="toggle-row" style="margin-top: 10px;">
+              <span class="small-text">⚡ Instant Bot Delivery (1s)</span>
+              <label class="switch">
+                <input type="checkbox" id="instant-delivery-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-header">
+              <span>Data & Storage 💾</span>
+            </div>
+            
+            <div class="toggle-row">
+              <span class="small-text">Auto-Save Progress</span>
+              <label class="switch">
+                <input type="checkbox" id="save-toggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
+            
+            <button id="btn-clear-data" class="primary-button" style="background: #e74c3c; width: 100%; color: white; margin-top: 15px;">
+              🗑️ Clear All Data
+            </button>
+          </div>
+        </section>
+
+        <div id="modal-3d" class="modal-3d">
+            <div class="modal-3d-overlay" id="modal-3d-overlay"></div>
+            <div class="modal-3d-container">
+                <div class="card-3d-wrapper">
+                    <div id="card-3d-inner" class="card-3d-inner">
+                        <div class="card-3d-front" id="3d-front"></div>
+                        <div class="card-3d-back" id="3d-back"></div>
+                    </div>
+                </div>
+                <button id="close-3d-btn" class="close-3d-btn">✕</button>
+            </div>
         </div>
-        <div class="asset-card">
-          <div class="asset-label">Available energy</div>
-          <div class="asset-value" id="create-energy">500</div>
-        </div>
-      </div>
-  
-      <div class="constructor-toggle">
-        <button class="constructor-mode constructor-mode-active" data-mode="ai">
-          Generate with AI
-        </button>
-        <button class="constructor-mode" data-mode="upload">
-          Upload my postcard
-        </button>
-      </div>
-  
-      <div class="constructor-body">
-        <!-- AI режим -->
-        <div class="constructor-panel" data-panel="ai">
-          <label class="form-row">
-            <span>Prompt for AI</span>
-            <textarea class="about-input" rows="3"
-              placeholder="Example: cozy winter postcard with small village and snow"></textarea>
-          </label>
-        </div>
-  
-        <!-- Upload режим -->
-        <div class="constructor-panel constructor-panel-hidden" data-panel="upload">
-          <label class="form-row">
-            <span>Upload image</span>
-            <input type="file" />
-          </label>
-        </div>
-  
-        <div class="section-header constructor-preview-title">
-          <span>Preview</span>
-        </div>
-        <div class="constructor-preview-card">
-          <div class="postcard-preview-image">✉️</div>
-          <div class="postcard-preview-text">
-            Your postcard preview will appear here.
+
+        <div id="modal-collection" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Collection 🗂️</h3>
+              <button onclick="closeCollectionModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+            
+            <div style="overflow-y: auto; padding-right: 5px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #d35400;">Sent</span>
+                <span id="sent-count" style="background: #fff; color: #d35400; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid #fdebd0;">0</span>
+              </div>
+              <div id="sent-postcards-grid" style="margin-bottom: 20px;"></div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 15px; margin-bottom: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #27ae60;">Received</span>
+                <span id="received-count" style="background: #fff; color: #27ae60; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; border: 1px solid #d5f5e3;">0</span>
+              </div>
+              <div id="received-postcards-grid" style="margin-bottom: 5px;"></div>
+            </div>
           </div>
         </div>
-  
-        <button class="primary-button">Send postcard</button>
-      </div>
-    </div>
-  
-    <!-- 2. Коллекция отправленных открыток -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Sent postcards</span>
-      </div>
-      <div class="postcard-grid" id="sent-postcards-grid">
-        <!-- заполняется через JS -->
-      </div>
-    </div>
-  
-    <!-- 3. Коллекция полученных открыток -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Received postcards</span>
-      </div>
-      <div class="postcard-grid" id="received-postcards-grid">
-        <!-- заполняется через JS -->
-      </div>
-    </div>
-  </section>
 
-        <!-- GAMES SCREEN -->
-<section class="screen" data-screen="games">
-    <h2 class="screen-title">Games</h2>
-  
-    <!-- 1. Угадай флаг страны -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Flag</span>
-      </div>
-      <p class="small-text">
-        You see a flag, you choose the correct country from several options.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  
-    <!-- 2. Угадай столицу страны -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Capital</span>
-      </div>
-      <p class="small-text">
-        You see a country name, you pick its capital from the list.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  
-    <!-- 3. Угадай страну по факту -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Guess the Country by Fact</span>
-      </div>
-      <p class="small-text">
-        You get a fun fact, you try to guess which country it is about.
-      </p>
-      <button class="secondary-button" disabled>
-        Play (coming soon)
-      </button>
-    </div>
-  </section>
+        <div id="modal-tracking" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Tracking ✈️</h3>
+              <button onclick="closeTrackingModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+            </div>
+            <div style="overflow-y: auto; padding-right: 5px;">
+              <p id="tracking-empty-text" class="small-text" style="margin-bottom: 10px; font-size: 12px; text-align: center;">No active deliveries.</p>
+              <div class="tracking-list" id="tracking-list"></div>
+            </div>
+          </div>
+        </div>
 
-        <!-- SETTINGS SCREEN -->
-       <!-- SETTINGS SCREEN -->
-<section class="screen" data-screen="settings">
-    <h2 class="screen-title">Settings</h2>
-  
-    <!-- Язык -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Language</span>
+        <div id="modal-gallery" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 15px; display: flex; flex-direction: column; background: var(--bg-phone);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <h3 id="gallery-modal-title" style="margin: 0; color: var(--text-main); font-size: 16px;">Collection</h3>
+                  <button onclick="closeGalleryModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+              </div>
+              <div id="gallery-modal-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; overflow-y: auto; padding-right: 5px; min-height: 100px;">
+              </div>
+          </div>
       </div>
-      <p class="small-text">
-        Choose interface language.
-      </p>
-      <div class="settings-lang-chips">
-        <button class="chip chip-select chip-active">English</button>
-        <button class="chip chip-select">Русский</button>
-        <button class="chip chip-select">Français</button>
-        <button class="chip chip-select">Español</button>
-        <button class="chip chip-select">Italiano</button>
-        <button class="chip chip-select">中文</button>
+      <div id="modal-flags" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+        <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 id="modal-flags-title" style="margin: 0; color: var(--text-main); font-size: 20px; font-weight: 900;">Europe</h3>
+            <button onclick="closeFlagsModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+          </div>
+          <div style="overflow-y: auto; padding-right: 5px; padding-bottom: 10px;">
+            <div id="modal-flags-grid" class="flag-grid" style="gap: 12px; justify-content: center;"></div>
+          </div>
+        </div>
       </div>
-    </div>
-  
-    <!-- Тема -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Theme</span>
+      <div id="modal-leaderboard" class="custom-alert-overlay" style="display: none; z-index: 10000;">
+        <div class="custom-alert-box" style="width: 90%; max-height: 90vh !important; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0;">
+            <h3 style="margin: 0; color: var(--text-main); font-size: 18px; font-weight: 900;">Global Rank 🏆</h3>
+            <button onclick="closeLeaderboardModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
+          </div>
+          
+          <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+            <div id="full-leaderboard-list" style="display: flex; flex-direction: column; gap: 6px;">
+              </div>
+          </div>
+        </div>
       </div>
-      <div class="toggle-row">
-        <span class="small-text">Light / Dark</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-    </div>
-  
-    <!-- Уведомления -->
-    <div class="section-block">
-      <div class="section-header">
-        <span>Notifications</span>
-      </div>
-  
-      <div class="toggle-row">
-        <span class="small-text">Email notifications</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-  
-      <div class="toggle-row">
-        <span class="small-text">In‑app notifications</span>
-        <label class="switch">
-          <input type="checkbox" checked />
-          <span class="slider round"></span>
-        </label>
-      </div>
-    </div>
-  </section>
       </main>
 
-      <!-- BOTTOM NAV -->
       <nav class="bottom-nav">
         <button class="nav-item nav-active" data-target="home">
-          <span>🏠</span>
-          <span>Home</span>
+            <span>🏠</span>
+            <span>Home</span>
         </button>
-        <button class="nav-item" data-target="map">
-          <span>🗺️</span>
-          <span>Map</span>
-        </button>
+
+        <button class="nav-item" data-target="chat">
+          <span style="position: relative; display: inline-block;">
+              💬
+              <div id="chat-badge" class="nav-badge" style="display: none;">0</div>
+          </span>
+          <span>Chat</span>
+      </button>
         <button class="nav-item" data-target="create">
           <span>➕</span>
           <span>Create</span>
@@ -346,6 +505,12 @@
     </div>
   </div>
 
+  <script src="geography.js"></script>
   <script src="script.js"></script>
+  <script src="postcard-constructor.js"></script>
+  <script src="games.js"></script>
+  <script src="bots.js"></script>
+  <script src="cloud.js"></script>
+  <script src="chat.js"></script>
 </body>
 </html>
