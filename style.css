@@ -72,12 +72,27 @@
     }
   
   
+  /* === ВОТ ЭТУ ЧАСТЬ МЫ ИЗМЕНИЛИ === */
   @media (max-width: 450px) {
-    body { background: var(--bg-phone); display: block; }
-    .app-root { padding: 0; display: block; height: 100vh; height: -webkit-fill-available; }
-    #screen-container { padding-bottom: 90px; }
-    .status-bar { padding-top: env(safe-area-inset-top); height: calc(32px + env(safe-area-inset-top)); }
+    body { 
+      background: var(--bg-phone); 
+      display: block; 
+    }
+    .app-root { 
+      padding: 0; 
+      display: block; 
+      height: 100dvh; 
+      min-height: 100dvh; /* Заменили vh на dvh */
+    }
+    #screen-container { 
+      padding-bottom: 90px; 
+    }
+    .status-bar { 
+      padding-top: env(safe-area-inset-top); 
+      height: calc(32px + env(safe-area-inset-top)); 
+    }
   }
+  /* ================================= */
   
   .status-bar {
     height: 32px;
@@ -1506,26 +1521,28 @@ section[data-screen="create"]:has(#postcard-constructor-section:not([style*="dis
 }
 
 /* ==========================================================================
-   ФИКС: ЗАКРЕПЛЯЕМ ИНПУТ В ЧАТЕ ТОЧНО НА МЕСТЕ МЕНЮ-БАРА
+   ФИКС ИНПУТА: ВЫТАСКИВАЕМ ПАССАЖИРА ИЗ ЛИФТА 🚪
    ========================================================================== */
-
    #active-chat-view {
-    padding-bottom: 90px; /* Делаем пустую подушку внизу, чтобы сообщения не прятались под инпутом */
+    padding-bottom: 90px !important; /* Подушка для последних сообщений */
   }
   
-  /* Берем блок с инпутом (предполагаем, что это последний элемент внутри окна чата) */
   #active-chat-view > div:last-child {
-    position: absolute !important; /* Привязываемся к рамке приложения (.phone-frame) */
+    position: fixed !important; /* Прибиваем к самому экрану */
     bottom: 20px !important;
-    left: 16px !important;
-    right: 16px !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important; /* Жестко центрируем */
+    
+    width: calc(100% - 32px) !important; /* Задаем боковые отступы (по 16px) */
+    max-width: 1368px !important; /* Не даем растянуться шире центральной колонки ПК */
+    
     z-index: 1000 !important;
   }
   
-  /* На мобильных устройствах учитываем "челку" и нижний вырез (как у меню-бара) */
+  /* Учитываем нижнюю панель на мобилках */
   @media (max-width: 450px) {
     #active-chat-view > div:last-child {
-      position: fixed !important;
       bottom: calc(20px + env(safe-area-inset-bottom)) !important;
     }
   }
