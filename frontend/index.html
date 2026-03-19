@@ -23,7 +23,18 @@
         <section class="screen screen-active" data-screen="home" id="home-screen">
           <div style="display: flex; justify-content: space-between; align-items: center; margin: 0px; padding: 0px 0 10px;">
             <h2 class="screen-title" style="margin: 0;">PostJourney</h2>
-            <div class="day-badge" id="days-in-app-badge">DAY 1</div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div onclick="openStoreModal()" style="cursor: pointer; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 5px 10px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <span style="font-size: 16px;">🛍️</span>
+                <div style="display: flex; flex-direction: column; line-height: 1.1; align-items: flex-start;">
+                  <span id="postcard-display" style="font-size: 11px; font-weight: 800; color: var(--text-main);">0</span>
+                  <span id="energy-display" style="font-size: 9px; font-weight: 700; color: #f39c12;">0⚡</span>
+                </div>
+              </div>
+              
+              <div class="day-badge" id="days-in-app-badge">DAY 1</div>
+            </div>
           </div>
           
          
@@ -56,26 +67,7 @@
           </div>
           
 
-          <div class="section-block clickable-block" id="assets-block" style="display: none; margin-bottom: 15px;">
-            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="color: var(--text-main); font-weight: 600;">My Assets</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fad7a1;">
-                  <span id="postcard-display">0</span> ✉️
-                </div>
-                <div style="background: #fdebd0; padding: 2px 8px; border-radius: 12px; font-size: 13px; font-weight: bold; color: #f39c12; border: 1px solid #fdebd0;">
-                  <span id="energy-display">0</span> ⚡
-                </div>
-                <span class="expand-trigger">⬇️</span>
-              </div>
-            </div>
-            
-            <div class="extra-content">
-              <div style="padding-top: 10px;">
-                <button class="primary-button" style="width: 100%; background: #f39c12; border-color: #e67e22;">🛒 Open Store</button>
-              </div>
-            </div>
-          </div>
+         
 
           <div class="section-block clickable-block" id="tracking-block" style="display: block; margin-bottom: 15px;" onclick="openTrackingModal()">
             <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -483,9 +475,10 @@
             <div class="form-row" style="margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
               <label style="font-weight: 600; width: 100%; text-align: left;">Profile Photo</label>
               
-              <div style="position: relative; cursor: pointer;" onclick="document.getElementById('avatar-upload-modal').click()">
-                <div class="avatar-circle" id="profile-avatar-modal" style="width: 70px; height: 70px; font-size: 30px; border: 2px solid var(--border);">?</div>
-                <div style="position: absolute; bottom: -4px; right: -4px; background: var(--primary); border: 2px solid #fff; border-radius: 50%; padding: 5px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: white;">📷</div>
+              <div style="position: relative;">
+                <div class="avatar-circle" id="profile-avatar-modal" style="width: 70px; height: 70px; font-size: 30px; border: 2px solid var(--border); overflow: hidden; cursor: grab; background-repeat: no-repeat; background-size: cover; background-position: 50% 50%;">?</div>
+                
+                <div onclick="document.getElementById('avatar-upload-modal').click()" style="position: absolute; bottom: -4px; right: -4px; background: var(--primary); border: 2px solid #fff; border-radius: 50%; padding: 5px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: white; cursor: pointer; z-index: 10;">📷</div>
               </div>
               
               <span style="font-size: 11px; color: var(--text-sub);">Tap on photo to change</span>

@@ -3,84 +3,235 @@
    ========================================================================== */
 /* Базовые плашки */
 .section-block {
-    transition: all 0.3s ease;
-    background: var(--bg-card);
-    border-radius: 16px;
-    margin-bottom: 14px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-    padding: 10px 12px;
+  transition: all 0.3s ease;
+  background: var(--bg-card);
+  border-radius: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  padding: 10px 12px;
+}
+.clickable-block {
+  cursor: pointer;
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.clickable-block:not(.expanded) .section-header {
+  margin-bottom: 0 !important;
+}
+
+/* Кнопки и текст */
+.primary-button {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  border-radius: 999px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.secondary-button {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.icon-button {
+  border: none;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-main);
+}
+.screen-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 20px;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+.placeholder-text,
+.small-text {
+  font-size: 13px;
+  color: var(--text-status);
+}
+.small-text {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.expanded {
+  flex: none;
+  height: auto !important;
+  z-index: 10;
+}
+.expanded .extra-content {
+  max-height: 1200px;
+  opacity: 1;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--border);
+}
+.clickable-block.expanded .extra-content {
+  padding-top: 15px;
+}
+
+.expand-trigger {
+  font-size: 18px !important;
+  cursor: pointer !important;
+  display: inline-block;
+  transition: transform 0.2s ease;
+  user-select: none;
+  padding: 5px;
+}
+@media (hover: hover) {
+  .expand-trigger:hover {
+    transform: scale(1.3);
   }
-  .clickable-block { cursor: pointer; }
-  .section-title { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
-  .section-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
-  .clickable-block:not(.expanded) .section-header { margin-bottom: 0 !important; }
-  
-  /* Кнопки и текст */
-  .primary-button { width: 100%; margin-top: 4px; padding: 10px; border-radius: 999px; border: none; background: var(--primary); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
-  .secondary-button { padding: 8px 10px; border-radius: 999px; border: none; background: var(--primary); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .icon-button { border: none; background: none; font-size: 14px; cursor: pointer; color: var(--text-main); }
-  .screen-title { font-size: 24px; font-weight: 800; color: var(--text-title); margin-bottom: 20px; margin-top: 4px; padding-left: 4px; }
-  .placeholder-text, .small-text { font-size: 13px; color: var(--text-status); }
-  .small-text { font-size: 12px; margin-bottom: 8px; }
-  
-  /* Логика "Аккордеона" (Раскрывающиеся блоки) */
-  .extra-content {
-    display: block; 
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    width: 100%;
-    transition: all 0.4s ease-in-out;
+}
+.expand-trigger:active {
+  transform: scale(0.9);
+}
+
+/* Переключатели (Toggle Switch) */
+.toggle-row {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border);
+  transition: 0.2s;
+  border-radius: 999px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--primary);
+}
+input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+/* Формы */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.form-row label {
+  color: var(--text-main);
+}
+.form-row input,
+.form-row select,
+.about-input {
+  border-radius: 10px;
+  border: 1px solid var(--border-input);
+  padding: 6px 8px;
+  font-size: 12px;
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+.about-input {
+  width: 100%;
+  resize: none;
+}
+.needs-fill {
+  border: 2px solid #e74c3c !important;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.3) !important;
+  transition: all 0.3s ease;
+}
+
+/* Бейдж Дней в игре */
+.day-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--bg-flag-circle);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+}
+
+/* Глобальная анимация пульсации (Breathing Glow) */
+@keyframes breathingGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.7);
+    transform: scale(1);
   }
-  .expanded { flex: none; height: auto !important; z-index: 10; }
-  .expanded .extra-content {
-    max-height: 1200px;
-    opacity: 1;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px dashed var(--border); 
+  50% {
+    box-shadow: 0 0 15px 5px rgba(230, 126, 34, 0.3);
+    transform: scale(1.05);
   }
-  .clickable-block.expanded .extra-content { padding-top: 15px; }
-  
-  .expand-trigger {
-    font-size: 18px !important; 
-    cursor: pointer !important;
-    display: inline-block; 
-    transition: transform 0.2s ease; 
-    user-select: none; 
-    padding: 5px;
+  100% {
+    box-shadow: 0 0 0 0 rgba(230, 126, 34, 0);
+    transform: scale(1);
   }
-  @media (hover: hover) { .expand-trigger:hover { transform: scale(1.3); } }
-  .expand-trigger:active { transform: scale(0.9); }
-  
-  /* Переключатели (Toggle Switch) */
-  .toggle-row { margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
-  .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: 0.2s; border-radius: 999px; }
-  .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: 0.2s; border-radius: 50%; }
-  input:checked + .slider { background-color: var(--primary); }
-  input:checked + .slider:before { transform: translateX(14px); }
-  
-  /* Формы */
-  .form-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; }
-  .form-row label { color: var(--text-main); }
-  .form-row input, .form-row select, .about-input { border-radius: 10px; border: 1px solid var(--border-input); padding: 6px 8px; font-size: 12px; background: var(--bg-input); color: var(--text-main); }
-  .about-input { width: 100%; resize: none; }
-  .needs-fill { border: 2px solid #e74c3c !important; box-shadow: 0 0 8px rgba(231, 76, 60, 0.3) !important; transition: all 0.3s ease; }
-  
-  /* Бейдж Дней в игре */
-  .day-badge {
-    font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--primary); background: var(--bg-flag-circle);
-    padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); white-space: nowrap;
-  }
-  
-  /* Глобальная анимация пульсации (Breathing Glow) */
-  @keyframes breathingGlow {
-    0% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0.7); transform: scale(1); }
-    50% { box-shadow: 0 0 15px 5px rgba(230, 126, 34, 0.3); transform: scale(1.05); }
-    100% { box-shadow: 0 0 0 0 rgba(230, 126, 34, 0); transform: scale(1); }
-  }
-  .flag-pulse { animation: breathingGlow 2s infinite ease-in-out !important; border: 2px solid var(--primary) !important; z-index: 10; }
-  .continent-pulse { animation: breathingGlow 2s infinite ease-in-out !important; border-color: var(--primary) !important; }
-  .card-pulse { animation: breathingGlow 2s infinite ease-in-out !important; border-color: var(--primary) !important; z-index: 10; }
+}
+.flag-pulse {
+  animation: breathingGlow 2s infinite ease-in-out !important;
+  border: 2px solid var(--primary) !important;
+  z-index: 10;
+}
+.continent-pulse {
+  animation: breathingGlow 2s infinite ease-in-out !important;
+  border-color: var(--primary) !important;
+}
+.card-pulse {
+  animation: breathingGlow 2s infinite ease-in-out !important;
+  border-color: var(--primary) !important;
+  z-index: 10;
+}

@@ -220,7 +220,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const name = sender.name;
       const country = sender.country || sender.countryFlag || "🌍";
-      const city = sender.city || "";
       const avatar = sender.avatar || null;
       const posX = sender.avatarPosX ?? 50;
       const posY = sender.avatarPosY ?? 50;

@@ -455,13 +455,18 @@ function showToastNotification(message) {
 function updateProfileUI() {
   if (!state || !state.profile) return;
 
-  // 1. Обновляем Аватар
+  // 1. Обновляем Аватар на главной
   const avatarEl = document.getElementById("profile-avatar");
   if (avatarEl) {
     if (state.profile.avatar) {
       avatarEl.style.backgroundImage = `url(${state.profile.avatar})`;
       avatarEl.style.backgroundSize = "cover";
-      avatarEl.style.backgroundPosition = "center";
+
+      // Применяем сохраненные координаты!
+      const posX = state.profile.avatarPosX ?? 50;
+      const posY = state.profile.avatarPosY ?? 50;
+      avatarEl.style.backgroundPosition = `${posX}% ${posY}%`;
+
       avatarEl.innerText = "";
     } else {
       avatarEl.style.backgroundImage = "";
@@ -1516,17 +1521,27 @@ document.addEventListener("DOMContentLoaded", () => {
   renderMapSections();
 
   window.syncAssets = function () {
-    // Находим элементы по ID
+    // Находим новые элементы в шапке
     const balanceElement = document.getElementById("postcard-display");
     const energyElement = document.getElementById("energy-display");
 
-    // Если элементы есть на странице — обновляем их из глобального состояния state
-    if (balanceElement) balanceElement.textContent = state.postcards;
-    if (energyElement) energyElement.textContent = state.energy;
+    // Обновляем количество открыток
+    if (balanceElement) {
+      balanceElement.textContent = state.postcards;
+    }
 
-    // Также обновляем счетчики в Архиве (для красоты)
+    // Обновляем энергию (добавляем иконку молнии прямо в текст для стиля)
+    if (energyElement) {
+      energyElement.textContent = state.energy + "⚡";
+    }
+
+    // Также обновляем счетчики в других местах, если они есть (например, в модалках)
     const sentCountEl = document.getElementById("sent-count");
     if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
+
+    const receivedCountEl = document.getElementById("received-count");
+    if (receivedCountEl)
+      receivedCountEl.textContent = state.receivedPostcards.length;
   };
 
   // === ФУНКЦИИ ДЛЯ НОВЫХ ОКОН COLLECTION И TRACKING ===
@@ -1666,15 +1681,7 @@ document.addEventListener("DOMContentLoaded", () => {
   checkDailyRefill();
   setInterval(checkDailyRefill, 60000);
 
-  const refillBtn = document.querySelector("#assets-block .primary-button");
-  if (refillBtn) {
-    refillBtn.onclick = (e) => {
-      e.stopPropagation();
-      openStoreModal();
-    };
-  }
-
-  function openStoreModal() {
+  window.openStoreModal = function () {
     const phoneFrame = document.body;
     const overlay = document.createElement("div");
     overlay.className = "custom-alert-overlay store-overlay";
@@ -1730,7 +1737,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
     phoneFrame.appendChild(overlay);
-  }
+  };
 
   window.buyStoreItem = function (type, amount, price) {
     const overlay = document.querySelector(".store-overlay");
@@ -1853,14 +1860,27 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.syncAssets = function () {
+  // Находим новые элементы в шапке
   const balanceElement = document.getElementById("postcard-display");
   const energyElement = document.getElementById("energy-display");
 
-  if (balanceElement) balanceElement.textContent = state.postcards;
-  if (energyElement) energyElement.textContent = state.energy;
+  // Обновляем количество открыток
+  if (balanceElement) {
+    balanceElement.textContent = state.postcards;
+  }
 
+  // Обновляем энергию (добавляем иконку молнии прямо в текст для стиля)
+  if (energyElement) {
+    energyElement.textContent = state.energy + "⚡";
+  }
+
+  // Также обновляем счетчики в других местах, если они есть (например, в модалках)
   const sentCountEl = document.getElementById("sent-count");
   if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
+
+  const receivedCountEl = document.getElementById("received-count");
+  if (receivedCountEl)
+    receivedCountEl.textContent = state.receivedPostcards.length;
 };
 
 // === ОБНОВЛЕНИЕ МИНИ-ВИДЖЕТА ТРЕКИНГА (TOP 3) ===
@@ -1951,19 +1971,28 @@ window.closeLeaderboardModal = function () {
 };
 
 // ==========================================================================
-// ФИНАЛЬНАЯ ЛОГИКА МОДАЛКИ ПРОФИЛЯ (ИСПОЛЬЗУЕМ ТВОЙ AVAILABLE_INTERESTS)
+// ФИНАЛЬНАЯ ЛОГИКА МОДАЛКИ ПРОФИЛЯ (С ИНТЕРЕСАМИ И ПОЗИЦИОНИРОВАНИЕМ ФОТО)
 // ==========================================================================
 
 let tempModalTags = [];
 let tempNewAvatarData = null;
 
+// Новые переменные для позиции фото
+tempAvatarPosX = 50;
+tempAvatarPosY = 50;
+let isDraggingAvatar = false;
+let startAvatarDragX = 0;
+let startAvatarDragY = 0;
+
 function openEditProfileModal() {
   const modal = document.getElementById("modal-edit-profile");
   if (!modal) return;
 
+  // Сбрасываем временные данные и загружаем текущие координаты
   tempNewAvatarData = null;
+  tempAvatarPosX = state?.profile?.avatarPosX ?? 50;
+  tempAvatarPosY = state?.profile?.avatarPosY ?? 50;
 
-  // 1. Заполняем список стран
   const countrySelect = document.getElementById("country-select-modal");
   if (
     countrySelect &&
@@ -1981,10 +2010,9 @@ function openEditProfileModal() {
     });
   }
 
-  // 2. Заполняем выпадающий список ИНТЕРЕСОВ (Берем твой массив!)
+  // 1. Заполняем выпадающий список ИНТЕРЕСОВ
   const interestSelect = document.getElementById("interest-select-modal");
   if (interestSelect && interestSelect.children.length <= 1) {
-    // Используем твой глобальный массив AVAILABLE_INTERESTS
     const sortedTags = [...AVAILABLE_INTERESTS].sort((a, b) =>
       a.localeCompare(b),
     );
@@ -1996,29 +2024,29 @@ function openEditProfileModal() {
     });
   }
 
-  // 3. Подтягиваем текущие данные пользователя
+  // 2. Подтягиваем текущие данные пользователя
   if (state && state.profile) {
     document.getElementById("input-name-modal").value =
       state.profile.name || "";
     document.getElementById("input-bio-modal").value = state.profile.bio || "";
 
+    // Отрисовываем аватар с учетом сохраненных координат
     const avatarModal = document.getElementById("profile-avatar-modal");
     if (avatarModal) {
       avatarModal.style.backgroundImage = state.profile.avatar
         ? `url(${state.profile.avatar})`
         : "";
-      avatarModal.style.backgroundSize = "cover";
-      avatarModal.style.backgroundPosition = "center";
+      avatarModal.style.backgroundPosition = `${tempAvatarPosX}% ${tempAvatarPosY}%`;
       avatarModal.innerText = state.profile.avatar
         ? ""
         : (state.profile.name || "?")[0].toUpperCase();
     }
 
+    const countrySelect = document.getElementById("country-select-modal");
     if (state.profile.country && countrySelect) {
       countrySelect.value = state.profile.country;
     }
 
-    // Подтягиваем уже выбранные интересы
     tempModalTags = [...(state.profile.tags || [])];
     renderEditTagsModal();
   }
@@ -2026,7 +2054,7 @@ function openEditProfileModal() {
   modal.style.display = "flex";
 }
 
-// 4. Отрисовка ВЫБРАННЫХ интересов (плашки с крестиками)
+// 3. Отрисовка ВЫБРАННЫХ интересов (плашки)
 function renderEditTagsModal() {
   const container = document.getElementById("selected-interests-container");
   const counter = document.getElementById("interests-counter-modal");
@@ -2035,12 +2063,9 @@ function renderEditTagsModal() {
 
   container.innerHTML = "";
 
-  // Рисуем плашки
   tempModalTags.forEach((tag) => {
     const tagEl = document.createElement("div");
-    // Добавляем иконку крестика
     tagEl.innerHTML = `${tag} <span style="margin-left: 6px; opacity: 0.6; font-size: 10px;">✕</span>`;
-
     tagEl.style.cursor = "pointer";
     tagEl.style.padding = "6px 12px";
     tagEl.style.borderRadius = "16px";
@@ -2051,7 +2076,6 @@ function renderEditTagsModal() {
     tagEl.style.color = "white";
     tagEl.style.border = "1px solid var(--primary)";
 
-    // Удаление тега при клике на него
     tagEl.onclick = () => {
       tempModalTags = tempModalTags.filter((t) => t !== tag);
       renderEditTagsModal();
@@ -2061,7 +2085,6 @@ function renderEditTagsModal() {
 
   if (counter) counter.innerText = `${tempModalTags.length}/3`;
 
-  // Управляем доступностью выпадающего списка
   if (selectBox) {
     if (tempModalTags.length >= 3) {
       selectBox.disabled = true;
@@ -2069,17 +2092,14 @@ function renderEditTagsModal() {
     } else {
       selectBox.disabled = false;
       selectBox.options[0].text = "Select an interest...";
-
-      // Прячем из списка те опции, которые уже выбраны
       Array.from(selectBox.options).forEach((opt) => {
-        if (opt.value !== "") {
+        if (opt.value !== "")
           opt.style.display = tempModalTags.includes(opt.value)
             ? "none"
             : "block";
-        }
       });
     }
-    selectBox.value = ""; // Сбрасываем значение селекта обратно на Placeholder
+    selectBox.value = "";
   }
 }
 
@@ -2087,15 +2107,21 @@ function closeEditProfileModal() {
   document.getElementById("modal-edit-profile").style.display = "none";
 }
 
+// Загрузка нового фото
 function handleAvatarPreview(input) {
   if (input.files && input.files[0]) {
     const reader = new FileReader();
     reader.onload = function (e) {
       tempNewAvatarData = e.target.result;
+
+      // При загрузке нового фото сбрасываем позицию в центр (50% 50%)
+      tempAvatarPosX = 50;
+      tempAvatarPosY = 50;
+
       const avatarModal = document.getElementById("profile-avatar-modal");
       if (avatarModal) {
         avatarModal.style.backgroundImage = `url(${tempNewAvatarData})`;
-        avatarModal.style.backgroundSize = "cover";
+        avatarModal.style.backgroundPosition = `50% 50%`;
         avatarModal.innerText = "";
       }
     };
@@ -2103,8 +2129,68 @@ function handleAvatarPreview(input) {
   }
 }
 
-// 5. ГЛОБАЛЬНЫЕ СЛУШАТЕЛИ (ВЫБОР В СПИСКЕ + СОХРАНЕНИЕ)
+// === МАГИЯ ПЕРЕТАСКИВАНИЯ ФОТО ===
+function initAvatarDragLogic() {
+  const avatarModal = document.getElementById("profile-avatar-modal");
+  if (!avatarModal) return;
+
+  const getCoords = (e) => {
+    if (e.touches && e.touches.length > 0)
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  };
+
+  const startDrag = (e) => {
+    // Двигаем только если фотка вообще есть
+    if (!tempNewAvatarData && !state?.profile?.avatar) return;
+    isDraggingAvatar = true;
+    const coords = getCoords(e);
+    startAvatarDragX = coords.x;
+    startAvatarDragY = coords.y;
+    avatarModal.style.cursor = "grabbing";
+  };
+
+  const moveDrag = (e) => {
+    if (!isDraggingAvatar) return;
+    e.preventDefault();
+    const coords = getCoords(e);
+
+    // Вычисляем смещение
+    const deltaX = coords.x - startAvatarDragX;
+    const deltaY = coords.y - startAvatarDragY;
+
+    // Изменяем X и Y (0.5 - это чувствительность)
+    tempAvatarPosX = Math.max(0, Math.min(100, tempAvatarPosX - deltaX * 0.5));
+    tempAvatarPosY = Math.max(0, Math.min(100, tempAvatarPosY - deltaY * 0.5));
+
+    // Сразу применяем к стилю
+    avatarModal.style.backgroundPosition = `${tempAvatarPosX}% ${tempAvatarPosY}%`;
+
+    // Обновляем стартовую точку
+    startAvatarDragX = coords.x;
+    startAvatarDragY = coords.y;
+  };
+
+  const endDrag = () => {
+    isDraggingAvatar = false;
+    avatarModal.style.cursor = "grab";
+  };
+
+  // Слушатели для мышки и пальцев
+  avatarModal.addEventListener("mousedown", startDrag);
+  window.addEventListener("mousemove", moveDrag, { passive: false });
+  window.addEventListener("mouseup", endDrag);
+
+  avatarModal.addEventListener("touchstart", startDrag, { passive: false });
+  window.addEventListener("touchmove", moveDrag, { passive: false });
+  window.addEventListener("touchend", endDrag);
+}
+
+// 4. ГЛОБАЛЬНЫЕ СЛУШАТЕЛИ
 document.addEventListener("DOMContentLoaded", () => {
+  // Запускаем слушатель перетаскивания!
+  initAvatarDragLogic();
+
   // Выбор фото
   const avatarInputModal = document.getElementById("avatar-upload-modal");
   if (avatarInputModal) {
@@ -2113,7 +2199,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // МАГИЯ СПИСКА: Когда пользователь выбирает интерес в dropdown
+  // Выбор интересов
   const interestSelect = document.getElementById("interest-select-modal");
   if (interestSelect) {
     interestSelect.addEventListener("change", function () {
@@ -2124,7 +2210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         !tempModalTags.includes(selectedTag)
       ) {
         tempModalTags.push(selectedTag);
-        renderEditTagsModal(); // Перерисовываем
+        renderEditTagsModal();
       }
     });
   }
@@ -2152,9 +2238,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
+      // СОХРАНЯЕМ ФОТО И КООРДИНАТЫ
       if (tempNewAvatarData) {
         state.profile.avatar = tempNewAvatarData;
       }
+      state.profile.avatarPosX = tempAvatarPosX;
+      state.profile.avatarPosY = tempAvatarPosY;
 
       state.profile.tags = [...tempModalTags];
 
