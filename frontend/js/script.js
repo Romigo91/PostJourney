@@ -42,7 +42,7 @@ const state = {
     avatar: null,
     avatarPosX: 50,
     avatarPosY: 50,
-    interests: [], // ПУСТО СТАРТ!
+    tags: [], // ПУСТО СТАРТ!
     userId: "",
   },
   postcards: 5,
@@ -450,7 +450,7 @@ function showToastNotification(message) {
 }
 
 // ==========================================================================
-// ОБНОВЛЕНИЕ ГЛАВНОГО ЭКРАНА (ПРОФИЛЬ)
+// ОБНОВЛЕНИЕ ГЛАВНОГО ЭКРАНА (ПРОФИЛЬ) - ИСПРАВЛЕНО
 // ==========================================================================
 function updateProfileUI() {
   if (!state || !state.profile) return;
@@ -470,9 +470,9 @@ function updateProfileUI() {
       avatarEl.innerText = "";
     } else {
       avatarEl.style.backgroundImage = "";
-      avatarEl.innerText = state.profile.name
-        ? state.profile.name.charAt(0).toUpperCase()
-        : "?";
+      // Убираем @ из ника для первой буквы аватарки
+      const cleanName = (state.profile.name || "").replace("@", "");
+      avatarEl.innerText = cleanName ? cleanName.charAt(0).toUpperCase() : "?";
     }
   }
 
@@ -482,29 +482,44 @@ function updateProfileUI() {
     nameEl.innerText = state.profile.name || "New Traveler";
   }
 
-  // 3. Обновляем Флаг (ТОЛЬКО ЭМОДЗИ, БЕЗ ТЕКСТА)
+  // 3. Обновляем Флаг (ИСПРАВЛЕНО: Убрана планета, добавлен автопоиск)
   const countryEl = document.getElementById("display-country");
   if (countryEl) {
-    countryEl.innerText = state.profile.countryFlag || "🌍";
-    // Чуть увеличим размер шрифта, чтобы флаг смотрелся сочно
+    let currentFlag = state.profile.countryFlag;
+    
+    // Если флага нет, но есть название страны - ищем его в базе
+    if (!currentFlag && state.profile.country && typeof countryList !== 'undefined') {
+        const found = countryList.find(c => c.name === state.profile.country);
+        if (found) currentFlag = found.flag;
+    }
+
+    countryEl.innerText = currentFlag || ""; 
+    // Если флага нет совсем - скрываем пустой кружок
+    countryEl.style.display = currentFlag ? "inline-block" : "none";
     countryEl.style.fontSize = "16px";
     countryEl.style.padding = "0px 6px";
   }
 
-  // 4. Обновляем Био (About Me)
+  // 4. Обновляем Био (ИСПРАВЛЕНО: Проверка на пустую строку)
   const bioEl = document.getElementById("display-bio");
   if (bioEl) {
-    bioEl.innerText = state.profile.bio || "Tell something about yourself...";
+    const bioText = state.profile.bio;
+    // Если био реально заполнено - показываем его, если нет - стандартный текст
+    bioEl.innerText = (bioText && bioText.trim() !== "") 
+      ? bioText 
+      : "Detailed statistics and recent achievements will be shown here.";
   }
 
-  // 5. Отрисовываем Интересы (под именем)
+  // 5. Отрисовываем Интересы (ИСПРАВЛЕНО: Поддержка обоих имен ключей)
   const tagsContainer = document.getElementById("display-tags-minimal");
   if (tagsContainer) {
-    tagsContainer.innerHTML = ""; // Очищаем контейнер
+    tagsContainer.innerHTML = ""; 
 
-    if (state.profile.tags && state.profile.tags.length > 0) {
-      // Если интересы есть — рисуем красивые плашки
-      state.profile.tags.forEach((tag) => {
+    // Берем данные или из tags, или из interests (смотря как сохранилось)
+    const myTags = state.profile.tags || state.profile.interests || [];
+
+    if (myTags.length > 0) {
+      myTags.forEach((tag) => {
         const tagDiv = document.createElement("div");
         tagDiv.innerText = tag;
         tagDiv.style.fontSize = "10px";
@@ -517,7 +532,6 @@ function updateProfileUI() {
         tagsContainer.appendChild(tagDiv);
       });
     } else {
-      // Если интересов нет — показываем заглушку
       tagsContainer.innerHTML =
         '<div style="font-size: 12px; color: var(--text-status);">No interests selected yet.</div>';
     }
@@ -2248,6 +2262,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.profile.tags = [...tempModalTags];
 
       if (typeof updateProfileUI === "function") updateProfileUI();
+      if (typeof saveState === "function") saveState();
 
       closeEditProfileModal();
 
