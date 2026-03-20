@@ -644,7 +644,7 @@ function refreshAllLists() {
     sent: validSentPostcards.length,
     countries: uniqueCountriesCount,
     isUser: true,
-    flag: state.profile.country || "🏳️",
+    flag: state.profile.countryFlag || "🏳️",
   };
 
   const botEntries = state.bots.map((bot) => {
@@ -667,17 +667,51 @@ function refreshAllLists() {
     const top3 = combinedLeaderboard.slice(0, 3);
     miniContainer.innerHTML = top3
       .map((player, index) => {
-        const medals = ["🥇", "🥈", "🥉"];
-        const isUserStr = player.isUser
-          ? "font-weight: 900; color: var(--primary);"
-          : "font-weight: 600; color: var(--text-main);";
+        const rank = index + 1;
+        const isFirst = rank === 1;
+
+        // Иконки: Корона для первого места, медали для остальных
+        let medalIcon = "🥉";
+        if (rank === 1) medalIcon = "👑";
+        if (rank === 2) medalIcon = "🥈";
+
+        // Цвета и фоны (первое место - коралловое, остальные - прозрачные с линией)
+        const bgStyle = isFirst 
+          ? "background: #e78564; color: white; border: none; border-radius: 12px;" 
+          : "background: transparent; border-bottom: 1px solid var(--border-input); border-radius: 0;";
+        
+        const nameColor = isFirst ? "color: white;" : (player.isUser ? "color: var(--primary);" : "color: var(--text-main);");
+        const scoreColor = isFirst ? "color: rgba(255,255,255,0.9);" : "color: var(--text-sub);";
+
+        // Получаем правильную круглую аватарку (твое фото или фото бота)
+        let avatarHtml = "";
+        if (player.isUser) {
+            if (state.profile.avatar) {
+                avatarHtml = `<img src="${state.profile.avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'};">`;
+            } else {
+                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">${player.name.charAt(0).toUpperCase()}</div>`;
+            }
+        } else {
+            const botAvatar = typeof window.getBotAvatar === "function" ? window.getBotAvatar(player.name) : "👤";
+            if (botAvatar.startsWith("http")) {
+                 avatarHtml = `<img src="${botAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'};">`;
+            } else {
+                 avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px;">${botAvatar}</div>`;
+            }
+        }
+
+        // Собираем финальную строчку
         return `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--bg-phone); border-radius: 8px; border: 1px solid var(--border-input);">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 16px; width: 20px; text-align: center;">${medals[index]}</span>
-                    <span style="${isUserStr} font-size: 13px;">${player.name} <span style="font-size: 11px;">${player.flag || ""}</span></span>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; ${bgStyle}">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px;">
+                        <span style="font-size: 16px; line-height: 1;">${medalIcon}</span>
+                        <span style="font-size: 9px; font-weight: 800; opacity: ${isFirst ? '0.9' : '0.5'};">#${rank}</span>
+                    </div>
+                    ${avatarHtml}
+                    <span style="font-weight: 700; font-size: 14px; ${nameColor}">${player.name} <span style="font-size: 10px; margin-left: 4px;">${player.flag || ""}</span></span>
                 </div>
-                <span style="font-size: 12px; font-weight: bold; color: var(--text-sub);">${player.score} pt</span>
+                <span style="font-size: 13px; font-weight: 800; ${scoreColor}">${player.score} pt</span>
             </div>`;
       })
       .join("");
@@ -691,59 +725,78 @@ function refreshAllLists() {
   const fullContainer = document.getElementById("full-leaderboard-list");
   if (fullContainer) {
     const top10 = combinedLeaderboard.slice(0, 10);
-    let fullHtml = top10
-      .map((player, index) => {
-        const rank = index + 1;
-        let rankBadge = `${rank}.`;
-        if (rank === 1) rankBadge = "🥇";
-        if (rank === 2) rankBadge = "🥈";
-        if (rank === 3) rankBadge = "🥉";
+    
+    // ВНУТРЕННЯЯ ФУНКЦИЯ ДЛЯ ГЕНЕРАЦИИ ОДНОЙ СТРОКИ
+    const generatePlayerRow = (player, rank, isOutsider = false) => {
+        const isFirst = rank === 1;
 
-        const bgStyle = player.isUser
-          ? "background: #ffebd6; border-radius: 10px; padding: 10px; border: 1px solid #f39c12;"
-          : "padding: 10px; background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border);";
-        const nameWeight = player.isUser
-          ? "font-weight: 900; color: #d35400;"
-          : "font-weight: 600; color: var(--text-main);";
+        let medalIcon = "";
+        if (rank === 1) medalIcon = "👑";
+        if (rank === 2) medalIcon = "🥈";
+        if (rank === 3) medalIcon = "🥉";
 
+        let bgStyle = isFirst 
+          ? "background: #e78564; color: white; border: none; border-radius: 12px;" 
+          : "background: transparent; border-bottom: 1px solid var(--border-input); border-radius: 0;";
+        
+        if (isOutsider) {
+            bgStyle = "background: rgba(0,0,0,0.02); border-top: 1px dashed var(--border); border-radius: 0;";
+        }
+
+        const nameColor = isFirst ? "color: white;" : (player.isUser ? "color: var(--primary);" : "color: var(--text-main);");
+        const scoreColor = isFirst ? "color: rgba(255,255,255,0.95);" : "color: var(--text-sub);";
+        const scoreWeight = isFirst ? "font-weight: 800;" : "font-weight: 700;";
+
+        let avatarHtml = "";
+        if (player.isUser) {
+            if (state.profile.avatar) {
+                avatarHtml = `<img src="${state.profile.avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'}; flex-shrink: 0;">`;
+            } else {
+                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">${player.name.charAt(0).toUpperCase()}</div>`;
+            }
+        } else {
+            const botAvatar = typeof window.getBotAvatar === "function" ? window.getBotAvatar(player.name) : "👤";
+            if (botAvatar.startsWith("http")) {
+                 avatarHtml = `<img src="${botAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'}; flex-shrink: 0;">`;
+            } else {
+                 avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">${botAvatar}</div>`;
+            }
+        }
+
+        // СОБИРАЕМ ФИНАЛЬНУЮ СТРОКУ
         return `
-            <div style="${bgStyle} display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${rankBadge}</span>
-                    <span style="${nameWeight} font-size: 14px;">${player.name} ${player.flag || ""}</span>
-                </div>
-                <div style="text-align: right; display: flex; flex-direction: column;">
-                    <span style="color: #e67e22; font-weight: bold; font-size: 13px;">
-                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; ${bgStyle}">
+                
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; flex-shrink: 0;">
+                        <span style="font-size: 16px; line-height: 1;">${medalIcon}</span>
+                        <span style="font-size: 9px; font-weight: 800; opacity: ${isFirst ? '0.9' : '0.5'};">#${rank}</span>
+                    </div>
+                    ${avatarHtml}
+                    <span style="font-weight: 700; font-size: 14px; ${nameColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${player.name} <span style="font-size: 10px; margin-left: 2px; opacity: 0.8;">${player.flag || ""}</span>
                     </span>
-                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
-                        ${player.sent} sent • ${player.countries} countries
+                </div>
+                
+                <div style="text-align: right; display: flex; flex-direction: column; justify-content: center; flex-shrink: 0; margin-left: 10px; min-width: 65px;">
+                    <span style="font-size: 13px; ${scoreWeight}; ${scoreColor}; line-height: 1.1;">${player.score} pt</span>
+                    <span style="font-size: 9px; ${scoreColor}; opacity: ${isFirst ? '0.8' : '0.5'}; line-height: 1.1; margin-top: 2px;">
+                        ${player.sent} sent • ${player.countries} flags
                     </span>
                 </div>
-            </div>`;
-      })
-      .join("");
 
-    // Если игрок не вошел в Топ-10, приклеиваем его в самый низ
+            </div>`;
+    };
+
+    let fullHtml = top10.map((player, index) => generatePlayerRow(player, index + 1)).join("");
+
     if (playerRank > 10) {
       const player = combinedLeaderboard[playerIndex];
       fullHtml += `
-            <div style="text-align: center; color: #aaa; font-size: 14px; margin: 4px 0;">•••</div>
-            <div style="background: #ffebd6; border-radius: 10px; padding: 10px; border: 1px dashed #f39c12; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: bold; color: #888; width: 24px; text-align: center; font-size: 16px;">${playerRank}.</span>
-                    <span style="font-weight: 900; color: #d35400; font-size: 14px;">${player.name} ${player.flag || ""}</span>
-                </div>
-                <div style="text-align: right; display: flex; flex-direction: column;">
-                    <span style="color: #e67e22; font-weight: bold; font-size: 13px;">
-                        ⭐ ${player.score} <span style="font-size: 10px; color: #aaa;">SCORE</span>
-                    </span>
-                    <span style="font-size: 9px; color: #aaa; margin-top: 2px;">
-                        ${player.sent} sent • ${player.countries} countries
-                    </span>
-                </div>
-            </div>`;
+            <div style="text-align: center; color: var(--border); font-size: 14px; margin: 4px 0;">•••</div>
+            ${generatePlayerRow(player, playerRank, true)}`;
     }
+    
     fullContainer.innerHTML = fullHtml;
   }
 
@@ -1079,332 +1132,6 @@ window.closeFlagsModal = function () {
 };
 
 // ==========================================================================
-// 3. ЛОГИКА РЕДАКТИРОВАНИЯ И ВАЛИДАЦИЯ ONBOARDING'A
-// ==========================================================================
-
-function setupProfileEditing() {
-  const editBtn = document.getElementById("edit-profile-btn");
-  const flagGrid = document.getElementById("flag-grid-picker");
-  const inputCountry = document.getElementById("input-country");
-  const flagPicker = document.getElementById("flag-picker-container");
-  const avatarIcon = document.getElementById("avatar-edit-hint");
-  const avatarUpload = document.getElementById("avatar-upload");
-
-  if (avatarIcon && avatarUpload) {
-    avatarIcon.onclick = (e) => {
-      e.stopPropagation();
-      if (editBtn && editBtn.getAttribute("data-mode") === "save") {
-        avatarUpload.click();
-      }
-    };
-  }
-
-  if (avatarUpload) {
-    avatarUpload.onchange = (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      compressImage(file, 300, (compressedBase64) => {
-        tempAvatar = compressedBase64;
-        tempAvatarPosX = 50;
-        tempAvatarPosY = 50;
-
-        // СНИМАЕМ ОБВОДКУ АВАТАРА
-        const avNode = document.getElementById("profile-avatar");
-        if (avNode) avNode.classList.remove("needs-fill");
-
-        updateProfileUI();
-      });
-    };
-  }
-
-  if (flagGrid && flagGrid.children.length === 0) {
-    const allFlags = Object.values(COUNTRIES_BY_CONTINENT)
-      .flat()
-      .sort((a, b) => a.localeCompare(b));
-    flagGrid.innerHTML = allFlags
-      .map(
-        (flag) =>
-          `<span class="flag-item" style="cursor:pointer;font-size:24px;padding:5px;">${flag}</span>`,
-      )
-      .join("");
-
-    flagGrid.querySelectorAll(".flag-item").forEach((el) => {
-      el.onclick = (e) => {
-        e.stopPropagation();
-        tempSelectedCountry = el.textContent;
-        if (inputCountry) {
-          inputCountry.value = tempSelectedCountry;
-          // СНИМАЕМ ОБВОДКУ ФЛАГА
-          inputCountry.classList.remove("needs-fill");
-        }
-        if (flagPicker) flagPicker.style.display = "none";
-      };
-    });
-  }
-
-  if (inputCountry && flagPicker) {
-    inputCountry.onclick = (e) => {
-      e.stopPropagation();
-      flagPicker.style.display =
-        flagPicker.style.display === "block" ? "none" : "block";
-    };
-  }
-
-  if (editBtn) {
-    editBtn.onclick = () => {
-      const isEditingNow = editBtn.getAttribute("data-mode") === "save";
-      toggleEditMode(!isEditingNow);
-    };
-  }
-
-  // === 🟢 СНЯТИЕ КРАСНОЙ ОБВОДКИ ПРИ ВВОДЕ ТЕКСТА ===
-  const inputNameNode = document.getElementById("input-name");
-  if (inputNameNode) {
-    inputNameNode.addEventListener("input", (e) => {
-      if (e.target.value.trim() !== "") e.target.classList.remove("needs-fill");
-      else e.target.classList.add("needs-fill");
-    });
-  }
-
-  const inputBioNode = document.getElementById("input-bio");
-  if (inputBioNode) {
-    inputBioNode.addEventListener("input", (e) => {
-      if (e.target.value.trim() !== "") e.target.classList.remove("needs-fill");
-      else e.target.classList.add("needs-fill");
-    });
-  }
-}
-
-function toggleEditMode(enable) {
-  const editBtn = document.getElementById("edit-profile-btn");
-  const ids = [
-    "profile-display-name-row",
-    "display-bio",
-    "display-tags-minimal",
-  ];
-  const editIds = [
-    "profile-edit-name-row",
-    "input-bio",
-    "avatar-edit-hint",
-    "edit-tags-wrapper",
-  ];
-
-  if (enable) {
-    if (editBtn) {
-      editBtn.setAttribute("data-mode", "save");
-      editBtn.textContent = "Save Changes";
-    }
-
-    tempSelectedCountry = state.profile.country;
-    tempSelectedInterests = [...(state.profile.interests || [])];
-    tempAvatar = state.profile.avatar;
-
-    tempAvatarPosX = state.profile.avatarPosX || 50;
-    tempAvatarPosY = state.profile.avatarPosY || 50;
-
-    const nameNode = document.getElementById("input-name");
-    if (nameNode) nameNode.value = state.profile.name || "";
-
-    const countryNode = document.getElementById("input-country");
-    if (countryNode) countryNode.value = state.profile.country || "";
-
-    const bioNode = document.getElementById("input-bio");
-    if (bioNode) {
-      bioNode.value =
-        !state.profile.bio || state.profile.bio.includes("Detailed statistics")
-          ? ""
-          : state.profile.bio;
-    }
-
-    if (!state.profile.country && countryNode) {
-      countryNode.placeholder = "🌍";
-    }
-
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = "none";
-    });
-    editIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = "flex";
-    });
-    renderEditTags();
-  } else {
-    // === 🔴 ЖЕСТКАЯ ПРОВЕРКА ВСЕХ ПОЛЕЙ ПРИ СОХРАНЕНИИ ===
-    const nameNode = document.getElementById("input-name");
-    const countryNode = document.getElementById("input-country");
-    const bioNode = document.getElementById("input-bio");
-
-    const newName = nameNode ? nameNode.value.trim() : "";
-    const newCountry =
-      tempSelectedCountry || (countryNode ? countryNode.value : "");
-    const newBio = bioNode ? bioNode.value.trim() : "";
-
-    const isNameEmpty = newName === "" || newName === "@";
-    const isCountryEmpty = newCountry === "";
-    const isBioEmpty = newBio === "" || newBio.includes("Detailed statistics");
-    const isAvatarEmpty = !tempAvatar;
-    const isInterestsInvalid = tempSelectedInterests.length !== 3;
-
-    if (
-      isNameEmpty ||
-      isCountryEmpty ||
-      isBioEmpty ||
-      isAvatarEmpty ||
-      isInterestsInvalid
-    ) {
-      if (isNameEmpty && nameNode) nameNode.classList.add("needs-fill");
-      if (isCountryEmpty && countryNode)
-        countryNode.classList.add("needs-fill");
-      if (isBioEmpty && bioNode) bioNode.classList.add("needs-fill");
-
-      const avNode = document.getElementById("profile-avatar");
-      if (isAvatarEmpty && avNode) avNode.classList.add("needs-fill");
-
-      const hintText = document.getElementById("tags-hint-text");
-      if (isInterestsInvalid && hintText) {
-        hintText.style.color = "#e74c3c";
-        setTimeout(() => (hintText.style.color = "#8b6b4b"), 2000);
-      }
-
-      showToastNotification("⚠️ Fill all fields!");
-      return;
-    }
-
-    // Автоматически добавляем @ к нику, если юзер забыл
-    state.profile.name = newName.startsWith("@") ? newName : "@" + newName;
-    state.profile.country = newCountry;
-    state.profile.avatarPosX = tempAvatarPosX;
-    state.profile.avatarPosY = tempAvatarPosY;
-
-    state.profile.bio =
-      newBio === "" ? "Detailed statistics and recent achievements..." : newBio;
-    state.profile.interests = [...tempSelectedInterests];
-    state.profile.avatar = tempAvatar;
-
-    if (editBtn) {
-      editBtn.setAttribute("data-mode", "edit");
-      editBtn.textContent = "Edit Profile";
-    }
-
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = "flex";
-    });
-    editIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = "none";
-    });
-
-    const picker = document.getElementById("flag-picker-container");
-    if (picker) picker.style.display = "none";
-
-    updateProfileUI();
-
-    // === ЛОГИКА СВОРАЧИВАНИЯ ПРОФИЛЯ ===
-    const profileBlock = document.getElementById("profile-block");
-    const collapseProfile = () => {
-      if (profileBlock) {
-        profileBlock.classList.remove("expanded");
-        const t = profileBlock.querySelector(".expand-trigger");
-        if (t) t.textContent = "⬇️";
-      }
-    };
-
-    // Поздравляем новичка
-    if (!localStorage.getItem("onboarding_done")) {
-      localStorage.setItem("onboarding_done", "true");
-      showCustomAlert(
-        "🎉",
-        "Setup Complete!",
-        "You are ready to explore the world!",
-        "#27ae60",
-        () => {
-          collapseProfile();
-        },
-      );
-    } else {
-      collapseProfile();
-    }
-  }
-}
-
-function cancelEditMode() {
-  // ЗАПРЕЩАЕМ ОТМЕНУ, ЕСЛИ ПРОФИЛЬ ПУСТ
-  if (!state.profile.name || state.profile.name === "") {
-    showToastNotification("⚠️ Wait! Set up your profile first!");
-    return;
-  }
-
-  const editBtn = document.getElementById("edit-profile-btn");
-  if (!editBtn || editBtn.getAttribute("data-mode") !== "save") return;
-
-  editBtn.setAttribute("data-mode", "edit");
-  editBtn.textContent = "Edit Profile";
-
-  const ids = [
-    "profile-display-name-row",
-    "display-bio",
-    "display-tags-minimal",
-  ];
-  const editIds = [
-    "profile-edit-name-row",
-    "input-bio",
-    "avatar-edit-hint",
-    "edit-tags-wrapper",
-  ];
-
-  ids.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = "flex";
-  });
-  editIds.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = "none";
-  });
-
-  const picker = document.getElementById("flag-picker-container");
-  if (picker) picker.style.display = "none";
-
-  updateProfileUI();
-}
-
-function renderEditTags() {
-  const container = document.getElementById("edit-tags-list");
-  if (!container) return;
-
-  container.innerHTML = AVAILABLE_INTERESTS.map((tag) => {
-    const isSelected = tempSelectedInterests.includes(tag);
-    return `<span class="tag-selectable ${isSelected ? "selected" : ""}" data-tag="${tag}">
-          ${tag}
-        </span>`;
-  }).join("");
-
-  container.querySelectorAll(".tag-selectable").forEach((el) => {
-    el.onclick = () => {
-      const tag = el.dataset.tag;
-      if (tempSelectedInterests.includes(tag)) {
-        tempSelectedInterests = tempSelectedInterests.filter((t) => t !== tag);
-      } else if (tempSelectedInterests.length < 3) {
-        tempSelectedInterests.push(tag);
-      }
-      renderEditTags();
-
-      // ПРОВЕРКА И КРАШЕНИЕ ПОДСКАЗКИ
-      const hintText = document.getElementById("tags-hint-text");
-      if (hintText) {
-        if (tempSelectedInterests.length === 3) {
-          hintText.style.color = "#8b6b4b";
-        } else {
-          hintText.style.color = "#e74c3c";
-        }
-      }
-    };
-  });
-}
-
-// ==========================================================================
 // 4. СИСТЕМНЫЕ ФУНКЦИИ
 // ==========================================================================
 
@@ -1447,35 +1174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   });
 
-  document.querySelectorAll(".expand-trigger").forEach((trigger) => {
-    trigger.onclick = (e) => {
-      e.stopPropagation();
-      const block = trigger.closest(".clickable-block");
-      const isExpanding = !block.classList.contains("expanded");
-
-      document.querySelectorAll(".clickable-block").forEach((b) => {
-        b.classList.remove("expanded");
-        const t = b.querySelector(".expand-trigger");
-        if (t) t.textContent = "⬇️";
-      });
-
-      if (isExpanding) {
-        block.classList.add("expanded");
-        trigger.textContent = "⬆️";
-
-        // === МАГИЯ: АВТОМАТИЧЕСКАЯ ПОДТЯЖКА ЭКРАНА ===
-        // Страница сама плавно приподнимет блок, чтобы он встал по центру над меню
-        setTimeout(() => {
-          block.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 150);
-      } else {
-        if (block.id === "profile-block") cancelEditMode();
-      }
-    };
-  });
-
   setupTheme();
-  setupProfileEditing();
 
   const saveToggle = document.getElementById("save-toggle");
   const btnClearData = document.getElementById("btn-clear-data");
@@ -1532,7 +1231,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateProfileUI();
   refreshAllLists();
-  renderMapSections();
 
   window.syncAssets = function () {
     // Находим новые элементы в шапке
@@ -1597,53 +1295,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 1. СТАНДАРТНАЯ ЛОГИКА (Если юзер сам хочет заполнить)
       overlay.querySelector(".custom-alert-btn").onclick = () => {
-        overlay.remove();
-
-        const profileBlock = document.getElementById("profile-block");
-        if (profileBlock && !profileBlock.classList.contains("expanded")) {
-          profileBlock.classList.add("expanded");
-          const t = profileBlock.querySelector(".expand-trigger");
-          if (t) t.textContent = "⬆️";
+        overlay.remove(); // Закрываем окно приветствия
+        
+        // Вызываем нашу новую функцию открытия модалки
+        if (typeof window.openEditProfileModal === "function") {
+          window.openEditProfileModal(); 
         }
-
-        toggleEditMode(true);
-
-        // Включаем красную подсветку
-        const av = document.getElementById("profile-avatar");
-        if (av) av.classList.add("needs-fill");
-        const inName = document.getElementById("input-name");
-        if (inName) inName.classList.add("needs-fill");
-        const inC = document.getElementById("input-country");
-        if (inC) inC.classList.add("needs-fill");
-        const inBio = document.getElementById("input-bio");
-        if (inBio) inBio.classList.add("needs-fill");
-
-        const hintText = document.getElementById("tags-hint-text");
-        if (hintText) hintText.style.color = "#e74c3c";
-
-        const nameInput = document.getElementById("input-name");
-        if (nameInput) nameInput.focus();
       };
 
       // 2. === МАГИЯ: ЛОГИКА АВТОЗАПОЛНЕНИЯ (Для тебя) ===
       const devBtn = overlay.querySelector(".dev-autofill-btn");
       if (devBtn) {
         devBtn.onclick = () => {
-          // Закидываем фейковые данные
+          // Закидываем крутые фейковые данные
           window.state.profile.name = "@DevTester";
-          window.state.profile.country = "🇵🇱";
+          window.state.profile.country = "Poland"; // Название страны для системы
+          window.state.profile.countryFlag = "🇵🇱"; // Флажок для красоты
+          window.state.profile.countryFlag = "🇵🇱"; // Флажок для красоты
           window.state.profile.bio = "Just a developer testing the app! 💻";
-          window.state.profile.avatar = null; // Оставим null, чтобы была буква "D" на фоне
+          
+          // Ставим красивую фотку парня с Unsplash (обрезанную в квадрат 150x150)
+          window.state.profile.avatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop"; 
+          window.state.profile.avatarPosX = 50; // Центрируем
+          window.state.profile.avatarPosY = 50;
+
+          // Прописываем теги (сразу в оба свойства для надежности)
+          window.state.profile.tags = ["Tech", "Coffee", "Gaming"];
           window.state.profile.interests = ["Tech", "Coffee", "Gaming"];
 
-          overlay.remove(); // Закрываем окно
+          overlay.remove(); // Закрываем стартовое окно
 
           // Помечаем, что онбординг пройден
           localStorage.setItem("onboarding_done", "true");
 
           // Обновляем визуал и сохраняем!
-          if (typeof window.updateProfileUI === "function")
-            window.updateProfileUI();
+          if (typeof window.updateProfileUI === "function") window.updateProfileUI();
+          if (typeof window.refreshAllLists === "function") window.refreshAllLists();
           if (typeof window.saveState === "function") window.saveState();
 
           showToastNotification("🪄 Magic! Profile Auto-filled.");
@@ -1873,62 +1560,34 @@ document.addEventListener("DOMContentLoaded", () => {
   updateDaysInApp();
 });
 
-window.syncAssets = function () {
-  // Находим новые элементы в шапке
-  const balanceElement = document.getElementById("postcard-display");
-  const energyElement = document.getElementById("energy-display");
-
-  // Обновляем количество открыток
-  if (balanceElement) {
-    balanceElement.textContent = state.postcards;
-  }
-
-  // Обновляем энергию (добавляем иконку молнии прямо в текст для стиля)
-  if (energyElement) {
-    energyElement.textContent = state.energy + "⚡";
-  }
-
-  // Также обновляем счетчики в других местах, если они есть (например, в модалках)
-  const sentCountEl = document.getElementById("sent-count");
-  if (sentCountEl) sentCountEl.textContent = state.sentPostcards.length;
-
-  const receivedCountEl = document.getElementById("received-count");
-  if (receivedCountEl)
-    receivedCountEl.textContent = state.receivedPostcards.length;
-};
-
-// === ОБНОВЛЕНИЕ МИНИ-ВИДЖЕТА ТРЕКИНГА (TOP 3) ===
+// === ОБНОВЛЕНИЕ МИНИ-ВИДЖЕТА ТРЕКИНГА (LIVE TRACKING) ===
 window.updateTrackingPreviewWidget = function () {
   const previewList = document.getElementById("tracking-preview-list");
-  const countBadge = document.getElementById("tracking-count");
-
   if (!previewList || !state || !state.tracking) return;
 
-  if (countBadge) countBadge.textContent = state.tracking.length;
-
+  // Если нет открыток, оставляем заголовок Live Tracking
   if (state.tracking.length === 0) {
-    previewList.innerHTML = `<div style="background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--border); border-radius: 10px; padding: 12px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 600;">No postcards in transit 🌍</div>`;
+    previewList.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <span style="color: var(--text-main); font-size: 12px; font-weight: 700;">Live Tracking</span>
+      </div>
+      <div style="background: transparent; border: 1px dashed var(--border); border-radius: 10px; padding: 10px; text-align: center; font-size: 12px; color: var(--text-sub); font-weight: 500;">No postcards in transit 🌍</div>
+    `;
     return;
   }
 
-  // Сортируем: кто прилетит раньше всех — тот первый
-  const sortedTracking = [...state.tracking].sort(
-    (a, b) => (a.arrivalAt || 0) - (b.arrivalAt || 0),
-  );
+  const sortedTracking = [...state.tracking].sort((a, b) => (a.arrivalAt || 0) - (b.arrivalAt || 0));
   const top3 = sortedTracking.slice(0, 3);
   const now = new Date().getTime();
 
-  previewList.innerHTML = top3
-    .map((item) => {
-      // === ТОЧНЫЕ ПЕРЕМЕННЫЕ ИЗ ТВОЕЙ БАЗЫ ===
+  previewList.innerHTML = top3.map((item, index) => {
       const arrival = item.arrivalAt || 0;
       const departure = item.sentAt || arrival - 24 * 60 * 60 * 1000;
-
       const isIncoming = item.type === "incoming";
+      
       let flag = isIncoming ? "🌍" : item.flag || item.countryFlag || "";
       let dest = isIncoming ? "Mystery Card" : item.toCountry || "Unknown";
 
-      // Повторяем логику из твоего модального окна для точного названия страны
       if (!isIncoming && item.to && !item.toCountry) {
         const parts = item.to.split(", ");
         dest = parts[0];
@@ -1943,22 +1602,29 @@ window.updateTrackingPreviewWidget = function () {
 
       const hours = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-
       let timeString = `${hours}h ${minutes}m`;
       if (timeLeft <= 0) timeString = "Delivered!";
 
+      // ИЗМЕНЕНИЕ: Пишем Next Delivery ТОЛЬКО для первой карточки в списке
+      let headerTitle = index === 0 ? "Next Delivery" : "";
+
       return `
-        <div style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
-                <span style="font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${flag} ${dest}</span>
-                <span style="color: var(--primary); font-weight: 800;">${timeString}</span>
+        <div style="${index > 0 ? 'margin-top: 4px;' : ''}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="color: var(--text-main); font-size: 12px; font-weight: 700;">${headerTitle}</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-main);">${timeString}</span>
             </div>
-            <div style="height: 4px; background: rgba(0,0,0,0.06); border-radius: 2px; overflow: hidden;">
-                <div style="height: 100%; width: ${progress}%; background: var(--primary); border-radius: 2px; transition: width 1s linear;"></div>
+            
+            <div style="display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; background: transparent;">
+                <span style="font-size: 13px; opacity: 0.8; margin-right: 6px;">📍</span>
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap;">${flag} ${dest}</span>
+                
+                <div style="flex: 1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden; margin-left: 10px;">
+                    <div style="height: 100%; width: ${progress}%; background: #dfa87e; border-radius: 3px; transition: width 1s linear;"></div>
+                </div>
             </div>
         </div>`;
-    })
-    .join("");
+    }).join("");
 };
 
 // Запускаем автоматическое обновление виджета каждую секунду, чтобы полоски ползли, а таймер тикал
@@ -2038,11 +1704,22 @@ function openEditProfileModal() {
     });
   }
 
-  // 2. Подтягиваем текущие данные пользователя
-  if (state && state.profile) {
-    document.getElementById("input-name-modal").value =
-      state.profile.name || "";
-    document.getElementById("input-bio-modal").value = state.profile.bio || "";
+// 2. Подтягиваем текущие данные пользователя
+if (state && state.profile) {
+  document.getElementById("input-name-modal").value = state.profile.name || "";
+  
+  // Подтягиваем био и обновляем счетчик
+  const bioInput = document.getElementById("input-bio-modal");
+  if (bioInput) {
+    bioInput.value = state.profile.bio || "";
+    const bioCount = document.getElementById("bio-char-count");
+    if (bioCount) {
+      const len = bioInput.value.length;
+      bioCount.innerText = `${len} / 150`;
+      // Если достигли 150, красим в красный
+      bioCount.style.color = len >= 150 ? "#e74c3c" : "var(--text-sub)";
+    }
+  }
 
     // Отрисовываем аватар с учетом сохраненных координат
     const avatarModal = document.getElementById("profile-avatar-modal");
@@ -2204,6 +1881,16 @@ function initAvatarDragLogic() {
 document.addEventListener("DOMContentLoaded", () => {
   // Запускаем слушатель перетаскивания!
   initAvatarDragLogic();
+  // Слушатель для счетчика символов в био
+  const bioInputModal = document.getElementById("input-bio-modal");
+  const bioCharCount = document.getElementById("bio-char-count");
+  if (bioInputModal && bioCharCount) {
+    bioInputModal.addEventListener("input", (e) => {
+      const currentLen = e.target.value.length;
+      bioCharCount.innerText = `${currentLen} / 150`;
+      bioCharCount.style.color = currentLen >= 150 ? "#e74c3c" : "var(--text-sub)";
+    });
+  }
 
   // Выбор фото
   const avatarInputModal = document.getElementById("avatar-upload-modal");
@@ -2262,6 +1949,7 @@ document.addEventListener("DOMContentLoaded", () => {
       state.profile.tags = [...tempModalTags];
 
       if (typeof updateProfileUI === "function") updateProfileUI();
+      if (typeof refreshAllLists === "function") refreshAllLists();
       if (typeof saveState === "function") saveState();
 
       closeEditProfileModal();

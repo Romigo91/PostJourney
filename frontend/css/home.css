@@ -55,7 +55,6 @@
    .tracking-subtitle { font-size: 11px; color: var(--text-status); }
    .tracking-status { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--bg-card); color: var(--text-main); }
    
-   #tracking-preview-list > div { background: var(--bg-phone) !important; color: var(--text-main) !important; border-color: var(--border) !important; }
    
    /* Лидерборд на Главной */
    .leaderboard { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin-top: 4px; }

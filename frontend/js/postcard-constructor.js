@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const sender = botSenderData || state.profile;
 
       const name = sender.name;
-      const country = sender.country || sender.countryFlag || "🌍";
+      const country = sender.countryFlag || sender.country || "🌍";
       const avatar = sender.avatar || null;
       const posX = sender.avatarPosX ?? 50;
       const posY = sender.avatarPosY ?? 50;
@@ -1110,18 +1110,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (miniAvatarEl) {
       if (!isSent) {
         const botName = cardData.fromBot || cardData.senderName || "Bot";
-        miniAvatarEl.textContent =
-          typeof window.getBotAvatar === "function"
-            ? window.getBotAvatar(botName)
+        const botAvatar = typeof window.getBotAvatar === "function" 
+            ? window.getBotAvatar(botName) 
             : botName.charAt(0).toUpperCase();
+            
+        if (botAvatar.startsWith("http")) {
+            // Если это ссылка на картинку (с Unsplash), ставим её на фон
+            miniAvatarEl.textContent = "";
+            miniAvatarEl.style.backgroundImage = `url(${botAvatar})`;
+            miniAvatarEl.style.backgroundSize = "cover";
+            miniAvatarEl.style.backgroundPosition = "center";
+            miniAvatarEl.style.backgroundColor = "transparent";
+        } else {
+            // Если это просто буква-заглушка
+            miniAvatarEl.textContent = botAvatar;
+            miniAvatarEl.style.backgroundImage = "none";
+            miniAvatarEl.style.backgroundColor = "var(--bg-flag-circle)";
+        }
         miniAvatarEl.style.fontSize = "26px";
-        miniAvatarEl.style.background = "var(--bg-flag-circle)";
       } else {
-        const myName =
-          typeof state !== "undefined" && state.profile
-            ? state.profile.name
-            : "Me";
-        miniAvatarEl.textContent = myName.charAt(0).toUpperCase();
+        const myName = typeof state !== "undefined" && state.profile ? state.profile.name : "Me";
+        // Исправляем и для самого юзера: если есть фото, не ставим букву поверх него!
+        if (state && state.profile && state.profile.avatar) {
+            miniAvatarEl.textContent = "";
+        } else {
+            miniAvatarEl.textContent = myName.charAt(0).toUpperCase();
+        }
         miniAvatarEl.style.fontSize = "18px";
       }
     }

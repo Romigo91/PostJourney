@@ -4,41 +4,16 @@
 
 // === БАЗА АВАТАРОВ ДЛЯ БОТОВ ===
 const BOT_AVATARS = [
-  "👨",
-  "👩",
-  "👱‍♂️",
-  "👱‍♀️",
-  "👨‍🦰",
-  "👩‍🦰",
-  "👨‍🦳",
-  "👩‍🦳",
-  "🧔",
-  "👦",
-  "👧",
-  "👲",
-  "👳‍♂️",
-  "👳‍♀️",
-  "👮‍♂️",
-  "👮‍♀️",
-  "👩‍⚕️",
-  "👨‍⚕️",
-  "👨‍🎓",
-  "👩‍🎓",
-  "👨‍🏫",
-  "👩‍🏫",
-  "👨‍💻",
-  "👩‍💻",
-  "🤖",
-  "👽",
-  "👾",
-  "🤠",
-  "😎",
-  "🤓",
-  "😸",
-  "🦊",
-  "🐻",
-  "🐼",
-  "🐯",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop", // Девушка брюнетка
+  "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop", // Мужчина профиль
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop", // Девушка портрет
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop", // Парень серьезный
+  "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop", // Девушка с улыбкой
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop", // Парень с улыбкой
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop", // Девушка на светлом фоне
+  "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop", // Мужчина в очках
+  "https://images.unsplash.com/photo-1554151228-14d9def656e4?w=150&h=150&fit=crop", // Девушка кудрявая
+  "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=150&h=150&fit=crop"  // Парень с бородой
 ];
 
 // Функция подбирает уникальное лицо на основе имени

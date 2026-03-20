@@ -4,6 +4,14 @@
 
 let currentActiveChatId = null;
 
+// === УМНЫЙ РЕНДЕР АВАТАРКИ (Эмодзи или Картинка) ===
+function renderAvatarHTML(content) {
+  if (content && (content.startsWith("http") || content.startsWith("data:"))) {
+    return `<img src="${content}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
+  }
+  return content;
+}
+
 // === 1. РАЗБЛОКИРОВКА НОВОГО ЧАТА ===
 window.unlockChat = function (botId, botName, botFlag, botCountry) {
   if (!state.chats) state.chats = {};
@@ -72,7 +80,9 @@ window.renderChatList = function () {
 
       return `
         <div class="chat-list-item" onclick="openChat('${chat.id}')">
-            <div style="font-size: 26px; width: 45px; height: 45px; background: var(--bg-flag-circle); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">${avatarFace}</div>
+            <div style="font-size: 26px; width: 45px; height: 45px; background: var(--bg-flag-circle); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;">
+                ${renderAvatarHTML(avatarFace)}
+            </div>
             <div style="flex: 1; overflow: hidden; margin-left: 5px;">
                 <div style="font-weight: 800; color: var(--text-main); font-size: 14px;">${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span></div>
                 <div style="font-size: 12px; color: ${msgColor}; font-weight: ${msgWeight}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${lastMsg}</div>
@@ -109,7 +119,7 @@ window.openChat = function (botId) {
     typeof window.getBotAvatar === "function"
       ? window.getBotAvatar(chat.name)
       : chat.flag;
-  document.getElementById("active-chat-avatar").textContent = avatarFace;
+      document.getElementById("active-chat-avatar").innerHTML = renderAvatarHTML(avatarFace);
   document.getElementById("active-chat-name").innerHTML =
     `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
 
@@ -559,8 +569,8 @@ window.showChatUserProfile = function () {
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <div onclick="showLargeAvatar('${avatarFace}')" style="cursor: pointer; font-size: 26px; background: var(--bg-flag-circle); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                        ${avatarFace}
+                    <div onclick="showLargeAvatar('${avatarFace}')" style="cursor: pointer; font-size: 26px; background: var(--bg-flag-circle); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
+                        ${renderAvatarHTML(avatarFace)}
                     </div>
                     <div>
                         <div style="font-weight: 900; font-size: 16px; color: var(--text-main); line-height: 1.1;">${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span></div>

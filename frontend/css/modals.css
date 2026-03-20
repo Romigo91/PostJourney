@@ -9,7 +9,7 @@
   
   .custom-alert-box {
     background: var(--bg-card); width: 80%; max-width: 320px; padding: 24px; border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; display: flex; flex-direction: column; gap: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; display: flex; flex-direction: column; gap: 10px;
     animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); max-height: 85% !important; 
   }
   .custom-alert-box > div[style*="overflow-y"] { flex: 1; min-height: 0; }
