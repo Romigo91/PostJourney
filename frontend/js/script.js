@@ -681,37 +681,37 @@ function refreshAllLists() {
           : "background: transparent; border-bottom: 1px solid var(--border-input); border-radius: 0;";
         
         const nameColor = isFirst ? "color: white;" : (player.isUser ? "color: var(--primary);" : "color: var(--text-main);");
-        const scoreColor = isFirst ? "color: rgba(255,255,255,0.9);" : "color: var(--text-sub);";
+        const scoreColor = isFirst ? "color: rgba(255,255,255,0.95);" : "color: var(--text-sub);";
 
-        // Получаем правильную круглую аватарку (твое фото или фото бота)
+        // Получаем правильную круглую аватарку
         let avatarHtml = "";
         if (player.isUser) {
             if (state.profile.avatar) {
-                avatarHtml = `<img src="${state.profile.avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'};">`;
+                avatarHtml = `<img src="${state.profile.avatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'}; flex-shrink: 0;">`;
             } else {
-                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">${player.name.charAt(0).toUpperCase()}</div>`;
+                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">${player.name.charAt(0).toUpperCase()}</div>`;
             }
         } else {
             const botAvatar = typeof window.getBotAvatar === "function" ? window.getBotAvatar(player.name) : "👤";
             if (botAvatar.startsWith("http")) {
-                 avatarHtml = `<img src="${botAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'};">`;
+                 avatarHtml = `<img src="${botAvatar}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid ${isFirst ? 'rgba(255,255,255,0.5)' : 'var(--border-input)'}; flex-shrink: 0;">`;
             } else {
-                 avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px;">${botAvatar}</div>`;
+                 avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${isFirst ? 'rgba(255,255,255,0.3)' : 'var(--bg-flag-circle)'}; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">${botAvatar}</div>`;
             }
         }
 
-        // Собираем финальную строчку
+        // СОБИРАЕМ ФИНАЛЬНУЮ СТРОЧКУ (Уменьшили padding до 6px 12px и добавили защиту от длинных имен)
         return `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; ${bgStyle}">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; ${bgStyle}">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 24px; flex-shrink: 0;">
                         <span style="font-size: 16px; line-height: 1;">${medalIcon}</span>
                         <span style="font-size: 9px; font-weight: 800; opacity: ${isFirst ? '0.9' : '0.5'};">#${rank}</span>
                     </div>
                     ${avatarHtml}
-                    <span style="font-weight: 700; font-size: 14px; ${nameColor}">${player.name} <span style="font-size: 10px; margin-left: 4px;">${player.flag || ""}</span></span>
+                    <span style="font-weight: 700; font-size: 14px; ${nameColor}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${player.name} <span style="font-size: 10px; margin-left: 4px; opacity: 0.8;">${player.flag || ""}</span></span>
                 </div>
-                <span style="font-size: 13px; font-weight: 800; ${scoreColor}">${player.score} pt</span>
+                <span style="font-size: 13px; font-weight: 800; ${scoreColor}; flex-shrink: 0; margin-left: 10px;">${player.score} pt</span>
             </div>`;
       })
       .join("");
@@ -1565,7 +1565,8 @@ window.updateTrackingPreviewWidget = function () {
   const previewList = document.getElementById("tracking-preview-list");
   if (!previewList || !state || !state.tracking) return;
 
-  // Если нет открыток, оставляем заголовок Live Tracking
+  previewList.style.gap = "4px";
+
   if (state.tracking.length === 0) {
     previewList.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
@@ -1605,27 +1606,36 @@ window.updateTrackingPreviewWidget = function () {
       let timeString = `${hours}h ${minutes}m`;
       if (timeLeft <= 0) timeString = "Delivered!";
 
-      // ИЗМЕНЕНИЕ: Пишем Next Delivery ТОЛЬКО для первой карточки в списке
-      let headerTitle = index === 0 ? "Next Delivery" : "";
+      let headerHtml = "";
+      if (index === 0) {
+          headerHtml = `
+            <div style="margin-bottom: 4px;">
+                <span style="color: var(--text-main); font-size: 12px; font-weight: 700;">Next Delivery</span>
+            </div>`;
+      }
 
+      // СОБИРАЕМ КАРТОЧКУ С ЖЕСТКОЙ ШИРИНОЙ (Для идеального выравнивания)
       return `
-        <div style="${index > 0 ? 'margin-top: 4px;' : ''}">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span style="color: var(--text-main); font-size: 12px; font-weight: 700;">${headerTitle}</span>
-                <span style="font-size: 11px; font-weight: 800; color: var(--text-main);">${timeString}</span>
-            </div>
-            
+        <div>
+            ${headerHtml}
             <div style="display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; background: transparent;">
-                <span style="font-size: 13px; opacity: 0.8; margin-right: 6px;">📍</span>
-                <span style="font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap;">${flag} ${dest}</span>
                 
-                <div style="flex: 1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden; margin-left: 10px;">
+                <div style="display: flex; align-items: center; width: 115px; flex-shrink: 0; overflow: hidden;">
+                    <span style="font-size: 13px; opacity: 0.8; margin-right: 4px; flex-shrink: 0;">📍</span>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${flag} ${dest}</span>
+                </div>
+                
+                <div style="flex: 1; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden; margin: 0 8px;">
                     <div style="height: 100%; width: ${progress}%; background: #dfa87e; border-radius: 3px; transition: width 1s linear;"></div>
                 </div>
+                
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-main); flex-shrink: 0; width: 50px; text-align: right;">${timeString}</span>
+                
             </div>
         </div>`;
     }).join("");
 };
+
 
 // Запускаем автоматическое обновление виджета каждую секунду, чтобы полоски ползли, а таймер тикал
 setInterval(window.updateTrackingPreviewWidget, 1000);
