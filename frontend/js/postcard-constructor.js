@@ -783,6 +783,10 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSendPostcard.disabled = true;
       btnSendPostcard.textContent = "🚀 Sending...";
 
+      // === ВИБРАЦИЯ ПРИ ОТПРАВКЕ ===
+      if (typeof window.vibrateDevice === "function") {
+          window.vibrateDevice([30, 50, 30]); // Легкий приятный двойной щелчок
+      }
       // МГНОВЕННО ПРЯЧЕМ КНОПКУ 3D
       const btn3D = document.getElementById("btn-view-3d");
       if (btn3D) btn3D.classList.add("disabled");

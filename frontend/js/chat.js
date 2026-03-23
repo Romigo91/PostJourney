@@ -142,9 +142,7 @@ window.closeChat = function () {
     .getElementById("screen-container")
     .classList.remove("chat-active-mode");
 
-  // Очищаем жесткие стили (защита от багов)
-  chatView.style.removeProperty("position");
-  chatView.style.removeProperty("z-index");
+  // УДАЛИЛИ ЗДЕСЬ removeProperty! Окно должно сохранять свои стили!
 
   // Возвращаем меню
   const nav = document.querySelector(".bottom-nav");
@@ -165,23 +163,81 @@ function renderMessages() {
       const isMine = msg.sender === "me";
       const bubbleClass = isMine ? "mine" : "theirs";
 
-      // Текст для отображения (с учетом перевода)
-      const displayText =
-        msg.showTranslation && msg.translatedText
-          ? msg.translatedText
-          : msg.text;
+      // === НОВАЯ ЛОГИКА: ВИДЖЕТ ДУЭЛИ ===
+      if (msg.type === 'duel') {
+        if (msg.status === 'pending') {
+            return `
+              <div style="display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'}; margin-bottom: 5px;">
+                  <div class="chat-bubble ${bubbleClass}" style="width: 200px; padding: 0; overflow: hidden; border: 2px solid ${isMine ? '#e67e22' : 'var(--border)'}; background: var(--bg-card);">
+                      <div style="background: ${isMine ? '#e67e22' : 'var(--bg-input)'}; color: ${isMine ? 'white' : 'var(--text-main)'}; padding: 10px; font-weight: 900; text-align: center; font-size: 14px;">
+                          ⚔️ GEO QUIZ DUEL
+                      </div>
+                      <div style="padding: 15px; text-align: center;">
+                          <div style="font-size: 24px; font-weight: 900; margin-bottom: 5px; color: var(--text-main);">${msg.bet} ⚡</div>
+                          <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 10px;">
+                              ${isMine ? 'Waiting for opponent...' : 'Challenge received!'}
+                          </div>
+                          ${!isMine ? `<button class="primary-button" style="width: 100%; margin: 0; padding: 8px; font-size: 12px; background: #27ae60;" onclick="acceptDuel('${currentActiveChatId}', ${index})">Accept & Play</button>` : ''}
+                      </div>
+                  </div>
+                  <div class="chat-time">${msg.time}</div>
+              </div>
+            `;
+        } else if (msg.status === 'completed') {
+            // РЕНДЕР ФИНАЛЬНОГО РЕЗУЛЬТАТА
+            const myScore = isMine ? msg.playerScore : msg.opponentScore;
+            const myTime = isMine ? msg.playerTime : msg.opponentTime;
+            
+            const theirScore = isMine ? msg.opponentScore : msg.playerScore;
+            const theirTime = isMine ? msg.opponentTime : msg.playerTime;
 
-      // Пометка о редактировании
-      const editedMark = msg.edited
-        ? `<span class="chat-edited-mark">(edited)</span>`
-        : "";
+            let didIWin = false;
+              let isTie = msg.winner === 'tie';
+              if (isMine && msg.winner === 'initiator') didIWin = true;
+              if (!isMine && msg.winner === 'responder') didIWin = true;
 
-      // Логика подсказок под сообщением
+              const resultColor = isTie ? "#f39c12" : (didIWin ? "#27ae60" : "#e74c3c");
+              
+              // Умный заголовок с правильным отображением баланса
+              let headerText = "";
+              if (isTie) {
+                  headerText = `🤝 TIE (+${msg.bet} ⚡)`; // Возврат ставки
+              } else if (didIWin) {
+                  headerText = `🏆 YOU WON (+${msg.bet * 2} ⚡)`; // Забрали банк
+              } else {
+                  headerText = `💔 YOU LOST (-${msg.bet} ⚡)`; // Потеряли только свою ставку
+              }
+              
+              return `
+                <div style="display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'}; margin-bottom: 5px;">
+                    <div class="chat-bubble ${bubbleClass}" style="width: 240px; padding: 0; overflow: hidden; border: 2px solid ${resultColor}; background: var(--bg-card);">
+                        <div style="background: ${resultColor}; color: white; padding: 10px; font-weight: 900; text-align: center; font-size: 14px; text-transform: uppercase;">
+                            ${headerText}
+                        </div>
+                      <div style="padding: 15px;">
+                          <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 13px;">
+                              <div style="color: var(--primary);">You</div>
+                              <div style="color: var(--text-main);">${myScore}/10 <span style="font-size: 10px; color: var(--text-sub);">(${(myTime/1000).toFixed(2)}s)</span></div>
+                          </div>
+                          <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 13px;">
+                              <div style="color: var(--text-sub);">Opponent</div>
+                              <div style="color: var(--text-main);">${theirScore}/10 <span style="font-size: 10px; color: var(--text-sub);">(${(theirTime/1000).toFixed(2)}s)</span></div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="chat-time">${msg.time}</div>
+              </div>
+            `;
+        }
+    }
+
+      // === СТАРАЯ ЛОГИКА ДЛЯ ОБЫЧНЫХ ТЕКСТОВЫХ СООБЩЕНИЙ ===
+      const displayText = msg.showTranslation && msg.translatedText ? msg.translatedText : msg.text;
+      const editedMark = msg.edited ? `<span class="chat-edited-mark">(edited)</span>` : "";
+
       let hintHtml = "";
       if (!isMine) {
-        const hintText = msg.showTranslation
-          ? "Tap to show original"
-          : "Tap to translate";
+        const hintText = msg.showTranslation ? "Tap to show original" : "Tap to translate";
         hintHtml = `<div class="chat-translate-hint">${hintText}</div>`;
       } else {
         hintHtml = `<div class="chat-edit-hint" onclick="startEditingMessage('${currentActiveChatId}', ${index})">Edit ✏️</div>`;
@@ -320,10 +376,11 @@ function receiveMessage(botId, text) {
   if (typeof saveState === "function") saveState();
 }
 
-// === 7. 🤖 МОДУЛЬ AI (ИНТЕГРАЦИЯ С POLLINATIONS) ===
+// === 7. 🤖 МОДУЛЬ AI (ИНТЕГРАЦИЯ С OPENROUTER) ===
 async function generateAIResponse(botId, userText) {
   const chat = state.chats[botId];
-  const API_KEY = "sk_pnErfGbnDfLxDEytQqoAc0iioMQrgJl8";
+  // Твой ключ OpenRouter
+  const API_KEY = "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";
 
   // Меняем статус на "Typing..."
   const statusEl = document.getElementById("active-chat-status");
@@ -349,37 +406,41 @@ async function generateAIResponse(botId, userText) {
 
     const apiMessages = [systemPrompt, ...recentMessages];
 
-    const response = await fetch(
-      "https://gen.pollinations.ai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gemini-fast",
-          messages: apiMessages,
-          max_tokens: 150,
-          temperature: 0.7,
-        }),
+    // Стучимся в OpenRouter через стандартный fetch
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${API_KEY}`,
+        // OpenRouter просит эти заголовки для своей аналитики (по желанию, но лучше оставить)
+        "HTTP-Referer": window.location.href, 
+        "X-Title": "Postcard Exchange App", 
       },
-    );
+      body: JSON.stringify({
+        model: "nvidia/nemotron-3-super-120b-a12b:free", // Выбранная тобой бесплатная модель
+        messages: apiMessages,
+        // Мы не используем stream: true, чтобы ответ приходил целиком, 
+        // как этого ожидает твоя функция receiveMessage()
+      }),
+    });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Детали ошибки API:", errText);
+      console.error("Детали ошибки API OpenRouter:", errText);
       throw new Error(`Ошибка сервера: ${response.status}`);
     }
 
     const data = await response.json();
     const botReply = data.choices[0].message.content;
+    
+    // Передаем готовый ответ в твою функцию отрисовки сообщений
     receiveMessage(botId, botReply);
+    
   } catch (error) {
     console.error("Ошибка при генерации AI-ответа:", error);
     receiveMessage(
       botId,
-      "Sorry, my internet connection is a bit unstable right now! 🌍 Give me a second.",
+      "Sorry, my internet connection is a bit unstable right now! 🌍 Give me a second."
     );
   } finally {
     if (statusEl) statusEl.textContent = "Online";
@@ -637,4 +698,201 @@ window.showLargeAvatar = function (content) {
   overlay.innerHTML = innerContent;
 
   phoneFrame.appendChild(overlay);
+};
+
+// ==========================================================================
+// 🎮 СИСТЕМА ДУЭЛЕЙ (GEO QUIZ MULTIPLAYER)
+// ==========================================================================
+
+// Открываем окно выбора ставки
+window.openDuelBetModal = function() {
+  if (!currentActiveChatId) return;
+  
+  // Обновляем отображение баланса пользователя перед показом
+  const balanceDisplay = document.getElementById('duel-balance-display');
+  if (balanceDisplay && state) {
+      balanceDisplay.textContent = state.energy + '⚡';
+  }
+  
+  document.getElementById('modal-duel-bet').style.display = 'flex';
+};
+
+// Пользователь выбрал ставку и нажал на кнопку (10, 50 или 100)
+// === ЗАПУСК ДУЭЛИ ===
+window.initiateDuel = function(betAmount) {
+  if (!state || state.energy < betAmount) {
+      if (typeof showToastNotification === "function") showToastNotification("⚡ Not enough energy for this bet!");
+      return;
+  }
+  document.getElementById('modal-duel-bet').style.display = 'none';
+
+  // ЗАПУСКАЕМ ИГРУ ИЗ games.js
+  if (typeof startDuelGame === "function") {
+      startDuelGame(betAmount, currentActiveChatId);
+  }
+};
+
+// === ОБРАБОТКА РЕЗУЛЬТАТОВ ИГРЫ ===
+window.processDuelResult = function(finalDuelState) {
+  const chat = state.chats[finalDuelState.chatId];
+  const now = new Date();
+  const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  if (!finalDuelState.isOpponentTurn) {
+      // МЫ БРОСИЛИ ВЫЗОВ (Сохраняем наш счет в секрете и отправляем в чат)
+      const duelMsg = {
+          type: 'duel',
+          sender: 'me',
+          time: timeStr,
+          bet: finalDuelState.bet,
+          questions: finalDuelState.questions, // Сохраняем "пакет" вопросов для оппонента
+          playerScore: finalDuelState.score,
+          playerTime: finalDuelState.totalTimeMs,
+          status: 'pending' // Ждем, пока оппонент примет вызов
+      };
+      chat.messages.push(duelMsg);
+  }
+
+  renderMessages();
+  if (typeof saveState === "function") saveState();
+};
+
+// === ЗАПУСК ИГРЫ ПРИ ПРИНЯТИИ ВЫЗОВА ===
+window.acceptDuel = function(chatId, msgIndex) {
+  const chat = state.chats[chatId];
+  const msg = chat.messages[msgIndex];
+
+  if (!state || state.energy < msg.bet) {
+      if (typeof showToastNotification === "function") showToastNotification("⚡ Not enough energy to accept!");
+      return;
+  }
+
+  // Запоминаем, какой вызов мы сейчас играем
+  window.currentActiveDuelMsgIndex = msgIndex;
+
+  if (typeof startDuelGame === "function") {
+      // Запускаем игру, подсовывая ТЕ ЖЕ САМЫЕ вопросы!
+      startDuelGame(msg.bet, chatId, msg.questions);
+  }
+};
+
+// === ОБРАБОТКА РЕЗУЛЬТАТОВ ИГРЫ ===
+window.processDuelResult = function(finalDuelState) {
+  const chat = state.chats[finalDuelState.chatId];
+  const now = new Date();
+  const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  if (!finalDuelState.isOpponentTurn) {
+      // 1. МЫ БРОСИЛИ ВЫЗОВ (Мы - Инициатор)
+      const duelMsg = {
+          type: 'duel',
+          sender: 'me',
+          time: timeStr,
+          bet: finalDuelState.bet,
+          questions: finalDuelState.questions,
+          playerScore: finalDuelState.score,
+          playerTime: finalDuelState.totalTimeMs,
+          status: 'pending'
+      };
+      chat.messages.push(duelMsg);
+      
+      // 🤖 МАГИЯ: Заставляем бота "сыграть" против нас через 5-8 секунд
+      const msgIndex = chat.messages.length - 1;
+      setTimeout(() => {
+          simulateBotDuelResponse(finalDuelState.chatId, msgIndex);
+      }, 5000 + Math.random() * 3000);
+
+  } else {
+      // 2. МЫ ПРИНЯЛИ ВЫЗОВ ОППОНЕНТА (Мы - Респондер)
+      const msgIndex = window.currentActiveDuelMsgIndex;
+      const msg = chat.messages[msgIndex];
+
+      msg.opponentScore = finalDuelState.score; 
+      msg.opponentTime = finalDuelState.totalTimeMs;
+      msg.status = 'completed';
+
+      // КТО ПОБЕДИЛ?
+      let iWon = false;
+      let isTie = false;
+
+      if (msg.opponentScore > msg.playerScore) {
+          iWon = true; // Мы набрали больше очков
+      } else if (msg.opponentScore === msg.playerScore) {
+          if (msg.opponentTime < msg.playerTime) iWon = true; // При ничьей - мы были быстрее!
+          else if (msg.opponentTime === msg.playerTime) isTie = true; // Абсолютная магия
+      }
+
+      if (isTie) {
+          state.energy += msg.bet; // Возврат только нашей ставки
+          msg.winner = 'tie';
+          if (typeof showToastNotification === "function") showToastNotification("🤝 Tie! Energy refunded.");
+      } else if (iWon) {
+          state.energy += (msg.bet * 2); // Забираем банк!
+          msg.winner = 'responder';
+          if (typeof showToastNotification === "function") showToastNotification(`🏆 You won! +${msg.bet * 2}⚡`);
+      } else {
+          msg.winner = 'initiator'; // Победил тот, кто бросал вызов
+          if (typeof showToastNotification === "function") showToastNotification("💔 You lost... Better luck next time!");
+      }
+
+      window.currentActiveDuelMsgIndex = null;
+      const energyEl = document.getElementById('energy-display');
+      if(energyEl) energyEl.textContent = state.energy + '⚡';
+  }
+
+  renderMessages();
+  if (typeof saveState === "function") saveState();
+};
+
+// === 🤖 АВТОМАТИЧЕСКАЯ ИГРА БОТА ===
+window.simulateBotDuelResponse = function(chatId, msgIndex) {
+  const chat = state.chats[chatId];
+  if (!chat || !chat.messages[msgIndex]) return;
+  const msg = chat.messages[msgIndex];
+  if (msg.status !== 'pending') return;
+
+  // Бот "поиграл" (набирает от 5 до 9 очков, тратит от 12 до 35 секунд)
+  msg.opponentScore = Math.floor(Math.random() * 5) + 5; 
+  msg.opponentTime = 12000 + Math.random() * 23000; 
+  msg.status = 'completed';
+
+  let botWon = false;
+  let isTie = false;
+
+  // Сравниваем результаты бота с нашими
+  if (msg.opponentScore > msg.playerScore) {
+      botWon = true;
+  } else if (msg.opponentScore === msg.playerScore) {
+      if (msg.opponentTime < msg.playerTime) botWon = true;
+      else if (msg.opponentTime === msg.playerTime) isTie = true;
+  }
+
+  // Расчет банка
+  if (isTie) {
+      state.energy += msg.bet; // Нам возвращается наша ставка
+      msg.winner = 'tie';
+      if (currentActiveChatId === chatId && typeof showToastNotification === "function") showToastNotification(`🤝 ${chat.name} tied with you! Energy refunded.`);
+  } else if (botWon) {
+      msg.winner = 'responder'; // Бот победил
+      if (currentActiveChatId === chatId && typeof showToastNotification === "function") showToastNotification(`💀 ${chat.name} beat your score! You lost ${msg.bet}⚡`);if (currentActiveChatId === chatId && typeof showToastNotification === "function") showToastNotification(`💔 ${chat.name} beat your score! You lost ${msg.bet}⚡`);
+  } else {
+      msg.winner = 'initiator'; // Мы победили бота
+      state.energy += (msg.bet * 2); // Забираем двойной куш!
+      if (currentActiveChatId === chatId && typeof showToastNotification === "function") showToastNotification(`🏆 You defeated ${chat.name}! +${msg.bet * 2}⚡`);
+  }
+
+  const energyEl = document.getElementById('energy-display');
+  if(energyEl) energyEl.textContent = state.energy + '⚡';
+
+  if (currentActiveChatId === chatId) renderMessages();
+  if (typeof saveState === "function") saveState();
+};
+// === ЗАПУСК БЕСПЛАТНОЙ ТРЕНИРОВКИ ИЗ ЧАТА ===
+window.startPracticeMode = function() {
+  // Прячем модалку
+  document.getElementById('modal-duel-bet').style.display = 'none';
+  // Запускаем старый добрый Quiz (мы его сейчас переделаем под тренировку)
+  if (typeof startQuizGame === "function") {
+      startQuizGame();
+  }
 };

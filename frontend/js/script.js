@@ -937,42 +937,55 @@ function refreshAllLists() {
   }
 }
 
-let currentCollectionTab = "sent"; // По умолчанию показываем отправленные
 
 // === ЗАПУСК ИГРЫ FLAG COLLECTION ===
 window.startFlagCollection = function () {
-  document.getElementById("games-menu-list").style.display = "none";
   document.getElementById("active-game-zone").style.display = "block";
 
   const container = document.getElementById("game-content");
 
-  // Вставляем структуру коллекции в игровую зону
   container.innerHTML = `
-        <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:#d35400; cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px; font-family:'Montserrat', sans-serif;">
-            <span style="font-size: 18px;">🏷️</span> Back to Menu
-        </button>
-        
         <div style="text-align: left;">
-            <div class="world-progress-container" style="margin-top: 5px; margin-bottom: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
-                    <span>🌍 World Explorer</span>
-                    <span id="world-progress-text">0 / 195</span>
+
+            <div style="margin-bottom: 25px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed var(--border); padding-bottom: 8px;">
+                    <span style="font-size: 16px; font-weight: 900; color: #d35400;">Sent 📤</span>
                 </div>
-                <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
-                    <div id="world-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+                
+                <div class="world-progress-container" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
+                        <span>🌍 World Explorer</span>
+                        <span id="sent-progress-text">0 / 195</span>
+                    </div>
+                    <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
+                        <div id="sent-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #e67e22, #d35400);"></div>
+                    </div>
                 </div>
+
+                <div id="sent-continents-grid" class="continents-grid"></div>
             </div>
 
-            <div class="collection-tabs">
-                <button class="col-tab active" data-tab="sent">Sent 📤</button>
-                <button class="col-tab" data-tab="received">Received 📥</button>
+            <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px dashed var(--border); padding-bottom: 8px;">
+                    <span style="font-size: 16px; font-weight: 900; color: #27ae60;">Received 📥</span>
+                </div>
+                
+                <div class="world-progress-container" style="margin-bottom: 12px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 800; color: var(--text-main);">
+                        <span>🌍 World Explorer</span>
+                        <span id="received-progress-text">0 / 195</span>
+                    </div>
+                    <div class="minimal-progress-bg" style="height: 8px; border-radius: 4px;">
+                        <div id="received-progress-fill" class="minimal-progress-fill" style="width: 0%; background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+                    </div>
+                </div>
+
+                <div id="received-continents-grid" class="continents-grid"></div>
             </div>
 
-            <div id="continents-grid" class="continents-grid"></div>
         </div>
     `;
 
-  // Запускаем функцию рендера, чтобы она заполнила этот новый HTML данными
   if (typeof renderMapSections === "function") {
     renderMapSections();
   }
@@ -990,81 +1003,66 @@ function renderMapSections() {
     );
   });
 
-  const sentFlags = [
-    ...new Set(validSentPostcards.map((c) => c.countryFlag || c.flag)),
-  ];
-  const receivedFlags = [
-    ...new Set(state.receivedPostcards.map((c) => c.countryFlag || c.flag)),
-  ];
+  const sentFlags = [...new Set(validSentPostcards.map((c) => c.countryFlag || c.flag))];
+  const receivedFlags = [...new Set(state.receivedPostcards.map((c) => c.countryFlag || c.flag))];
 
-  const tabs = document.querySelectorAll(".col-tab");
-  tabs.forEach((tab) => {
-    tab.onclick = (e) => {
-      tabs.forEach((t) => t.classList.remove("active"));
-      e.target.classList.add("active");
-      currentCollectionTab = e.target.getAttribute("data-tab");
-      renderContinentsGrid();
-    };
-  });
+  const totalWorldFlags = 195;
 
-  function renderContinentsGrid() {
-    const grid = document.getElementById("continents-grid");
-    if (!grid) return;
+  // === ПРОГРЕСС ОТПРАВЛЕННЫХ (SENT) ===
+  const sentCount = sentFlags.length;
+  const sentPercent = (sentCount / totalWorldFlags) * 100;
+  const sentText = document.getElementById("sent-progress-text");
+  const sentFill = document.getElementById("sent-progress-fill");
+  if (sentText) sentText.textContent = `${sentCount} / ${totalWorldFlags}`;
+  if (sentFill) sentFill.style.width = `${sentPercent}%`;
 
-    const activeFlags =
-      currentCollectionTab === "sent" ? sentFlags : receivedFlags;
+  // === ПРОГРЕСС ПОЛУЧЕННЫХ (RECEIVED) ===
+  const receivedCount = receivedFlags.length;
+  const receivedPercent = (receivedCount / totalWorldFlags) * 100;
+  const receivedText = document.getElementById("received-progress-text");
+  const receivedFill = document.getElementById("received-progress-fill");
+  if (receivedText) receivedText.textContent = `${receivedCount} / ${totalWorldFlags}`;
+  if (receivedFill) receivedFill.style.width = `${receivedPercent}%`;
 
-    const totalWorldFlags = 195;
-    const currentWorldFlags = new Set(activeFlags).size;
-    const worldPercent = (currentWorldFlags / totalWorldFlags) * 100;
-
-    const worldText = document.getElementById("world-progress-text");
-    const worldFill = document.getElementById("world-progress-fill");
-    if (worldText)
-      worldText.textContent = `${currentWorldFlags} / ${totalWorldFlags}`;
-    if (worldFill) worldFill.style.width = `${worldPercent}%`;
-
-    grid.innerHTML = Object.entries(COUNTRIES_BY_CONTINENT)
+  // === УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ДЛЯ ГЕНЕРАЦИИ КАРТОЧЕК КОНТИНЕНТОВ ===
+  function generateContinentsHtml(activeFlags, type) {
+    return Object.entries(COUNTRIES_BY_CONTINENT)
       .map(([continent, flags]) => {
-        const collectedInContinent = flags.filter((f) =>
-          activeFlags.includes(f),
-        ).length;
+        const collectedInContinent = flags.filter((f) => activeFlags.includes(f)).length;
         const isCompleted = collectedInContinent === flags.length;
         const percent = (collectedInContinent / flags.length) * 100;
 
-        const color =
-          collectedInContinent > 0
-            ? isCompleted
-              ? "#27ae60"
-              : "#e67e22"
+        const color = collectedInContinent > 0
+            ? (isCompleted ? "#27ae60" : "#e67e22")
             : "#a57a4d";
         const fillClass = isCompleted ? "delivered" : "";
 
-        // === МАГИЯ: ПРОВЕРКА НА НОВЫЕ ОТКРЫТКИ ДЛЯ КОНТИНЕНТА ===
-        const hasNewInContinent =
-          currentCollectionTab === "received" &&
-          flags.some((f) =>
-            state.receivedPostcards.some(
-              (c) => (c.countryFlag === f || c.flag === f) && c.isNew,
-            ),
-          );
+        // МАГИЯ: Анимация (пульс) только для новых ПОЛУЧЕННЫХ открыток
+        const hasNewInContinent = type === "received" && flags.some((f) =>
+            state.receivedPostcards.some((c) => (c.countryFlag === f || c.flag === f) && c.isNew)
+        );
         const pulseClass = hasNewInContinent ? "continent-pulse" : "";
 
         return `
-                <div class="continent-card ${pulseClass}" onclick="openFlagsModal('${continent}', '${currentCollectionTab}')">
-                    <div class="cont-card-header">
-                        <span>${continent}</span>
-                        <span class="cont-card-stats" style="color: ${color};">${collectedInContinent} / ${flags.length}</span>
-                    </div>
-                    <div class="minimal-progress-bg">
-                        <div class="minimal-progress-fill ${fillClass}" style="width: ${percent}%; ${isCompleted ? "" : "background: " + color + ";"}"></div>
-                    </div>
-                </div>`;
+            <div class="continent-card ${pulseClass}" onclick="openFlagsModal('${continent}', '${type}')">
+                <div class="cont-card-header">
+                    <span>${continent}</span>
+                    <span class="cont-card-stats" style="color: ${color};">${collectedInContinent} / ${flags.length}</span>
+                </div>
+                <div class="minimal-progress-bg">
+                    <div class="minimal-progress-fill ${fillClass}" style="width: ${percent}%; ${isCompleted ? "" : "background: " + color + ";"}"></div>
+                </div>
+            </div>`;
       })
       .join("");
   }
 
-  renderContinentsGrid();
+  // === ВСТАВЛЯЕМ СГЕНЕРИРОВАННЫЕ БЛОКИ В ИХ КОНТЕЙНЕРЫ ===
+  const sentGrid = document.getElementById("sent-continents-grid");
+  const receivedGrid = document.getElementById("received-continents-grid");
+  
+  if (sentGrid) sentGrid.innerHTML = generateContinentsHtml(sentFlags, "sent");
+  if (receivedGrid) receivedGrid.innerHTML = generateContinentsHtml(receivedFlags, "received");
 }
 
 // === ФУНКЦИИ МОДАЛЬНОГО ОКНА ФЛАГОВ ===
@@ -1150,6 +1148,35 @@ function setupTheme() {
   applyTheme(localStorage.getItem("theme") || "light");
 }
 
+// === ГЛОБАЛЬНАЯ ФУНКЦИЯ ВИБРАЦИИ ===
+window.vibrateDevice = function(pattern = 50) {
+  // Проверяем, включена ли вибрация в настройках (по умолчанию включена)
+  const isVibrationEnabled = localStorage.getItem("pj_vibration_enabled") !== "false";
+  
+  // Если включена и браузер поддерживает вибрацию - вибрируем!
+  if (isVibrationEnabled && navigator.vibrate) {
+      navigator.vibrate(pattern);
+  }
+};
+
+function setupVibration() {
+  const vibrationToggle = document.getElementById("vibration-toggle");
+  if (vibrationToggle) {
+      // Читаем из памяти (по умолчанию true)
+      const isEnabled = localStorage.getItem("pj_vibration_enabled") !== "false";
+      vibrationToggle.checked = isEnabled;
+
+      vibrationToggle.addEventListener("change", (e) => {
+          localStorage.setItem("pj_vibration_enabled", e.target.checked ? "true" : "false");
+          
+          // Даем легкий вибро-отклик при включении тумблера
+          if (e.target.checked) {
+              window.vibrateDevice(40);
+          }
+      });
+  }
+}
+
 // ==========================================================================
 // ГЛАВНЫЙ БЛОК ИНИЦИАЛИЗАЦИИ
 // ==========================================================================
@@ -1175,6 +1202,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   setupTheme();
+  setupVibration();
+  // === УМНАЯ ВИБРАЦИЯ ДЛЯ БЕЙДЖА ЧАТА ===
+  const chatBadge = document.getElementById('chat-badge');
+  if (chatBadge) {
+      // Запоминаем стартовое значение (обычно 0)
+      let lastBadgeValue = parseInt(chatBadge.textContent) || 0;
+
+      // Создаем наблюдателя, который следит за изменениями внутри бейджа
+      const badgeObserver = new MutationObserver((mutations) => {
+          mutations.forEach(() => {
+              const newValue = parseInt(chatBadge.textContent) || 0;
+              
+              // Если цифра УВЕЛИЧИЛАСЬ — вибрируем!
+              if (newValue > lastBadgeValue) {
+                  if (typeof window.vibrateDevice === "function") {
+                      window.vibrateDevice([50, 100, 50]); // Бзз-бзз
+                  }
+              }
+              // Обновляем память (даже если цифра уменьшилась, мы должны это запомнить)
+              lastBadgeValue = newValue;
+          });
+      });
+
+      // Запускаем слежку за текстом внутри кружочка
+      badgeObserver.observe(chatBadge, { childList: true, characterData: true, subtree: true });
+  }
 
   const saveToggle = document.getElementById("save-toggle");
   const btnClearData = document.getElementById("btn-clear-data");

@@ -58,9 +58,24 @@ const SORTER_COUNTRIES = {
 // 2. УПРАВЛЕНИЕ ЭКРАНАМИ
 // ==========================================
 function backToGames() {
-    document.getElementById('games-menu-list').style.display = 'block';
     document.getElementById('active-game-zone').style.display = 'none';
     document.getElementById('game-content').innerHTML = '';
+    
+    if (typeof currentActiveChatId !== "undefined" && currentActiveChatId) {
+        // Возвращаемся в чат
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(btn => btn.classList.remove('nav-active'));
+        const chatNav = document.querySelector('.nav-item[data-target="chat"]');
+        if(chatNav) chatNav.classList.add('nav-active');
+
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('screen-active'));
+        const chatScreen = document.querySelector('.screen[data-screen="chat"]');
+        if(chatScreen) chatScreen.classList.add('screen-active');
+    } else {
+        // Если вышли из другого места - снова рисуем коллекцию
+        document.getElementById('active-game-zone').style.display = 'block';
+        if (typeof startFlagCollection === "function") startFlagCollection();
+    }
 }
 
 // ==========================================
@@ -70,24 +85,32 @@ let quizScore = 0;
 let quizCombo = 0;
 
 function startQuizGame() {
-    document.getElementById('games-menu-list').style.display = 'none';
+    // Переключаем вкладки
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(btn => btn.classList.remove('nav-active'));
+    const gameNav = document.querySelector('.nav-item[data-target="games"]');
+    if(gameNav) gameNav.classList.add('nav-active');
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('screen-active'));
+    const gamesScreen = document.querySelector('.screen[data-screen="games"]');
+    if(gamesScreen) gamesScreen.classList.add('screen-active');
+
+    // Открываем игровую зону
     document.getElementById('active-game-zone').style.display = 'block';
     
     const container = document.getElementById('game-content');
     
-    // Рисуем новый чистый интерфейс в стиле приложения
+    // Рисуем чистый интерфейс без очков
     container.innerHTML = `
+        <div style="text-align: center; margin-bottom: 15px;">
+            <span style="background: var(--bg-input); color: var(--text-sub); padding: 4px 12px; border-radius: 12px; font-weight: 800; font-size: 12px; border: 1px dashed var(--border);">🧠 PRACTICE (NO REWARDS)</span>
+        </div>
+        
         <button onclick="backToGames()" class="back-link" style="background:none; border:none; color:var(--primary); cursor:pointer; margin-bottom:15px; display:flex; align-items:center; gap:5px; font-weight:bold; font-size:14px;">
-            <span style="font-size: 18px;">⬅️</span> Back to Menu
+            <span style="font-size: 18px;">⬅️</span> Exit Practice
         </button>
         
         <div id="quiz-game-container">
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px;">
-                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">SCORE: <span id="quiz-score" style="color: var(--primary);">0</span></div>
-                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">COMBO: <span id="quiz-combo" style="color: #e74c3c;">0</span>🔥</div>
-            </div>
-
             <div id="quiz-question-area">
                 <div id="quiz-question-content" style="z-index: 2;"></div>
             </div>
@@ -96,8 +119,6 @@ function startQuizGame() {
         </div>
     `;
     
-    quizScore = 0;
-    quizCombo = 0;
     nextQuizRound();
 }
 
@@ -175,28 +196,10 @@ function nextQuizRound() {
             if (answerText === correctAnswerText) {
                 // ПРАВИЛЬНО
                 btn.classList.add('correct');
-                quizScore += 1;
-                quizCombo += 1;
-                
-                let earnedEnergy = 5;
-                if (quizCombo > 0 && quizCombo % 5 === 0) {
-                    earnedEnergy += 15;
-                    showFloatingText("COMBO! +" + earnedEnergy + "⚡", "#e67e22", "quiz-game-container");
-                } else {
-                    showFloatingText("+" + earnedEnergy + "⚡", "#27ae60", "quiz-game-container");
-                }
-                
-                state.energy += earnedEnergy;
-                const energyEl = document.getElementById('energy-display');
-                if(energyEl) energyEl.textContent = state.energy;
-                
-                document.getElementById('quiz-score').innerText = quizScore;
-                document.getElementById('quiz-combo').innerText = quizCombo;
+
             } else {
                 // ОШИБКА
                 btn.classList.add('wrong');
-                quizCombo = 0;
-                document.getElementById('quiz-combo').innerText = "0";
                 questionCard.classList.add('error-shake');
                 
                 // Подсвечиваем правильную кнопку
@@ -328,3 +331,210 @@ function showFloatingText(text, color, targetContainerId = 'sorter-zone') {
     zone.appendChild(floatEl);
     setTimeout(() => { floatEl.remove(); }, 800);
 }
+// ==========================================
+// 4. БОЕВОЙ РЕЖИМ: ДУЭЛЬ (GEO QUIZ MULTIPLAYER)
+// ==========================================
+let duelState = {
+    isActive: false, chatId: null, bet: 0, questions: [],
+    currentRound: 0, score: 0, totalTimeMs: 0, questionStartTime: 0,
+    isOpponentTurn: false
+};
+
+// Генерируем "пакет" из 10 вопросов для обоих игроков
+function generateDuelQuestions(count) {
+    const qList = [];
+    for(let i=0; i<count; i++) {
+        const correctIdx = Math.floor(Math.random() * countryList.length);
+        const type = Math.floor(Math.random() * 3); // 0: Флаг, 1: Столица, 2: Континент
+        
+        // Сразу фиксируем 3 неправильных ответа, чтобы у обоих игроков были идентичные варианты!
+        let wrongOptions = [];
+        while(wrongOptions.length < 3) {
+            const wrongIdx = Math.floor(Math.random() * countryList.length);
+            if(wrongIdx !== correctIdx && !wrongOptions.includes(wrongIdx)) {
+                wrongOptions.push(wrongIdx);
+            }
+        }
+        qList.push({ correctIdx, type, wrongOptions });
+    }
+    return qList;
+}
+
+// Запуск боевой арены
+// Запуск боевой арены
+window.startDuelGame = function(betAmount, chatId, existingQuestions = null) {
+    // Списываем ставку
+    state.energy -= betAmount;
+    const energyEl = document.getElementById('energy-display');
+    if(energyEl) energyEl.textContent = state.energy + '⚡';
+
+    duelState = {
+        isActive: true, chatId: chatId, bet: betAmount, currentRound: 0,
+        score: 0, totalTimeMs: 0, isOpponentTurn: !!existingQuestions,
+        questions: existingQuestions || generateDuelQuestions(10)
+    };
+
+    // Магия переключения интерфейса (Прячем чат, открываем вкладку игр)
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(btn => btn.classList.remove('nav-active'));
+    const gameNav = document.querySelector('.nav-item[data-target="games"]');
+    if(gameNav) gameNav.classList.add('nav-active');
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('screen-active'));
+    const gamesScreen = document.querySelector('.screen[data-screen="games"]');
+    if(gamesScreen) gamesScreen.classList.add('screen-active');
+
+    // ВОТ ЗДЕСЬ БЫЛА ОШИБКА. Теперь мы просто показываем зону игры:
+    document.getElementById('active-game-zone').style.display = 'block';
+
+    renderDuelInterface();
+    nextDuelRound();
+};
+
+function renderDuelInterface() {
+    const container = document.getElementById('game-content');
+    container.innerHTML = `
+        <div id="quiz-game-container">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <span style="background: #e74c3c; color: white; padding: 4px 12px; border-radius: 12px; font-weight: 800; font-size: 12px; text-transform: uppercase;">⚔️ Duel Mode: ${duelState.bet}⚡</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px;">
+                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">SCORE: <span id="duel-score" style="color: var(--primary);">0</span>/10</div>
+                <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">TIME: <span id="duel-time" style="color: #e67e22;">0.000s</span></div>
+            </div>
+            <div id="quiz-question-area"><div id="quiz-question-content" style="z-index: 2;"></div></div>
+            <div id="quiz-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 20px; padding-bottom: 5px;"></div>
+        </div>
+    `;
+}
+
+function nextDuelRound() {
+    // Если игра окончена, выходим
+    if (duelState.currentRound >= 10) {
+        return finishDuel(); 
+    }
+
+    const qData = duelState.questions[duelState.currentRound];
+    const correct = countryList[qData.correctIdx];
+    const type = qData.type;
+
+    let correctAnswerText = type === 0 ? correct.name : (type === 1 ? correct.capital : correct.continent);
+    let wrongTexts = qData.wrongOptions.map(idx => type === 0 ? countryList[idx].name : (type === 1 ? countryList[idx].capital : countryList[idx].continent));
+    
+    if(type === 2) {
+         const allContinents = ["Europe", "Asia", "Africa", "North America", "South America", "Oceania"];
+         wrongTexts = allContinents.filter(c => c !== correct.continent).slice(0, 3);
+    }
+
+    const questionContent = document.getElementById('quiz-question-content');
+    const grid = document.getElementById('quiz-options-grid');
+    const questionCard = document.getElementById('quiz-question-area');
+
+    questionCard.className = ''; void questionCard.offsetWidth; questionCard.className = 'slide-in';
+
+    if (type === 0) {
+        questionContent.innerHTML = `<div style="font-size: 90px; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.1);">${correct.flag}</div><div class="quiz-question-title">Which country?</div>`;
+    } else if (type === 1) {
+        questionContent.innerHTML = `<div style="font-size: 40px; line-height: 1; margin-bottom: 10px;">📍</div><h2 style="margin: 0 0 5px 0; font-size: 22px; color: var(--text-main);">${correct.name}</h2><div class="quiz-question-title">What is the capital?</div>`;
+    } else {
+        questionContent.innerHTML = `<div style="font-size: 60px; line-height: 1.2; text-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 5px;">${correct.flag}</div><h2 style="margin: 0 0 5px 0; font-size: 20px; color: var(--text-main);">${correct.name}</h2><div class="quiz-question-title">Which continent?</div>`;
+    }
+
+    let optionsStrings = [correctAnswerText, ...wrongTexts].sort();
+    grid.innerHTML = '';
+
+    // === ЖИВОЙ ГЛОБАЛЬНЫЙ СЕКУНДОМЕР ===
+    // Запускаем его ТОЛЬКО на первом вопросе (currentRound === 0)
+    if (duelState.currentRound === 0) {
+        duelState.globalStartTime = performance.now(); 
+        clearInterval(duelState.timerInterval);
+        
+        duelState.timerInterval = setInterval(() => {
+            const currentTotal = performance.now() - duelState.globalStartTime;
+            const timeEl = document.getElementById('duel-time');
+            if (timeEl) timeEl.innerText = (currentTotal / 1000).toFixed(3) + 's';
+        }, 47); // Обновляем каждые ~50мс
+    }
+
+    optionsStrings.forEach(answerText => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option-btn';
+        btn.innerText = answerText;
+
+        btn.onclick = () => {
+            // Блокируем кнопки после клика
+            const btns = grid.querySelectorAll('button');
+            btns.forEach(b => b.style.pointerEvents = 'none');
+
+            if (answerText === correctAnswerText) {
+                btn.classList.add('correct');
+                duelState.score += 1;
+                document.getElementById('duel-score').innerText = duelState.score;
+            } else {
+                btn.classList.add('wrong');
+                questionCard.classList.add('error-shake');
+                btns.forEach(b => { if (b.innerText === correctAnswerText) b.classList.add('correct'); });
+            }
+
+            // === ОСТАНАВЛИВАЕМ СЕКУНДОМЕР ТОЛЬКО НА ПОСЛЕДНЕМ ВОПРОСЕ ===
+            if (duelState.currentRound === 9) {
+                clearInterval(duelState.timerInterval); // Глушим таймер
+                duelState.totalTimeMs = performance.now() - duelState.globalStartTime; // Фиксируем финальное время
+                document.getElementById('duel-time').innerText = (duelState.totalTimeMs / 1000).toFixed(3) + 's';
+            }
+
+            duelState.currentRound += 1;
+            setTimeout(nextDuelRound, 800); // Таймер теперь не прерывается во время этой паузы!
+        };
+        grid.appendChild(btn);
+    });
+}
+
+// Завершаем и возвращаемся в чат
+function finishDuel() {
+    clearInterval(duelState.timerInterval); 
+    document.getElementById('active-game-zone').style.display = 'none';
+    
+    // 🧹 ЖЕСТКАЯ ОЧИСТКА: удаляем HTML викторины, чтобы он не висел в памяти!
+    document.getElementById('game-content').innerHTML = '';
+    
+    // Переключаем вкладки обратно на чат
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(btn => btn.classList.remove('nav-active'));
+    const chatNav = document.querySelector('.nav-item[data-target="chat"]');
+    if(chatNav) chatNav.classList.add('nav-active');
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('screen-active'));
+    const chatScreen = document.querySelector('.screen[data-screen="chat"]');
+    if(chatScreen) chatScreen.classList.add('screen-active');
+
+    // Отправляем результат в чат!
+    if (typeof window.processDuelResult === "function") {
+        window.processDuelResult(duelState);
+    }
+    duelState.isActive = false;
+}
+// ==========================================
+// 4. АВТОЗАПУСК КОЛЛЕКЦИИ ПРИ ПЕРЕХОДЕ НА ВКЛАДКУ
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    // Находим кнопку вкладки с флажком
+    const flagTab = document.querySelector('.nav-item[data-target="games"]');
+    
+    if (flagTab) {
+        flagTab.addEventListener('click', () => {
+            
+            // 🧹 СТРАХОВКА: Стираем любые остатки викторины перед открытием флагов!
+            const gameContent = document.getElementById('game-content');
+            if (gameContent) {
+                gameContent.innerHTML = ''; 
+            }
+
+            // Если функция коллекции существует - запускаем её
+            if (typeof startFlagCollection === "function") {
+                document.getElementById('active-game-zone').style.display = 'block';
+                startFlagCollection();
+            }
+        });
+    }
+});
