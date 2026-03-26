@@ -37,9 +37,6 @@ window.unlockChat = function (botId, botName, botFlag, botCountry) {
     if (typeof saveState === "function") saveState();
     renderChatList();
 
-    if (typeof showToastNotification === "function") {
-      showToastNotification(`💬 New chat unlocked with ${botName}!`);
-    }
   }
 };
 
@@ -53,7 +50,7 @@ window.renderChatList = function () {
   if (chatKeys.length === 0) {
     container.innerHTML = `
             <div style="text-align: center; color: #aaa; padding: 20px 0; font-size: 14px;">
-              No active chats yet.<br>Send or receive postcards to unlock!
+              No active chats yet.<br>Send postcards to unlock!
             </div>`;
     return;
   }
@@ -123,6 +120,8 @@ window.openChat = function (botId) {
   document.getElementById("active-chat-name").innerHTML =
     `${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span>`;
 
+    document.getElementById("active-chat-name").setAttribute("data-target-id", botId);
+
   if (typeof renderMessages === "function") renderMessages();
 };
 
@@ -152,6 +151,7 @@ window.closeChat = function () {
 };
 
 // === 4. РЕНДЕР СООБЩЕНИЙ ===
+// === 4. РЕНДЕР СООБЩЕНИЙ (ФИНАЛЬНАЯ ВЕРСИЯ С ФОТО) ===
 function renderMessages() {
   const container = document.getElementById("chat-messages-container");
   if (!container || !currentActiveChatId) return;
@@ -163,7 +163,7 @@ function renderMessages() {
       const isMine = msg.sender === "me";
       const bubbleClass = isMine ? "mine" : "theirs";
 
-      // === НОВАЯ ЛОГИКА: ВИДЖЕТ ДУЭЛИ ===
+      // === 1. ВИДЖЕТ ДУЭЛИ ===
       if (msg.type === 'duel') {
         if (msg.status === 'pending') {
             return `
@@ -184,36 +184,30 @@ function renderMessages() {
               </div>
             `;
         } else if (msg.status === 'completed') {
-            // РЕНДЕР ФИНАЛЬНОГО РЕЗУЛЬТАТА
+            // РЕНДЕР ФИНАЛЬНОГО РЕЗУЛЬТАТА ДУЭЛИ
             const myScore = isMine ? msg.playerScore : msg.opponentScore;
             const myTime = isMine ? msg.playerTime : msg.opponentTime;
-            
             const theirScore = isMine ? msg.opponentScore : msg.playerScore;
             const theirTime = isMine ? msg.opponentTime : msg.playerTime;
 
             let didIWin = false;
-              let isTie = msg.winner === 'tie';
-              if (isMine && msg.winner === 'initiator') didIWin = true;
-              if (!isMine && msg.winner === 'responder') didIWin = true;
+            let isTie = msg.winner === 'tie';
+            if (isMine && msg.winner === 'initiator') didIWin = true;
+            if (!isMine && msg.winner === 'responder') didIWin = true;
 
-              const resultColor = isTie ? "#f39c12" : (didIWin ? "#27ae60" : "#e74c3c");
-              
-              // Умный заголовок с правильным отображением баланса
-              let headerText = "";
-              if (isTie) {
-                  headerText = `🤝 TIE (+${msg.bet} ⚡)`; // Возврат ставки
-              } else if (didIWin) {
-                  headerText = `🏆 YOU WON (+${msg.bet * 2} ⚡)`; // Забрали банк
-              } else {
-                  headerText = `💔 YOU LOST (-${msg.bet} ⚡)`; // Потеряли только свою ставку
-              }
-              
-              return `
-                <div style="display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'}; margin-bottom: 5px;">
-                    <div class="chat-bubble ${bubbleClass}" style="width: 240px; padding: 0; overflow: hidden; border: 2px solid ${resultColor}; background: var(--bg-card);">
-                        <div style="background: ${resultColor}; color: white; padding: 10px; font-weight: 900; text-align: center; font-size: 14px; text-transform: uppercase;">
-                            ${headerText}
-                        </div>
+            const resultColor = isTie ? "#f39c12" : (didIWin ? "#27ae60" : "#e74c3c");
+            
+            let headerText = "";
+            if (isTie) headerText = `🤝 TIE (+${msg.bet} ⚡)`;
+            else if (didIWin) headerText = `🏆 YOU WON (+${msg.bet * 2} ⚡)`;
+            else headerText = `💔 YOU LOST (-${msg.bet} ⚡)`;
+            
+            return `
+              <div style="display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'}; margin-bottom: 5px;">
+                  <div class="chat-bubble ${bubbleClass}" style="width: 240px; padding: 0; overflow: hidden; border: 2px solid ${resultColor}; background: var(--bg-card);">
+                      <div style="background: ${resultColor}; color: white; padding: 10px; font-weight: 900; text-align: center; font-size: 14px; text-transform: uppercase;">
+                          ${headerText}
+                      </div>
                       <div style="padding: 15px;">
                           <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 13px;">
                               <div style="color: var(--primary);">You</div>
@@ -229,9 +223,31 @@ function renderMessages() {
               </div>
             `;
         }
+      }
+
+      // === 2. ОТОБРАЖЕНИЕ ФОТОГРАФИЙ (ОБНОВЛЕНО: Меньше размер + клик) ===
+      if (msg.type === 'photo' && msg.photoUrl) {
+        const borderColor = isMine ? "#e67e22" : "var(--border)"; 
+        
+        return `
+          <div style="display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'}; margin-bottom: 5px;">
+              
+              <div class="chat-bubble ${bubbleClass}" 
+                   style="width: 120px; padding: 0; overflow: hidden; border: 2px solid ${borderColor}; background: var(--bg-card); border-radius: 8px; cursor: pointer;"
+                   onclick="window.showFullSizePhoto('${msg.photoUrl}')"
+                   title="Click to zoom">
+                  
+                  <img src="${msg.photoUrl}" style="max-width: 100%; height: auto; object-fit: cover; display: block; border-radius: 6px;">
+                  
+                  <div style="background: ${isMine ? '#e67e22' : 'var(--bg-input)'}; color: ${isMine ? 'white' : 'var(--text-main)'}; padding: 2px 6px; font-weight: 800; text-align: ${isMine ? 'right' : 'left'}; font-size: 9px;">
+                    ${msg.time}
+                  </div>
+              </div>
+          </div>
+        `;
     }
 
-      // === СТАРАЯ ЛОГИКА ДЛЯ ОБЫЧНЫХ ТЕКСТОВЫХ СООБЩЕНИЙ ===
+      // === 3. СТАРАЯ ЛОГИКА ДЛЯ ТЕКСТОВЫХ СООБЩЕНИЙ ===
       const displayText = msg.showTranslation && msg.translatedText ? msg.translatedText : msg.text;
       const editedMark = msg.edited ? `<span class="chat-edited-mark">(edited)</span>` : "";
 
@@ -380,7 +396,7 @@ function receiveMessage(botId, text) {
 async function generateAIResponse(botId, userText) {
   const chat = state.chats[botId];
   // Твой ключ OpenRouter
-  const API_KEY = "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";
+  const API_KEY = "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";
 
   // Меняем статус на "Typing..."
   const statusEl = document.getElementById("active-chat-status");
@@ -605,10 +621,11 @@ window.showChatUserProfile = function () {
   chat.profile.stats = { sent: displaySent, countries: displayCountries };
 
   // 3. Генерируем HTML-теги для интересов
+  // 3. Генерируем HTML-теги для интересов (В стиле главной страницы)
   const tagsHtml = chat.profile.interests
     .map(
       (tag) =>
-        `<span style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">#${tag}</span>`,
+        `<span style="background: transparent; color: var(--text-sub); border: 1px solid var(--border); padding: 4px 12px; border-radius: 16px; font-size: 11px; font-weight: 600;">${tag}</span>`,
     )
     .join("");
 
@@ -624,48 +641,49 @@ window.showChatUserProfile = function () {
   overlay.className = "custom-alert-overlay";
   overlay.style.zIndex = "999999";
 
-  // === КОМПАКТНЫЙ ДИЗАЙН КАРТОЧКИ ===
+  // === КОНЦЕПТ 1: ЗЕРКАЛО (Идеальная центровка и минимализм) ===
+  // === КОНЦЕПТ 1: ЗЕРКАЛО (Обновленный: статус под фото, компактные отступы) ===
   overlay.innerHTML = `
-        <div class="custom-alert-box" style="text-align: left; padding: 20px 15px;">
+        <div class="custom-alert-box" style="text-align: center; padding: 24px 20px; position: relative;">
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <div onclick="showLargeAvatar('${avatarFace}')" style="cursor: pointer; font-size: 26px; background: var(--bg-flag-circle); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
-                        ${renderAvatarHTML(avatarFace)}
-                    </div>
-                    <div>
-                        <div style="font-weight: 900; font-size: 16px; color: var(--text-main); line-height: 1.1;">${chat.name} <span style="font-size: 12px; margin-left: 4px;">${chat.flag}</span></div>
-                        <div style="font-size: 11px; color: #27ae60; font-weight: bold;">Online</div>
-                    </div>
-                </div>
-                <button onclick="this.closest('.custom-alert-overlay').remove()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold; flex-shrink: 0;">✕</button>
+            <button onclick="this.closest('.custom-alert-overlay').remove()" style="position: absolute; top: 16px; right: 16px; background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold; z-index: 10; box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);">✕</button>
+
+            <div onclick="showLargeAvatar('${avatarFace}')" style="cursor: pointer; width: 86px; height: 86px; margin: 0 auto 6px auto; font-size: 36px; background: var(--bg-flag-circle); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 3px solid var(--bg-card); box-shadow: 0 8px 16px rgba(0,0,0,0.08);">
+                ${renderAvatarHTML(avatarFace)}
             </div>
 
-            <div style="font-size: 13px; color: var(--text-main); font-style: italic; line-height: 1.4; margin-bottom: 10px; background: var(--bg-input); padding: 10px; border-radius: 12px; border: 1px dashed var(--border);">
-                "${chat.profile.bio}"
+            <div style="font-size: 10px; color: #27ae60; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; ">Online</div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px;">
+                <span style="font-size: 22px; font-weight: 900; color: var(--text-title); line-height: 1;">${chat.name}</span>
+                <span style="padding: 2px 8px; font-size: 11px; background: transparent; color: var(--text-sub); border: 1px solid var(--border); border-radius: 12px; font-weight: 700;">${chat.flag}</span>
             </div>
 
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 15px;">
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 16px;">
                 ${tagsHtml}
             </div>
 
-            <div style="display: flex; gap: 6px; justify-content: space-between;">
-                <div style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 8px; padding: 8px 4px; text-align: center;">
-                    <div style="font-size: 15px; font-weight: 900; color: var(--primary); line-height: 1;">${displayDays}</div>
-                    <div style="font-size: 8px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; margin-top: 4px;">Days in App</div>
+            <div style="font-size: 13px; color: var(--text-sub); line-height: 1.4; margin-bottom: 20px; padding: 0 10px;">
+                ${chat.profile.bio}
+            </div>
+
+            <div style="display: flex; gap: 8px; justify-content: space-between;">
+                <div style="flex: 1; background: transparent; border: 1px solid var(--border-input); border-radius: 12px; padding: 12px 4px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 900; color: var(--primary); line-height: 1;">${displayDays}</div>
+                    <div style="font-size: 9px; color: var(--text-sub); font-weight: 800; text-transform: uppercase; margin-top: 6px;">Days in App</div>
                 </div>
-                <div style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 8px; padding: 8px 4px; text-align: center;">
-                    <div style="font-size: 15px; font-weight: 900; color: var(--primary); line-height: 1;">${displaySent}</div>
-                    <div style="font-size: 8px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; margin-top: 4px;">Sent</div>
+                <div style="flex: 1; background: transparent; border: 1px solid var(--border-input); border-radius: 12px; padding: 12px 4px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 900; color: var(--primary); line-height: 1;">${displaySent}</div>
+                    <div style="font-size: 9px; color: var(--text-sub); font-weight: 800; text-transform: uppercase; margin-top: 6px;">Sent</div>
                 </div>
-                <div style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 8px; padding: 8px 4px; text-align: center;">
-                    <div style="font-size: 15px; font-weight: 900; color: var(--primary); line-height: 1;">${displayCountries}</div>
-                    <div style="font-size: 8px; color: var(--text-sub); font-weight: bold; text-transform: uppercase; margin-top: 4px;">Countries</div>
+                <div style="flex: 1; background: transparent; border: 1px solid var(--border-input); border-radius: 12px; padding: 12px 4px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 900; color: var(--primary); line-height: 1;">${displayCountries}</div>
+                    <div style="font-size: 9px; color: var(--text-sub); font-weight: 800; text-transform: uppercase; margin-top: 6px;">Countries</div>
                 </div>
             </div>
             
         </div>
-    `;
+  `;
 
   phoneFrame.appendChild(overlay);
 };
@@ -895,4 +913,254 @@ window.startPracticeMode = function() {
   if (typeof startQuizGame === "function") {
       startQuizGame();
   }
+};
+// === ЛОГИКА МЕНЮ СКРЕПКИ В ЧАТЕ ===
+document.addEventListener("DOMContentLoaded", () => {
+  const attachBtn = document.getElementById("btn-chat-attach");
+  const attachMenu = document.getElementById("attachment-menu");
+  const sharedGalleryBtn = document.getElementById("btn-shared-gallery");
+  const sendPhotoBtn = document.getElementById("btn-send-photo");
+  const photoInput = document.getElementById("photo-input");
+
+  if (attachBtn && attachMenu) {
+      // 1. Открытие и закрытие меню по клику на саму скрепку
+      attachBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (attachMenu.style.display === "none" || attachMenu.style.display === "") {
+              attachMenu.style.display = "block";
+          } else {
+              attachMenu.style.display = "none";
+          }
+      });
+
+      // 2. Закрытие меню, если кликнули куда угодно мимо него
+      document.addEventListener("click", (e) => {
+          if (attachMenu.style.display === "block" && !attachMenu.contains(e.target) && e.target !== attachBtn) {
+              attachMenu.style.display = "none";
+          }
+      });
+  }
+
+  // 3. Клик по кнопке "Postcards"
+  if (sharedGalleryBtn) {
+      sharedGalleryBtn.addEventListener("click", () => {
+          attachMenu.style.display = "none";
+          if (typeof window.showSharedGallery === "function") {
+              window.showSharedGallery(); 
+          }
+      });
+  }
+
+  // 4. Клик по кнопке "Photo" (НОВОЕ!)
+  if (sendPhotoBtn && photoInput) {
+      sendPhotoBtn.addEventListener("click", () => {
+          attachMenu.style.display = "none"; // Прячем меню
+          photoInput.click(); // Имитируем клик по скрытому инпуту для выбора файлов
+      });
+
+      // Когда юзер выбрал фотку из галереи
+      photoInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          // Используем наш умный компрессор из script.js (сжимаем до 600px)
+          if (typeof compressImage === "function") {
+              compressImage(file, 600, (compressedBase64) => {
+                  sendPhotoMessage(compressedBase64);
+              });
+          }
+          
+          // Очищаем инпут, чтобы можно было выбрать это же фото еще раз
+          photoInput.value = "";
+      });
+  }
+});
+
+// === ФУНКЦИЯ СОХРАНЕНИЯ ФОТО-СООБЩЕНИЯ ===
+window.sendPhotoMessage = function(base64Image) {
+    if (!currentActiveChatId) return;
+
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    // Добавляем сообщение с новым типом "photo"
+    state.chats[currentActiveChatId].messages.push({
+        sender: "me",
+        type: "photo", // Важный флаг!
+        photoUrl: base64Image,
+        time: timeStr,
+    });
+
+    if (typeof saveState === "function") saveState();
+    renderMessages(); // Перерисовываем чат
+
+    // Заставляем бота мило отреагировать на твое фото через 2 секунды
+    setTimeout(() => {
+         if (typeof receiveMessage === "function") {
+             receiveMessage(currentActiveChatId, "Wow, what a beautiful photo! 😍");
+         }
+    }, 2000);
+};
+
+// === ФУНКЦИЯ ПОКАЗА ОБЩИХ ОТКРЫТОК В ЧАТЕ (СТРОГО ПО ID + НАТИВНАЯ ГАЛЕРЕЯ) ===
+window.showSharedGallery = function() {
+  // 1. Берем ID текущего чата напрямую из глобальной переменной (самый надежный способ)
+  const partnerId = currentActiveChatId;
+  if (!partnerId) return;
+
+  const chat = state.chats[partnerId];
+  const partnerName = chat ? chat.name : "Partner";
+
+  // 2. СТРОГИЙ ПОИСК ТОЛЬКО ПО УНИКАЛЬНОМУ ID
+  const sentCards = (state.sentPostcards || []).map((card, index) => ({...card, originalIndex: index, isSent: true}))
+      .filter(card => card.targetId === partnerId);
+
+  const receivedCards = (state.receivedPostcards || []).map((card, index) => ({...card, originalIndex: index, isSent: false}))
+      .filter(card => card.senderId === partnerId);
+
+  // Объединяем и сортируем по дате (самые свежие сверху)
+  const allShared = [...sentCards, ...receivedCards].sort((a, b) => 
+      (b.receivedAt || b.sentAt || 0) - (a.receivedAt || a.sentAt || 0)
+  );
+
+  // 3. ИСПОЛЬЗУЕМ РОДНУЮ МОДАЛКУ КОЛЛЕКЦИИ (Из script.js / index.html)
+  const modal = document.getElementById("modal-gallery");
+  const grid = document.getElementById("gallery-modal-grid");
+  const title = document.getElementById("gallery-modal-title");
+
+  if (!modal || !grid || !title) return;
+
+  // Меняем заголовок окна под имя собеседника
+  title.innerHTML = `📬 ${partnerName} Archive`;
+
+  // Настраиваем сетку (как в Flag Collection)
+  grid.className = "";
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(3, 1fr)";
+  grid.style.gap = "12px";
+  grid.style.alignContent = "start";
+  grid.style.padding = "10px 5px"; // Воздух для пульсации
+
+  if (allShared.length === 0) {
+      grid.style.display = "block";
+      grid.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 40px 20px; font-size: 13px;">No postcards exchanged with this traveler yet.</div>`;
+  } else {
+      grid.style.display = "grid";
+      grid.innerHTML = allShared.map(item => {
+          const flag = item.countryFlag || item.flag || "🌍";
+          const bgImg = item.frontImage ? `background-image: url(${item.frontImage});` : `background: #eee;`;
+          
+          // Определяем иконку: отправленная (📤) или полученная (📥)
+          const icon = item.isSent ? "📤" : "📥";
+          
+          // Пульсация только для НОВЫХ полученных открыток
+          const pulseClass = (!item.isSent && item.isNew) ? "card-pulse" : "";
+
+          // Выводим карточку ТОЧНО в таком же формате, как и в главной коллекции
+          return `
+          <div class="archive-card ${pulseClass}" data-index="${item.originalIndex}" data-is-sent="${item.isSent}"
+               style="${bgImg} background-size: cover; background-position: center; position: relative; cursor: pointer; aspect-ratio: 3/2; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+              
+              <div style="position: absolute; top: -6px; left: -6px; font-size: 12px; background: white; border-radius: 50%; padding: 4px; line-height: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.15); z-index: 2;">${icon}</div>
+              
+              <div style="position: absolute; bottom: 3px; right: 3px; font-size: 11px; background: rgba(255,255,255,0.9); border-radius: 50%; padding: 2px; line-height: 1; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">${flag}</div>
+          </div>`;
+      }).join("");
+  }
+
+  // Показываем родное окно поверх всего
+  modal.style.setProperty("z-index", "9999999", "important");
+  modal.style.display = "flex";
+};
+// ==========================================================================
+// ГАЛЕРЕЯ: ПРОСМОТР ЧАТ-ФОТО ВО ВЕСЬ ЭКРАН (НОВОЕ!)
+// ==========================================================================
+window.showFullSizePhoto = function(base64Image) {
+  const phoneFrame = document.querySelector(".phone-frame") || document.body;
+
+  // Создаем оверлей (черный фон поверх всего)
+  const overlay = document.createElement("div");
+  overlay.className = "custom-alert-overlay";
+  overlay.style.zIndex = "9999999"; // Самый высокий z-index
+  overlay.style.cursor = "zoom-out"; // Показываем, что клик закроет
+
+  // Закрываем по клику на фон
+  overlay.onclick = () => overlay.remove();
+
+  // Собираем HTML с картинкой
+  // Мы ограничиваем максимальную ширину/высоту картинки, чтобы она не вылезала за экран
+  overlay.innerHTML = `
+      <div style="position: relative; max-width: 90%; max-height: 90%; display: flex; align-items: center; justify-content: center; animation: alertPop 0.3s ease;">
+          <img src="${base64Image}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; border: 3px solid white; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+          
+          <div style="position: absolute; bottom: -25px; color: white; font-size: 11px; opacity: 0.7; font-weight: 600;"></div>
+      </div>
+  `;
+
+  phoneFrame.appendChild(overlay);
+};
+// ==========================================================================
+// ГАЛЕРЕЯ ОБЩИХ МЕДИА (ФОТО И ОТКРЫТКИ) ВНУТРИ ЧАТА
+// ==========================================================================
+window.showChatMediaGallery = function() {
+  // 1. Проверяем, открыт ли какой-то чат
+  if (!currentActiveChatId) return;
+  
+  const chat = state.chats[currentActiveChatId];
+  const partnerName = chat ? chat.name : "Partner";
+  const phoneFrame = document.querySelector(".phone-frame") || document.body;
+
+  // 2. Собираем все фотографии из истории сообщений этого чата
+  const photoMessages = (chat.messages || [])
+      .filter(m => m.type === 'photo' && m.photoUrl)
+      .map(m => ({ url: m.photoUrl, type: 'photo' }));
+
+  // 3. Собираем все открытки, полученные от этого пользователя (по ID)
+  const sharedPostcards = (state.receivedPostcards || [])
+      .filter(p => p.senderId === currentActiveChatId)
+      .map(p => ({ url: p.frontImage, type: 'postcard' }));
+
+  // Объединяем их (сначала новые)
+  const allMedia = [...photoMessages, ...sharedPostcards].reverse();
+
+  // 4. Создаем окно галереи (используем твой стиль оверлея)
+  const overlay = document.createElement("div");
+  overlay.className = "custom-alert-overlay";
+  overlay.id = "modal-chat-media";
+  overlay.style.zIndex = "10000"; // Поверх шапки чата
+
+  // Формируем сетку
+  let gridHtml = '';
+  if (allMedia.length === 0) {
+      gridHtml = `
+          <div style="text-align: center; color: var(--text-sub); padding: 40px 20px; font-size: 13px;">
+              No photos or postcards shared yet. 📷
+          </div>`;
+  } else {
+      gridHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; padding: 5px;">`;
+      allMedia.forEach(item => {
+          gridHtml += `
+              <div style="aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; background: var(--bg-input);" 
+                   onclick="window.showFullSizePhoto('${item.url}')">
+                  <img src="${item.url}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+              </div>
+          `;
+      });
+      gridHtml += `</div>`;
+  }
+
+  overlay.innerHTML = `
+      <div class="custom-alert-box" style="width: 90%; max-width: 340px;  padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <div style="font-weight: 900; font-size: 18px; color: var(--text-title);">📬 ${partnerName} Media</div>
+              <div style="cursor: pointer; font-size: 20px; color: var(--text-sub);" onclick="document.getElementById('modal-chat-media').remove()">✕</div>
+          </div>
+          
+          ${gridHtml}
+          
+          
+      </div>
+  `;
+
+  phoneFrame.appendChild(overlay);
 };

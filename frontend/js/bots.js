@@ -101,15 +101,16 @@ function simulateBotActivity() {
                 ? calculateDeliveryTime(bot.flag, myFlag)
                 : now + 3600000;
 
-            state.tracking.unshift({
-              type: "incoming",
-              fromBot: bot.name,
-              flag: bot.flag,
-              countryName: bot.countryName,
-              sentAt: now,
-              arrivalAt: arrivalTime,
-              status: "In transit ✈️",
-            });
+                state.tracking.unshift({
+                  type: "incoming",
+                  senderId: bot.userId, // <--- ДОБАВЛЯЕМ ВОТ ЭТУ СТРОЧКУ!
+                  fromBot: bot.name,
+                  flag: bot.flag,
+                  countryName: bot.countryName,
+                  sentAt: now,
+                  arrivalAt: arrivalTime,
+                  status: "In transit ✈️",
+                });
           }
         }
       }
@@ -149,6 +150,8 @@ async function processIncomingDelivery(item) {
     const stampBlob = await stampRes.blob();
 
     state.receivedPostcards.unshift({
+      senderId: item.senderId, 
+      displayId: 'PJ-' + Math.floor(1000 + Math.random() * 9000), // <--- ВОТ ЭТА СТРОЧКА!
       countryFlag: item.flag,
       fromBot: item.fromBot,
       senderName: item.fromBot,
@@ -163,6 +166,8 @@ async function processIncomingDelivery(item) {
   } catch (e) {
     console.error("Bot image generation failed:", e);
     state.receivedPostcards.unshift({
+      senderId: item.senderId, 
+      displayId: 'PJ-' + Math.floor(1000 + Math.random() * 9000), // <--- И СЮДА ТОЖЕ!
       countryFlag: item.flag,
       fromBot: item.fromBot,
       senderName: item.fromBot,
@@ -177,11 +182,6 @@ async function processIncomingDelivery(item) {
   }
 
   if (typeof refreshAllLists === "function") refreshAllLists();
-  if (typeof showToastNotification === "function") {
-    showToastNotification(
-      `📬 New postcard received from <b>${item.fromBot}</b> ${item.flag}!`,
-    );
-  }
 
   // === МАГИЯ: ОТКРЫВАЕМ ЧАТ С БОТОМ, КОТОРЫЙ ПРИСЛАЛ ОТКРЫТКУ ===
   if (typeof unlockChat === "function") {
@@ -304,17 +304,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (e.target.checked) {
         // ТУМБЛЕР ВКЛЮЧЕН -> Сразу создаем 10 ботов
         generateBots(10);
-        if (typeof showToastNotification === "function") {
-          showToastNotification("🤖 10 local postcrossers joined the world!");
-        }
+        
       } else {
         // ТУМБЛЕР ВЫКЛЮЧЕН -> Сбрасываем ботов
         state.bots = [];
         if (typeof refreshAllLists === "function") refreshAllLists();
         if (typeof updateCloudScreenUI === "function") updateCloudScreenUI();
-        if (typeof showToastNotification === "function") {
-          showToastNotification("🤖 Bots removed from the world.");
-        }
       }
     };
   }

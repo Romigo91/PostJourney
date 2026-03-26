@@ -917,25 +917,27 @@ function refreshAllLists() {
       ? state.receivedPostcards.length
       : 0;
 
-  const trackingCountEl = document.getElementById("tracking-count");
-  if (trackingCountEl) {
-    const now = new Date().getTime();
-    const activeDeliveries = state.tracking.filter((item) => {
-      return item.arrivalAt && item.arrivalAt - now > 0;
-    });
+      const trackingCountEl = document.getElementById("tracking-count");
+      if (trackingCountEl) {
+        const now = new Date().getTime();
+        const activeDeliveries = state.tracking.filter((item) => {
+          return item.arrivalAt && item.arrivalAt - now > 0;
+        });
+    
+        trackingCountEl.textContent = activeDeliveries.length;
+        if (activeDeliveries.length > 0) {
+          trackingCountEl.style.background = "#e67e22";
+        } else {
+          trackingCountEl.style.background = "#ccc";
+        }
+      }
+    
 
-    trackingCountEl.textContent = activeDeliveries.length;
-    if (activeDeliveries.length > 0) {
-      trackingCountEl.style.background = "#e67e22";
-    } else {
-      trackingCountEl.style.background = "#ccc";
-    }
-  }
-
-  if (typeof renderMapSections === "function") {
-    renderMapSections();
-  }
-}
+    
+      if (typeof renderMapSections === "function") {
+        renderMapSections();
+      }
+    } // <-- Это конец функции refreshAllLists
 
 
 // === ЗАПУСК ИГРЫ FLAG COLLECTION ===
@@ -1307,6 +1309,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const receivedCountEl = document.getElementById("received-count");
     if (receivedCountEl)
       receivedCountEl.textContent = state.receivedPostcards.length;
+
+    // === ДОБАВЛЕНО: Обновляем лимит летящих открыток на экране Create ===
+    const travelLimitEl = document.getElementById("traveling-limit-count");
+    if (travelLimitEl && state.tracking) {
+        const now = new Date().getTime();
+        // Считаем только те открытки, которые прямо сейчас летят (arrivalAt больше текущего времени)
+        const activeDeliveries = state.tracking.filter(item => item.arrivalAt && item.arrivalAt > now);
+        travelLimitEl.textContent = activeDeliveries.length;
+    }
   };
 
   // === ФУНКЦИИ ДЛЯ НОВЫХ ОКОН COLLECTION И TRACKING ===
@@ -1386,7 +1397,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if (typeof window.refreshAllLists === "function") window.refreshAllLists();
           if (typeof window.saveState === "function") window.saveState();
 
-          showToastNotification("🪄 Magic! Profile Auto-filled.");
         };
       }
 
@@ -2017,9 +2027,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       closeEditProfileModal();
 
-      if (typeof showToastNotification === "function") {
-        showToastNotification("✅ Profile updated successfully!");
-      }
+      
     });
+  }
+});
+// ==========================================================================
+// ГЛОБАЛЬНОЕ ЗАКРЫТИЕ МОДАЛОК ПО КЛИКУ НА ФОН
+// ==========================================================================
+document.addEventListener("click", (e) => {
+  // 1. Проверяем стандартные окна (у всех темный фон имеет этот класс)
+  if (e.target.classList.contains("custom-alert-overlay")) {
+    
+    // Если у окна есть ID (оно вшито в index.html), мы его просто скрываем
+    if (e.target.id) {
+      e.target.style.display = "none";
+    } 
+    // Если ID нет (окно сгенерировано на лету в JS), мы его удаляем из памяти
+    else {
+      e.target.remove();
+    }
+  }
+
+  // 2. Отдельно обрабатываем клик мимо 3D-просмотрщика открыток
+  if (e.target.classList.contains("modal-3d-overlay") || e.target.classList.contains("modal-3d")) {
+    const modal3d = document.getElementById("modal-3d");
+    if (modal3d) modal3d.style.display = "none";
   }
 });
