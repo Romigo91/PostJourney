@@ -90,7 +90,20 @@
             </div>
 
           </div>
-        </section>
+
+          <div style="margin-bottom: 20px;">
+            <div style="background: var(--bg-card); border-radius: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border); cursor: pointer;" onclick="openAchievementsModal()">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 14px; font-weight: 800; color: var(--text-sub);">Achievements</span>
+                    <span style="font-size: 10px; font-weight: 800; color: var(--text-status); letter-spacing: 0.5px;"></span>
+                </div>
+                
+                <div id="achievements-preview-container" style="display: flex; justify-content: center; align-items: center; min-height: 40px; margin-top: 10px;">
+                    </div>
+                
+            </div>
+        </div>
 
         <section class="screen" data-screen="chat">
       
@@ -110,7 +123,7 @@
             </div>
           </div>
     
-          <div id="active-chat-view" style="display: none; position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: var(--bg-phone); z-index: 9999; flex-direction: column;"> 
+          <div id="active-chat-view" style="display: none; position: fixed; top: 0; bottom: 0; left: 0; right: 0; z-index: 9999; flex-direction: column;"> 
     
             <div style="flex-shrink: 0; padding: 20px 15px 5px 15px; background: transparent; z-index: 10;">
               <div class="chat-header" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border-radius: 30px; padding: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid var(--border);">
@@ -423,7 +436,7 @@
         </div>
 
         <div id="modal-collection" class="custom-alert-overlay" style="display: none; z-index: 10000;">
-          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; text-align: left;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <h3 style="margin: 0; color: var(--text-main); font-size: 18px;">Collection 🗂️</h3>
               <button onclick="closeCollectionModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
@@ -459,7 +472,7 @@
         </div>
 
         <div id="modal-gallery" class="custom-alert-overlay" style="display: none; z-index: 10000;">
-          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 15px; display: flex; flex-direction: column; background: var(--bg-phone);">
+          <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 15px; display: flex; flex-direction: column;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                   <h3 id="gallery-modal-title" style="margin: 0; color: var(--text-main); font-size: 16px;">Collection</h3>
                   <button onclick="closeGalleryModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
@@ -469,7 +482,7 @@
           </div>
       </div>
       <div id="modal-flags" class="custom-alert-overlay" style="display: none; z-index: 10000;">
-        <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: left;">
+        <div class="custom-alert-box" style="width: 90%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; text-align: left;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 id="modal-flags-title" style="margin: 0; color: var(--text-main); font-size: 20px; font-weight: 900;">Europe</h3>
             <button onclick="closeFlagsModal()" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>
@@ -492,6 +505,20 @@
           </div>
         </div>
       </div>
+
+      <div id="modal-achievements" class="custom-alert-overlay" style="display: none; z-index: 99999;">
+        <div class="custom-alert-box" style="width: 90%; max-width: 360px; padding: 20px; max-height: 80vh; display: flex; flex-direction: column;">
+            
+          <div style="margin-bottom: 20px;">
+            <div style="background: var(--bg-card); cursor: pointer;" onclick="openAchievementsModal()">
+              <div id="achievements-preview-container" style="display: flex; justify-content: center; align-items: center; min-height: 40px; margin-top: 10px;"></div>
+                
+            </div>
+        </div>
+            
+      </div>
+
+    <div>
       <div id="modal-edit-profile" class="custom-alert-overlay" style="display: none; z-index: 10000;">
         <div class="custom-alert-box" style="width: 90%; max-height: 85vh; padding: 20px; display: flex; flex-direction: column; text-align: left;">
           
@@ -553,7 +580,7 @@
         </div>
       </div>
       <div id="modal-duel-bet" class="custom-alert-overlay" style="display: none; z-index: 100000;">
-        <div class="custom-alert-box" style="width: 90%; max-width: 340px; padding: 20px; display: flex; flex-direction: column; background: var(--bg-phone); text-align: center;">
+        <div class="custom-alert-box" style="width: 90%; max-width: 340px; padding: 20px; display: flex; flex-direction: column; text-align: center;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: var(--text-main); font-size: 18px; font-weight: 900;">Geo Quiz Duel 🌍</h3>
             <button onclick="document.getElementById('modal-duel-bet').style.display='none'" style="background: var(--bg-element); border: 1px solid var(--border); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-main); cursor: pointer; font-weight: bold;">✕</button>

@@ -1723,6 +1723,20 @@ window.closeLeaderboardModal = function () {
   }
 };
 
+window.openAchievementsModal = function () {
+  const modal = document.getElementById("modal-achievements");
+  if (modal) {
+    modal.style.display = "flex";
+  }
+};
+
+window.closeAchievementsModal = function () {
+  const modal = document.getElementById("modal-achievements");
+  if (modal) {
+    modal.style.display = "none";
+  }
+};
+
 // ==========================================================================
 // ФИНАЛЬНАЯ ЛОГИКА МОДАЛКИ ПРОФИЛЯ (С ИНТЕРЕСАМИ И ПОЗИЦИОНИРОВАНИЕМ ФОТО)
 // ==========================================================================

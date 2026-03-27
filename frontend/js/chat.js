@@ -1100,41 +1100,33 @@ window.showFullSizePhoto = function(base64Image) {
   phoneFrame.appendChild(overlay);
 };
 // ==========================================================================
-// ГАЛЕРЕЯ ОБЩИХ МЕДИА (ФОТО И ОТКРЫТКИ) ВНУТРИ ЧАТА
+// ГАЛЕРЕЯ ФОТОГРАФИЙ ИЗ ЧАТА (БЕЗ ОТКРЫТОК)
 // ==========================================================================
 window.showChatMediaGallery = function() {
-  // 1. Проверяем, открыт ли какой-то чат
   if (!currentActiveChatId) return;
   
   const chat = state.chats[currentActiveChatId];
   const partnerName = chat ? chat.name : "Partner";
   const phoneFrame = document.querySelector(".phone-frame") || document.body;
 
-  // 2. Собираем все фотографии из истории сообщений этого чата
-  const photoMessages = (chat.messages || [])
+  // 1. Собираем ТОЛЬКО фотографии из истории сообщений этого чата
+  const allMedia = (chat.messages || [])
       .filter(m => m.type === 'photo' && m.photoUrl)
-      .map(m => ({ url: m.photoUrl, type: 'photo' }));
+      .map(m => ({ url: m.photoUrl, type: 'photo' }))
+      .reverse(); // Свежие фото сверху
 
-  // 3. Собираем все открытки, полученные от этого пользователя (по ID)
-  const sharedPostcards = (state.receivedPostcards || [])
-      .filter(p => p.senderId === currentActiveChatId)
-      .map(p => ({ url: p.frontImage, type: 'postcard' }));
-
-  // Объединяем их (сначала новые)
-  const allMedia = [...photoMessages, ...sharedPostcards].reverse();
-
-  // 4. Создаем окно галереи (используем твой стиль оверлея)
+  // 2. Создаем окно галереи
   const overlay = document.createElement("div");
   overlay.className = "custom-alert-overlay";
   overlay.id = "modal-chat-media";
-  overlay.style.zIndex = "10000"; // Поверх шапки чата
+  overlay.style.zIndex = "10000";
 
   // Формируем сетку
   let gridHtml = '';
   if (allMedia.length === 0) {
       gridHtml = `
           <div style="text-align: center; color: var(--text-sub); padding: 40px 20px; font-size: 13px;">
-              No photos or postcards shared yet. 📷
+              No photos shared in this chat yet. 📷
           </div>`;
   } else {
       gridHtml = `<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; padding: 5px;">`;
@@ -1149,16 +1141,17 @@ window.showChatMediaGallery = function() {
       gridHtml += `</div>`;
   }
 
+  // Обрати внимание: поменял иконку в заголовке на 🖼️
   overlay.innerHTML = `
-      <div class="custom-alert-box" style="width: 90%; max-width: 340px;  padding: 20px;">
+      <div class="custom-alert-box" style="width: 90%; max-width: 340px; padding: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-              <div style="font-weight: 900; font-size: 18px; color: var(--text-title);">📬 ${partnerName} Media</div>
+              <div style="font-weight: 900; font-size: 18px; color: var(--text-title);">🖼️ ${partnerName} Photos</div>
               <div style="cursor: pointer; font-size: 20px; color: var(--text-sub);" onclick="document.getElementById('modal-chat-media').remove()">✕</div>
           </div>
           
           ${gridHtml}
           
-          
+          <button class="primary-button" style="margin-top: 15px; width: 100%;" onclick="document.getElementById('modal-chat-media').remove()">Close</button>
       </div>
   `;
 
